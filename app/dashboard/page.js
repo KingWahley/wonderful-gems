@@ -1,4 +1,4 @@
-import { MapPin, FileText, MessageSquare, CalendarCheck, TrendingUp } from "lucide-react";
+import { MapPin, FileText, MessageSquare, CalendarCheck, TrendingUp, Compass, BookOpen } from "lucide-react";
 
 export default function DashboardOverview() {
   const stats = [

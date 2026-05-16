@@ -1,58 +1,41 @@
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
 
-export default function WhyTravelWithMe() {
+export default function PlanYourTripCTA() {
   return (
-    <section className="py-24 bg-cream-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <section className="py-20 lg:py-24 bg-cream-100">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
+        <div className="relative bg-mustard-500 rounded-3xl p-10 md:p-14 lg:p-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-12 overflow-hidden">
           
-          <div className="relative">
-            <div className="aspect-[3/4] relative z-10 overflow-hidden shadow-2xl">
-              <div 
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1549880338-65ddcdfd017b?q=80&w=2000&auto=format&fit=crop')" }}
-              ></div>
-            </div>
-            {/* Decorative element */}
-            <div className="absolute -bottom-8 -left-8 w-64 h-64 border border-gold-500 z-0 hidden md:block"></div>
-            <div className="absolute top-12 -right-12 w-48 h-48 bg-white shadow-xl z-20 p-6 hidden md:flex flex-col justify-center items-center text-center">
-              <span className="text-4xl font-serif text-gold-600 mb-2">10+</span>
-              <span className="text-xs uppercase tracking-widest text-charcoal-900">Years of Luxury Travel Expertise</span>
-            </div>
+          {/* NOW BOOKING Badge */}
+          <div className="absolute top-8 right-8 inline-flex bg-white px-5 py-2 rounded-full border border-charcoal-900 items-center justify-center">
+            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-charcoal-900">
+              NOW BOOKING
+            </span>
           </div>
 
-          <div>
-            <span className="text-gold-600 uppercase tracking-widest text-xs font-semibold mb-3 block">Expertise</span>
-            <h2 className="text-4xl md:text-5xl font-serif text-charcoal-900 mb-6 leading-tight">Why Travel With Us?</h2>
-            <p className="text-charcoal-800/80 mb-8 font-light leading-relaxed text-lg">
-              We don't just book trips; we curate unforgettable experiences tailored specifically to your unique travel style. With our global network of luxury partners, we unlock doors that remain closed to the ordinary traveler.
+          <div className="text-left max-w-2xl relative z-10 pt-8 lg:pt-0">
+            <span className="text-white/90 uppercase tracking-[0.15em] text-[11px] font-bold mb-4 block">
+              A LITTLE EXTRA
+            </span>
+            <h2 className="text-4xl md:text-[52px] font-serif font-bold text-white mb-4 leading-tight">
+              Want me to plan <span className="italic font-normal">your</span> trip?
+            </h2>
+            <p className="text-white/95 text-[15px] md:text-base font-medium">
+              Custom itineraries, 1:1 consults, and full concierge bookings
+              <br className="hidden md:block" />
+              — from the writer behind these essays.
             </p>
+          </div>
 
-            <ul className="space-y-6 mb-10">
-              {[
-                { title: "Personalized Itineraries", desc: "Every detail crafted specifically for your preferences." },
-                { title: "VIP Access & Perks", desc: "Room upgrades, late check-outs, and exclusive amenities." },
-                { title: "Global Expertise", desc: "First-hand knowledge of the world's most luxurious destinations." },
-                { title: "24/7 Concierge Support", desc: "Peace of mind knowing we're always just a message away." }
-              ].map((item, idx) => (
-                <li key={idx} className="flex gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <CheckCircle2 className="text-gold-500" size={24} />
-                  </div>
-                  <div>
-                    <h4 className="font-serif text-xl text-charcoal-900 mb-1">{item.title}</h4>
-                    <p className="text-charcoal-800/70 font-light">{item.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <Link href="/plan-with-me" className="btn-primary">
-              Start Planning Your Journey
+          <div className="flex flex-col sm:flex-row gap-4 shrink-0 relative z-10 mt-2 lg:mt-0 lg:pt-16">
+            <Link href="/plan-with-me" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-white text-charcoal-900 font-bold text-[14px] hover:bg-gray-50 transition-colors">
+              See packages <span className="ml-2 font-serif text-lg leading-none font-normal">&rarr;</span>
+            </Link>
+            <Link href="/plan-with-me#inquiry" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-transparent border border-white text-white font-bold text-[14px] hover:bg-white/10 transition-colors">
+              Send an inquiry
             </Link>
           </div>
-
+          
         </div>
       </div>
     </section>

@@ -1,12 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold-500: #d4af37;
-  --color-gold-600: #aa8c2c;
-  --color-cream-100: #fdfbf7;
-  --color-cream-200: #f5f0e6;
-  --color-charcoal-800: #2c2c2c;
-  --color-charcoal-900: #1a1a1a;
+  --color-mustard-400: #ebc361;
+  --color-mustard-500: #e3b64c;
+  --color-mustard-600: #d0a33c;
+  --color-cream-100: #fbf9f4;
+  --color-cream-200: #f4f0e6;
+  --color-charcoal-800: #2a2a2a;
+  --color-charcoal-900: #111111;
+  --color-coral-500: #ea5849;
   
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
@@ -26,18 +28,20 @@
 }
 
 @layer components {
-  .btn-primary {
-    @apply inline-block px-8 py-4 bg-charcoal-900 text-white text-sm tracking-widest uppercase transition-all duration-300 hover:bg-gold-500 hover:shadow-lg;
+  .btn-pill {
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300;
   }
-  .btn-secondary {
-    @apply inline-block px-8 py-4 border border-charcoal-900 text-charcoal-900 text-sm tracking-widest uppercase transition-all duration-300 hover:bg-charcoal-900 hover:text-white;
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 bg-white text-charcoal-900 hover:bg-cream-100 shadow-sm;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 border border-white text-white hover:bg-white hover:text-charcoal-900;
+  }
+  .btn-outline-dark {
+    @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full text-xs font-semibold tracking-wide uppercase transition-all duration-300 border border-charcoal-900 text-charcoal-900 hover:bg-charcoal-900 hover:text-white;
   }
   
   .luxury-card {
-    @apply overflow-hidden rounded-xl bg-white shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-1;
-  }
-  
-  .glass-panel {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+    @apply overflow-hidden rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 border border-charcoal-900/5;
   }
 }

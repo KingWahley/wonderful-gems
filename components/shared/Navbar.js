@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -9,55 +9,71 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 10);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Destinations", path: "/destinations" },
-    { name: "Blog", path: "/blog" },
-    { name: "Mini Guides", path: "/mini-guides" },
-    { name: "Tours & Activities", path: "/tours" },
-    { name: "About", path: "/about" },
-    { name: "Plan With Me", path: "/plan-with-me" },
+    { name: "HOME", path: "/" },
+    { name: "DESTINATIONS", path: "/destinations" },
+    { name: "BLOG", path: "/blog" },
+    { name: "MINI-GUIDES", path: "/mini-guides" },
+    { name: "TOURS", path: "/tours" },
+    { name: "ABOUT", path: "/about" },
   ];
 
   return (
     <>
       <nav
-        className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${
-          isScrolled ? "bg-white/95 backdrop-blur-md shadow-sm py-4" : "bg-transparent py-6"
+        className={`fixed top-0 w-full z-50 transition-all duration-500 ease-in-out border-t-[8px] border-b-[16px] border-mustard-500 ${
+          isScrolled ? "bg-cream-100/95 backdrop-blur-md shadow-sm py-4" : "bg-cream-100 py-4 lg:py-5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link href="/" className="font-serif text-2xl tracking-wider">
-            <span className={isScrolled ? "text-charcoal-900" : "text-white"}>
-              WANDERFUL
-            </span>
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 flex justify-between items-center">
+          {/* Logo */}
+          <Link href="/" className="text-3xl lg:text-[34px] font-bold tracking-tight text-[#1a2332] flex items-center" style={{ fontFamily: 'Comic Sans MS, cursive, sans-serif' }}>
+            The Long Way
           </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex space-x-8">
+          <div className="hidden lg:flex items-center space-x-7">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.path}
-                className={`text-sm tracking-wide uppercase transition-colors relative group ${
-                  isScrolled ? "text-charcoal-800 hover:text-gold-500" : "text-white/90 hover:text-white"
+                className={`text-[11px] font-bold tracking-[0.15em] uppercase transition-colors relative group ${
+                  link.name === "HOME" ? "text-mustard-500" : "text-[#2b3a4a] hover:text-mustard-500"
                 }`}
               >
-                {link.name}
-                <span className={`absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full ${isScrolled ? "bg-gold-500" : "bg-white"}`}></span>
+                {link.name.replace("-", " ")}
               </Link>
             ))}
           </div>
 
+          {/* Right Actions */}
+          <div className="hidden lg:flex items-center space-x-5">
+            <div className="relative group">
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                className="bg-white border border-[#2b3a4a] rounded-full py-2 pl-9 pr-14 text-xs text-charcoal-900 focus:outline-none w-48 focus:w-56 transition-all duration-300 placeholder:text-gray-500"
+              />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-cream-200 border border-gray-200 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center">
+                ⌘K
+              </div>
+            </div>
+            
+            <Link href="/plan-with-me" className="bg-mustard-500 hover:bg-mustard-600 text-white rounded-full px-6 py-2.5 text-[11px] font-bold tracking-[0.1em] uppercase transition-colors shadow-sm">
+              PLAN WITH ME
+            </Link>
+          </div>
+
           {/* Mobile Menu Button */}
           <button
-            className={`lg:hidden ${isScrolled ? "text-charcoal-900" : "text-white"}`}
+            className="lg:hidden text-[#1a2332]"
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open Menu"
           >
@@ -80,7 +96,7 @@ export default function Navbar() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-end p-6">
-            <button onClick={() => setMobileMenuOpen(false)} className="text-charcoal-800 hover:text-gold-600 transition-colors">
+            <button onClick={() => setMobileMenuOpen(false)} className="text-charcoal-800 hover:text-mustard-600 transition-colors">
               <X size={28} />
             </button>
           </div>
@@ -90,11 +106,18 @@ export default function Navbar() {
                 key={link.name}
                 href={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-xl font-serif text-charcoal-800 hover:text-gold-600 transition-colors"
+                className="text-xl font-serif text-charcoal-800 hover:text-mustard-600 transition-colors"
               >
                 {link.name}
               </Link>
             ))}
+            <Link 
+              href="/plan-with-me" 
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-xl font-serif text-charcoal-800 hover:text-mustard-600 transition-colors flex items-center"
+            >
+              PLAN WITH ME <span className="ml-2">&rarr;</span>
+            </Link>
           </div>
         </div>
       </div>
