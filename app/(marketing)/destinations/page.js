@@ -1,63 +1,68 @@
 import Link from "next/link";
 import { destinations } from "@/data/mockData";
-import { Search } from "lucide-react";
 
 export default function DestinationsPage() {
   return (
-    <div className="pt-24 pb-20 bg-cream-100 min-h-screen">
-      {/* Page Header */}
-      <div className="bg-charcoal-900 text-white py-20 mb-16 mt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-6xl font-serif mb-6">Destinations</h1>
-          <p className="text-cream-100/80 max-w-2xl mx-auto text-lg font-light">
-            Explore our curated collection of the world's most extraordinary locations, from the Amalfi Coast to the temples of Kyoto.
+    <div className="pt-24 pb-24 bg-cream-100 min-h-screen">
+      <div className="max-w-[1200px] mx-auto px-6 lg:px-8">
+        
+        {/* Header */}
+        <div className="mb-12 mt-8">
+          <div className="flex items-center gap-1.5 mb-4">
+            <span className="text-[10px] tracking-[0.2em] font-bold text-mustard-500 uppercase">The Index</span>
+            <div className="w-2 h-2 bg-mustard-500"></div>
+          </div>
+          <h1 className="text-[50px] md:text-[56px] font-serif font-bold text-charcoal-900 leading-none mb-4">
+            Destinations
+          </h1>
+          <p className="text-charcoal-800/80 max-w-xl text-[14px] font-medium leading-relaxed">
+            Pick a country to see what I loved about it, my highlights, and every post from there. ✨
           </p>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-6">
-          <div className="flex gap-4 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-            <button className="px-6 py-2 bg-charcoal-900 text-white text-sm tracking-widest uppercase whitespace-nowrap">All</button>
-            <button className="px-6 py-2 border border-charcoal-900 text-charcoal-900 hover:bg-charcoal-900 hover:text-white transition-colors text-sm tracking-widest uppercase whitespace-nowrap">Europe</button>
-            <button className="px-6 py-2 border border-charcoal-900 text-charcoal-900 hover:bg-charcoal-900 hover:text-white transition-colors text-sm tracking-widest uppercase whitespace-nowrap">Asia</button>
-            <button className="px-6 py-2 border border-charcoal-900 text-charcoal-900 hover:bg-charcoal-900 hover:text-white transition-colors text-sm tracking-widest uppercase whitespace-nowrap">Americas</button>
-          </div>
-          
-          <div className="relative w-full md:w-64">
-            <input 
-              type="text" 
-              placeholder="Search destinations..." 
-              className="w-full border-b border-charcoal-900 py-2 pl-8 focus:outline-none bg-transparent"
-            />
-            <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 text-charcoal-900/50" size={18} />
-          </div>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {destinations.map((dest) => (
-            <Link key={dest.id} href={`/destinations/${dest.slug}`} className="group block">
-              <div className="relative h-[500px] w-full overflow-hidden mb-6 rounded-sm">
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 group-hover:scale-110"
-                  style={{ backgroundImage: `url(${dest.coverImage})` }}
-                ></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal-900/90 via-charcoal-900/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300"></div>
-                <div className="absolute bottom-8 left-8 right-8">
-                  <span className="text-gold-500 text-xs tracking-widest uppercase mb-2 block">{dest.region}</span>
-                  <h3 className="text-white font-serif text-4xl mb-4">{dest.country}</h3>
-                  <div className="flex gap-4 text-cream-100/70 text-sm tracking-wide uppercase">
-                    <span>{dest.blogsCount} Stories</span>
-                    <span>•</span>
-                    <span>{dest.toursCount} Tours</span>
-                  </div>
+            <Link key={dest.id} href={`/destinations/${dest.slug}`} className="group block bg-white rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100/50">
+              
+              {/* Image Container */}
+              <div className="relative h-[220px] md:h-[240px] w-full overflow-hidden">
+                <img 
+                  src={dest.coverImage} 
+                  alt={dest.country}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                
+                {/* Pill */}
+                <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                  <span className="text-[9px] font-bold tracking-widest uppercase text-charcoal-900">{dest.code}</span>
+                  <span className="text-[9px] font-bold tracking-widest uppercase text-charcoal-900">{dest.country}</span>
                 </div>
               </div>
+
+              {/* Content */}
+              <div className="p-6 md:p-8">
+                <span className="text-charcoal-400 text-[10px] tracking-[0.2em] uppercase font-bold mb-3 block">
+                  {dest.blogsCount} {dest.blogsCount === 1 ? 'POST' : 'POSTS'}
+                </span>
+                
+                <h3 className="font-serif text-[24px] font-bold text-charcoal-900 mb-3">
+                  {dest.country}
+                </h3>
+                
+                <p className="text-charcoal-800/70 text-[13px] leading-relaxed mb-6 line-clamp-2">
+                  {dest.excerpt}
+                </p>
+                
+                <div className="flex items-center text-coral-500 text-[11px] font-bold uppercase tracking-wider group-hover:text-coral-600 transition-colors">
+                  See posts <span className="ml-1 text-lg leading-none">→</span>
+                </div>
+              </div>
+
             </Link>
           ))}
         </div>
+
       </div>
     </div>
   );
