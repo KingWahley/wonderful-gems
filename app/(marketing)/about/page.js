@@ -2,49 +2,56 @@ import Image from "next/image";
 
 export default function AboutPage() {
   return (
-    <div className="pt-24 pb-20 bg-cream-100 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-24">
-          <div className="relative">
-            <div className="aspect-[3/4] relative z-10 overflow-hidden shadow-xl rounded-sm">
+    <div className="pt-32 pb-24 bg-cream-100 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 lg:mt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center max-w-[1100px] mx-auto">
+          
+          {/* Left Column - Image */}
+          <div className="relative w-full max-w-[440px] mx-auto lg:mr-auto lg:ml-0">
+            <div className="relative aspect-[4/5] w-full rounded-[24px] overflow-hidden shadow-sm">
               <div 
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: "url('https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1000&auto=format&fit=crop')" }}
               ></div>
             </div>
-            <div className="absolute -bottom-6 -right-6 w-3/4 aspect-[4/3] z-20 border-8 border-cream-100 shadow-xl overflow-hidden rounded-sm hidden md:block">
-               <div 
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1516483638261-f4dafaf00bc6?q=80&w=800&auto=format&fit=crop')" }}
-              ></div>
+            {/* Floating Pill */}
+            <div className="absolute top-12 -right-8 bg-coral-500 text-white text-[10px] tracking-[0.15em] font-bold uppercase py-2.5 px-5 rounded-full shadow-sm flex items-center gap-2 z-10 whitespace-nowrap">
+              <span className="text-sm leading-none">👋</span> HI, THAT'S ME
             </div>
           </div>
           
-          <div>
-            <span className="text-gold-600 uppercase tracking-widest text-xs font-semibold mb-3 block">Meet The Founder</span>
-            <h1 className="text-5xl md:text-6xl font-serif text-charcoal-900 mb-6">Hello, I'm Elena.</h1>
-            <p className="text-charcoal-800/80 mb-6 font-light leading-relaxed text-lg">
-              My journey into luxury travel began over a decade ago when I left my corporate career to explore the uncharted corners of the globe. What started as a personal quest for beauty and authenticity quickly evolved into Wanderful Travel.
-            </p>
-            <p className="text-charcoal-800/80 mb-8 font-light leading-relaxed text-lg">
-              I believe that travel is the ultimate luxury, not because of five-star thread counts, but because of the undivided time it gives us to reconnect with ourselves and the world around us. My mission is to curate spaces and experiences that foster this connection.
-            </p>
+          {/* Right Column - Content */}
+          <div className="lg:pr-8">
+            <span className="text-[11px] tracking-[0.2em] font-bold text-mustard-500 uppercase block mb-5">
+              About
+            </span>
+            <h1 className="text-[44px] md:text-[56px] font-serif font-bold text-charcoal-900 leading-[1.05] mb-8">
+              I write about places<br/>like I'd text a friend.
+            </h1>
             
-            <div className="border-l-2 border-gold-500 pl-6 my-8 italic text-charcoal-900 font-serif text-xl">
-              "To travel is to discover that everyone is wrong about other countries."
+            <div className="space-y-6 text-[15px] font-medium text-charcoal-800/80 leading-[1.8] mb-12">
+              <p>
+                The Long Way is a journal of slow travel — long essays for when you want to be transported, and short field guides for when you have a flight already booked. ✈️
+              </p>
+              <p>
+                I started writing it because the travel internet got loud, and I missed the kind of writing that took its time. The kind you read with a coffee on a Sunday morning and put down feeling like you've been somewhere.
+              </p>
+              <p>
+                When I recommend a tour, a hotel, or a piece of gear, it's something I've actually used and would tell a friend to use. Some are affiliate links — they cost you nothing and help keep this journal going. 🥂
+              </p>
             </div>
             
-            <img src="/signature.png" alt="Elena Signature" className="h-12 opacity-50 hidden" /> {/* Assuming there would be a signature */}
-            <span className="font-serif text-2xl text-charcoal-900 italic">Elena Rossi</span>
+            {/* Contact Card */}
+            <div className="bg-[#96CBA8] border-2 border-charcoal-900 rounded-[20px] px-8 py-6 inline-block w-full sm:w-auto min-w-[320px]">
+              <div className="font-serif font-bold text-[24px] text-charcoal-900 mb-1 flex items-center gap-2">
+                say hi 👋
+              </div>
+              <a href="mailto:hello@thelongway.travel" className="font-serif font-bold text-[18px] text-charcoal-900 hover:opacity-80 transition-opacity">
+                hello@thelongway.travel
+              </a>
+            </div>
           </div>
-        </div>
 
-        <div className="py-16 border-t border-b border-cream-200 mb-24 text-center max-w-4xl mx-auto">
-          <span className="text-gold-600 uppercase tracking-widest text-xs font-semibold mb-3 block">My Philosophy</span>
-          <h2 className="text-3xl md:text-4xl font-serif text-charcoal-900 mb-6">Slow Down & Savor</h2>
-          <p className="text-charcoal-800/80 font-light leading-relaxed text-lg">
-            We reject the idea of rushing through checklists. Instead, we advocate for slow travel—immersing yourself in a destination, understanding its rhythms, and allowing for spontaneity within a thoughtfully crafted framework. Every itinerary we design leaves room for serendipity.
-          </p>
         </div>
       </div>
     </div>

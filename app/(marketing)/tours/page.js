@@ -1,66 +1,105 @@
 import Link from "next/link";
 import { tours } from "@/data/mockData";
-import { Clock, MapPin, Check } from "lucide-react";
 
 export default function ToursPage() {
+  // Group tours by destination
+  const destinationsMap = tours.reduce((acc, tour) => {
+    if (!acc[tour.destination]) {
+      acc[tour.destination] = {
+        name: tour.destination,
+        code: tour.countryCode,
+        count: 0,
+        tours: []
+      };
+    }
+    acc[tour.destination].count += 1;
+    acc[tour.destination].tours.push(tour);
+    return acc;
+  }, {});
+
+  // Convert to array and preserve original order of appearance
+  const uniqueDestinations = Object.values(destinationsMap);
+
   return (
-    <div className="pt-24 pb-20 bg-cream-100 min-h-screen">
-      <div className="bg-charcoal-900 text-white py-20 mb-16 mt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-gold-500 uppercase tracking-widest text-xs font-semibold mb-3 block">Experiences</span>
-          <h1 className="text-5xl md:text-6xl font-serif mb-6">Tours & Activities</h1>
-          <p className="text-cream-100/80 max-w-2xl mx-auto text-lg font-light">
-            Exclusive, privately guided journeys that immerse you in the authentic culture, cuisine, and beauty of our favorite destinations.
+    <div className="pt-32 pb-24 bg-cream-100 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header Section */}
+        <div className="mb-12">
+          <div className="text-mustard-500 text-[10px] font-bold uppercase tracking-widest mb-3">
+            GETTING OUT THERE ☀️
+          </div>
+          <h1 className="text-5xl md:text-6xl font-serif text-charcoal-900 mb-6">Tours & activities</h1>
+          <p className="text-charcoal-900/90 text-lg font-light max-w-2xl mb-2 leading-relaxed">
+            Every guided experience I've actually done and would recommend — sorted by country so you can skip straight to the one you're planning. No accommodation here, just things to do. ✨
+          </p>
+          <p className="text-charcoal-900/50 text-[11px]">
+            To read more long-form — check out the Blog or Destinations page.
           </p>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-16">
-          {tours.map((tour) => (
-            <div key={tour.id} className="bg-white rounded-xl overflow-hidden shadow-sm flex flex-col lg:flex-row group">
-              <div className="lg:w-2/5 relative h-80 lg:h-auto overflow-hidden">
-                <div 
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                  style={{ backgroundImage: `url(${tour.heroImage})` }}
-                ></div>
-                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 text-xs tracking-widest uppercase font-semibold text-charcoal-900">
-                  {tour.destination}
-                </div>
-              </div>
-              <div className="lg:w-3/5 p-8 lg:p-12 flex flex-col justify-center">
-                <div className="flex gap-6 mb-4 text-xs tracking-widest uppercase text-charcoal-800/60">
-                  <span className="flex items-center gap-1"><Clock size={14} /> {tour.duration}</span>
-                  <span className="flex items-center gap-1"><MapPin size={14} /> {tour.destination}</span>
-                </div>
-                <h2 className="text-3xl font-serif text-charcoal-900 mb-4 group-hover:text-gold-600 transition-colors">
-                  {tour.title}
+        {/* Filters */}
+        <div className="flex flex-wrap gap-2 mb-16">
+          <button className="bg-white border border-charcoal-900/10 text-charcoal-900 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
+            ALL ({tours.length})
+          </button>
+          {uniqueDestinations.map(dest => (
+            <button key={dest.name} className="bg-white border border-charcoal-900/10 text-charcoal-900 hover:border-charcoal-900/30 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm transition-colors">
+              {dest.name} ({dest.count})
+            </button>
+          ))}
+        </div>
+
+        {/* Grouped Content */}
+        <div className="space-y-12">
+          {uniqueDestinations.map(group => (
+            <div key={group.name} className="border-t border-charcoal-900/10 pt-4">
+              <div className="flex justify-between items-end mb-6">
+                <h2 className="text-3xl text-charcoal-900">
+                  <span className="font-serif font-bold mr-2">{group.code}</span>
+                  <span className="font-serif">{group.name}</span>
                 </h2>
-                <p className="text-charcoal-800/70 mb-6 font-light leading-relaxed">
-                  {tour.description}
-                </p>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-                  {tour.included.slice(0, 4).map((inc, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm text-charcoal-800/80">
-                      <Check size={16} className="text-gold-500" />
-                      <span>{inc}</span>
-                    </div>
-                  ))}
-                </div>
+                <Link href={`/destinations/${group.name.toLowerCase()}`} className="text-coral-500 text-[10px] font-bold uppercase tracking-widest hover:text-coral-600 transition-colors">
+                  Country page &rarr;
+                </Link>
+              </div>
 
-                <div className="mt-auto flex flex-col sm:flex-row justify-between items-center pt-6 border-t border-cream-200">
-                  <div className="text-2xl font-serif text-charcoal-900 mb-4 sm:mb-0">
-                    {tour.price}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {group.tours.map(tour => (
+                  <div key={tour.id} className="bg-white rounded-[20px] p-7 border border-charcoal-900/5 shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow">
+                    
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-[10px] uppercase tracking-[0.2em] text-charcoal-900/50 font-bold block pt-1">
+                          {tour.category}
+                        </span>
+                        <span className="bg-mustard-500 text-charcoal-900 text-[9px] font-bold tracking-widest uppercase px-3 py-1 rounded-full shrink-0">
+                          {tour.badge}
+                        </span>
+                      </div>
+                      
+                      <h3 className="font-serif text-[22px] leading-tight text-charcoal-900 mb-3">{tour.title}</h3>
+                      <p className="text-charcoal-900/70 text-sm font-light leading-relaxed mb-8">
+                        {tour.description}
+                      </p>
+                    </div>
+
+                    <div className="flex justify-between items-end mt-auto">
+                      <span className="text-[11px] text-charcoal-900/60 font-light">
+                        {tour.details}
+                      </span>
+                      <Link href={`/tours/${tour.slug || tour.id}`} className="text-coral-500 text-[11px] font-bold uppercase tracking-widest hover:text-coral-600 transition-colors">
+                        Book it &rarr;
+                      </Link>
+                    </div>
+
                   </div>
-                  <Link href={`/tours/${tour.slug}`} className="btn-primary w-full sm:w-auto text-center">
-                    View Itinerary
-                  </Link>
-                </div>
+                ))}
               </div>
             </div>
           ))}
         </div>
+
       </div>
     </div>
   );

@@ -303,43 +303,140 @@ export const freshPosts = [
 export const tours = [
   {
     id: "1",
-    slug: "tuscany-wine-and-art",
-    title: "Tuscan Wine & Art Private Immersion",
-    destination: "Italy",
-    duration: "5 Days",
-    shortDescription: "A private journey through Chianti vineyards and Renaissance masterpieces.",
-    description: "Experience the rolling hills of Tuscany from a private villa, complete with exclusive wine tastings, a private chef, and VIP access to Florence's most prestigious galleries.",
-    price: "$4,500 pp",
-    included: ["5 Nights Luxury Villa", "Private Chef", "VIP Uffizi Tickets", "3 Wine Tastings", "Private Driver"],
-    excluded: ["International Flights", "Travel Insurance", "Personal Purchases"],
-    heroImage: "https://images.unsplash.com/photo-1516483638261-f4dafaf00bc6?q=80&w=2000&auto=format&fit=crop",
-    gallery: [
-      "https://images.unsplash.com/photo-1498503182468-3b51cbb6cb24?q=80&w=1000&auto=format&fit=crop"
-    ],
-    availability: "Year-round (Best May-October)"
+    countryCode: "JP",
+    destination: "Japan",
+    category: "CULTURE",
+    title: "Private Tea Ceremony in Gion",
+    description: "Tea ceremony with a master in a 200-year old machiya. The real deal, no corner cutting.",
+    details: "Duration: 2 hours | Kyoto",
+    badge: "TOUR"
   },
   {
     id: "2",
-    slug: "japan-culinary-tour",
-    title: "Japan Haute Cuisine & Culture",
+    countryCode: "JP",
     destination: "Japan",
-    duration: "10 Days",
-    shortDescription: "An exclusive culinary journey from Tokyo's sushi counters to Kyoto's kaiseki.",
-    description: "Savor the absolute best of Japanese cuisine with secured reservations at Michelin-starred restaurants, private tea ceremonies, and stays at ultra-luxury ryokans.",
-    price: "$8,200 pp",
-    included: ["10 Nights 5-Star/Ryokan", "All Michelin Dinners", "First-Class Bullet Train", "Private Guides"],
-    excluded: ["International Flights", "Alcohol (unless specified)"],
-    heroImage: "https://images.unsplash.com/photo-1480796927426-f609979314bd?q=80&w=2000&auto=format&fit=crop",
-    gallery: [
-      "https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=1000&auto=format&fit=crop"
-    ],
-    availability: "Spring & Autumn"
+    category: "TICKETS",
+    title: "Shibuya Sky — Skip the Line",
+    description: "Best views over Tokyo. Go at sunset. Worth the hype.",
+    details: "Duration: Open (good for 2 hours) | Tokyo",
+    badge: "TICKET"
+  },
+  {
+    id: "3",
+    countryCode: "PT",
+    destination: "Portugal",
+    category: "CULTURE",
+    title: "Sintra Day Trip with a Local",
+    description: "Skip the tourist buses and see Sintra's castles and the coast with a local guide.",
+    details: "Duration: 8 hours (Full Day) | Lisbon",
+    badge: "TOUR"
+  },
+  {
+    id: "4",
+    countryCode: "PT",
+    destination: "Portugal",
+    category: "COACH TOUR • AVOID IF POSSIBLE",
+    title: "Sintra Day Tour from Lisbon",
+    description: "Not my favorite style (a big bus and rushed), but the most economical way to see Sintra.",
+    details: "Duration: 8 hours | Portugal - Group Tour",
+    badge: "TOUR"
+  },
+  {
+    id: "5",
+    countryCode: "PT",
+    destination: "Portugal",
+    category: "WINE TASTING",
+    title: "Douro Valley Wine Tour",
+    description: "The top terraces, a river boat trip, and lunch with a local family. Book this way ahead.",
+    details: "Duration: Full Day | Leaving from Porto",
+    badge: "TOUR"
+  },
+  {
+    id: "6",
+    countryCode: "CL",
+    destination: "Chile",
+    category: "HIKING",
+    title: "Cascada Expediciones — Guided W Trek",
+    description: "For those who want the classic W Trek but with all logistics handled. Top class guides.",
+    details: "Duration: 5 days | Torres del Paine",
+    badge: "TOUR"
+  },
+  {
+    id: "7",
+    countryCode: "MX",
+    destination: "Mexico",
+    category: "FOOD & DRINK",
+    title: "Mezcal Palenque Day Trip",
+    description: "Visit working mezcal farms outside of Oaxaca City. Drink responsibly, hire a driver.",
+    details: "Duration: Full Day | Oaxaca",
+    badge: "TOUR"
+  },
+  {
+    id: "8",
+    countryCode: "MA",
+    destination: "Morocco",
+    category: "DAY TRIP",
+    title: "Atlas Mountains Day Trip",
+    description: "A break from the Medina. Hike between Berber villages and drink mint tea.",
+    details: "Duration: Full Day | Marrakech",
+    badge: "TOUR"
+  },
+  {
+    id: "9",
+    countryCode: "IS",
+    destination: "Iceland",
+    category: "ADVENTURE",
+    title: "Sólheimajökull Glacier Walk",
+    description: "You cannot do this without a guide and gear. The ice is incredible.",
+    details: "Duration: 3 hours | South Coast",
+    badge: "TOUR"
+  },
+  {
+    id: "10",
+    countryCode: "VN",
+    destination: "Vietnam",
+    category: "FOOD & DRINK",
+    title: "Hanoi Street Food Walking Tour",
+    description: "The best way to learn the ropes of eating on tiny plastic stools. Highly recommended.",
+    details: "Duration: 3 hours | Old Quarter",
+    badge: "TOUR"
+  },
+  {
+    id: "11",
+    countryCode: "IT",
+    destination: "Italy",
+    category: "LUXURY",
+    title: "Private Gozzo Boat — Half Day",
+    description: "Cruising the Amalfi Coast on a traditional wooden boat. Worth every penny.",
+    details: "Duration: 4 hours | Positano",
+    badge: "TOUR"
+  },
+  {
+    id: "12",
+    countryCode: "IT",
+    destination: "Italy",
+    category: "TICKETS",
+    title: "Florence Uffizi Skip-the-Line",
+    description: "Worth booking. The lines in summer are brutal.",
+    details: "Duration: Open | Florence",
+    badge: "TICKET"
+  },
+  {
+    id: "13",
+    countryCode: "BE",
+    destination: "Belgium",
+    category: "FOOD & DRINK",
+    title: "Brussels Beer & Chocolate Walking Tour",
+    description: "The two best things about Belgium.",
+    details: "Duration: 3.5 hours | Brussels",
+    badge: "TOUR"
   }
 ];
 
 export const miniGuides = [
   {
     id: "1",
+    type: "pocket",
     slug: "marrakech",
     countryCode: "MA",
     destination: "Morocco",
@@ -349,6 +446,7 @@ export const miniGuides = [
   },
   {
     id: "2",
+    type: "pocket",
     slug: "kyoto",
     countryCode: "JP",
     destination: "Japan",
@@ -358,11 +456,42 @@ export const miniGuides = [
   },
   {
     id: "3",
+    type: "pocket",
     slug: "lisbon",
     countryCode: "PT",
     destination: "Portugal",
     title: "Lisbon Travel Guide",
     excerpt: "Lisbon is a city of inclines, golden hours, and small counters where the woman behind the bar starts your order before you sit down. This guide is the pocket version: where to stay, what t...",
+    heroImage: "https://images.unsplash.com/photo-1513622470522-26cb33260feb?q=80&w=2000&auto=format&fit=crop"
+  },
+  {
+    id: "4",
+    type: "itinerary",
+    slug: "four-days-in-belgium",
+    countryCode: "BE",
+    destination: "Belgium",
+    title: "How to Spend 4 Days in Belgium",
+    excerpt: "BRUSSELS • BRUGES • GHENT • SEPTEMBER 2025",
+    heroImage: "https://images.unsplash.com/photo-1549877452-9c387954fbc2?q=80&w=2000&auto=format&fit=crop"
+  },
+  {
+    id: "5",
+    type: "itinerary",
+    slug: "two-weeks-in-italy",
+    countryCode: "IT",
+    destination: "Italy",
+    title: "How to Spend 2 Weeks in Italy",
+    excerpt: "ROME • FLORENCE • TUSCANY • CINQUE TERRE • AMALFI • MAY 2025",
+    heroImage: "https://images.unsplash.com/photo-1498503182468-3b51cbb6cb24?q=80&w=2000&auto=format&fit=crop"
+  },
+  {
+    id: "6",
+    type: "itinerary",
+    slug: "seven-days-in-portugal",
+    countryCode: "PT",
+    destination: "Portugal",
+    title: "Seven Days in Portugal: A Long-Read Itinerary",
+    excerpt: "LISBON • SINTRA • ÉVORA • PORTO • DOURO VALLEY • OCTOBER 2025",
     heroImage: "https://images.unsplash.com/photo-1513622470522-26cb33260feb?q=80&w=2000&auto=format&fit=crop"
   }
 ];

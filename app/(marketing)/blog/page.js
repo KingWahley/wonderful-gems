@@ -24,8 +24,8 @@ export default function BlogPage() {
   ];
 
   return (
-    <div className="pt-24 pb-24 bg-cream-100 min-h-screen">
-      <div className="max-w-[1200px] mx-auto px-6 lg:px-8">
+    <div className="pt-32 pb-24 bg-cream-100 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="mb-12 mt-8">

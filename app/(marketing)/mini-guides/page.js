@@ -6,77 +6,90 @@ export default function MiniGuidesPage() {
   const itineraryGuides = miniGuides.filter(g => g.type === "itinerary");
 
   return (
-    <div className="pt-24 pb-20 bg-cream-100 min-h-screen">
-      <div className="bg-charcoal-900 text-white py-20 mb-16 mt-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-gold-500 uppercase tracking-widest text-xs font-semibold mb-3 block">Downloads</span>
-          <h1 className="text-5xl md:text-6xl font-serif mb-6">Mini Guides</h1>
-          <p className="text-cream-100/80 max-w-2xl mx-auto text-lg font-light">
-            Bite-sized, highly curated pocket guides and itineraries for the independent traveler.
-          </p>
-        </div>
-      </div>
-
+    <div className="pt-32 pb-24 bg-cream-100 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Pocket Guides */}
         <div className="mb-24">
-          <div className="flex items-center justify-between mb-10 border-b border-charcoal-900/10 pb-4">
-            <h2 className="text-3xl font-serif text-charcoal-900">Pocket Guides</h2>
+          <div className="mb-12">
+            <div className="text-mustard-500 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+              <span>⚡</span> POCKET GUIDES
+            </div>
+            <h1 className="text-5xl md:text-6xl font-serif text-charcoal-900 mb-6">Mini Travel Guides</h1>
+            <p className="text-charcoal-900/80 text-lg md:text-xl font-light max-w-3xl">
+              Where to stay, what to eat, top sights, day trips — the practical pocket version of every destination, separate from the long reads.
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {pocketGuides.map((guide) => (
-              <Link key={guide.id} href={`/mini-guides/${guide.slug}`} className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300">
-                <div className="relative h-48 overflow-hidden">
+              <div key={guide.id} className="bg-white rounded-[20px] overflow-hidden group flex flex-col border border-charcoal-900/5 shadow-sm">
+                <div className="relative h-56 overflow-hidden">
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                     style={{ backgroundImage: `url(${guide.heroImage})` }}
                   ></div>
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors"></div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <span className="text-xs tracking-widest uppercase font-semibold">{guide.city}</span>
+                  <div className="absolute top-5 left-5">
+                    <span className="bg-mustard-500 text-charcoal-900 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                      <span>⚡</span> MINI GUIDE
+                    </span>
                   </div>
                 </div>
-                <div className="p-6">
-                  <h3 className="font-serif text-lg text-charcoal-900 mb-2">{guide.title}</h3>
-                  <p className="text-charcoal-800/70 text-sm mb-4 line-clamp-2">{guide.shortDescription}</p>
-                  <div className="flex justify-between items-center text-xs text-charcoal-800/50 uppercase tracking-wider">
-                    <span>{guide.idealDuration}</span>
-                    <span>{guide.budgetLevel}</span>
+                <div className="p-8 flex flex-col flex-grow">
+                  <span className="text-charcoal-900/50 font-bold text-[10px] tracking-[0.2em] uppercase mb-3 block">
+                    <span className="font-serif text-charcoal-900 mr-1">{guide.countryCode}</span> {guide.destination}
+                  </span>
+                  <h3 className="font-serif text-2xl text-charcoal-900 mb-4">{guide.title}</h3>
+                  <p className="text-charcoal-900/70 text-sm mb-6 line-clamp-3 leading-relaxed font-light">{guide.excerpt}</p>
+                  <div className="mt-auto">
+                    <Link href={`/mini-guides/${guide.slug}`} className="text-coral-500 text-[11px] font-bold uppercase tracking-widest hover:text-coral-600 transition-colors flex items-center gap-2">
+                      Open the guide <span className="text-lg leading-none">&rarr;</span>
+                    </Link>
                   </div>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Itinerary Guides */}
         <div>
-          <div className="flex items-center justify-between mb-10 border-b border-charcoal-900/10 pb-4">
-            <h2 className="text-3xl font-serif text-charcoal-900">Itinerary Guides</h2>
+          <div className="mb-12">
+            <div className="text-mustard-500 text-xs font-bold uppercase tracking-widest mb-3 flex items-center gap-2">
+              <span>🗓️</span> ITINERARY MINI GUIDES
+            </div>
+            <h2 className="text-5xl md:text-6xl font-serif text-charcoal-900 mb-6">Day-by-day itineraries</h2>
+            <p className="text-charcoal-900/80 text-lg md:text-xl font-light max-w-3xl">
+              Step-by-step routes you can copy — where to stay each night and how to move between bases.
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {itineraryGuides.map((guide) => (
-              <Link key={guide.id} href={`/mini-guides/${guide.slug}`} className="group flex flex-col sm:flex-row bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300">
-                <div className="sm:w-2/5 relative h-48 sm:h-auto overflow-hidden">
+              <div key={guide.id} className="bg-white rounded-[20px] overflow-hidden group flex flex-col border border-charcoal-900/5 shadow-sm">
+                <div className="relative h-56 overflow-hidden">
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                     style={{ backgroundImage: `url(${guide.heroImage})` }}
                   ></div>
-                </div>
-                <div className="sm:w-3/5 p-6 md:p-8 flex flex-col justify-center">
-                  <span className="text-gold-600 text-xs tracking-widest uppercase mb-2 block">{guide.destination}</span>
-                  <h3 className="font-serif text-2xl text-charcoal-900 mb-3">{guide.title}</h3>
-                  <p className="text-charcoal-800/70 text-sm mb-4 line-clamp-2">{guide.excerpt}</p>
-                  <div className="mt-auto flex items-center gap-4 text-xs text-charcoal-800/50 uppercase tracking-wider">
-                    <span>{guide.numberOfDays} Days</span>
-                    <span>•</span>
-                    <span>{guide.travelType}</span>
+                  <div className="absolute top-5 left-5">
+                    <span className="bg-white text-charcoal-900 text-[10px] font-bold tracking-widest uppercase px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm">
+                      <span className="font-serif mr-0.5">{guide.countryCode}</span> {guide.destination}
+                    </span>
                   </div>
                 </div>
-              </Link>
+                <div className="p-8 flex flex-col flex-grow">
+                  <span className="text-charcoal-900/50 font-bold text-[10px] tracking-[0.2em] uppercase mb-4 block leading-relaxed">
+                    {guide.excerpt}
+                  </span>
+                  <h3 className="font-serif text-2xl text-charcoal-900 mb-6">{guide.title}</h3>
+                  <div className="mt-auto">
+                    <Link href={`/mini-guides/${guide.slug}`} className="text-coral-500 text-[11px] font-bold uppercase tracking-widest hover:text-coral-600 transition-colors flex items-center gap-2">
+                      Read the story <span className="text-lg leading-none">&rarr;</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -85,3 +98,4 @@ export default function MiniGuidesPage() {
     </div>
   );
 }
+
