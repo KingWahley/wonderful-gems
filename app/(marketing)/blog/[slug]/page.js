@@ -23,7 +23,7 @@ export default async function BlogPost({ params }) {
   ).slice(0, 3);
 
   // Latest posts for sidebar
-  const latestPosts = blogPosts.filter(p => p.id !== post.id).slice(0, 2);
+  const latestPosts = blogPosts.filter(p => p.id !== post.id);
 
   // Get all unique destinations
   const uniqueDestinations = [...new Set(blogPosts.map(p => p.destination))];
@@ -249,12 +249,31 @@ export default async function BlogPost({ params }) {
         {/* Sidebar */}
         <div className="lg:w-[30%]">
           <div className="sticky top-32">
-            <div className="border border-charcoal-900/10 bg-white rounded-[20px] p-6">
+            <div className="border border-charcoal-900/10 bg-white rounded-[20px] p-6 shadow-sm">
               <span className="text-[10px] font-bold tracking-widest text-mustard-500 uppercase block mb-6">LATEST POSTS</span>
               
-              <div className="space-y-6">
+              {/* Custom styled scroll container */}
+              <div className="space-y-6 max-h-[500px] overflow-y-auto pr-3 custom-sidebar-scroll">
+                <style>{`
+                  .custom-sidebar-scroll::-webkit-scrollbar {
+                    width: 4px;
+                  }
+                  .custom-sidebar-scroll::-webkit-scrollbar-track {
+                    background: rgba(220, 174, 29, 0.05);
+                    border-radius: 10px;
+                  }
+                  .custom-sidebar-scroll::-webkit-scrollbar-thumb {
+                    background: rgba(220, 174, 29, 0.3);
+                    border-radius: 10px;
+                    transition: background 0.2s;
+                  }
+                  .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+                    background: rgba(220, 174, 29, 0.6);
+                  }
+                `}</style>
+                
                 {latestPosts.map((latest) => (
-                  <Link href={`/blog/${latest.slug}`} key={latest.id} className="group block">
+                  <Link href={`/blog/${latest.slug}`} key={latest.id} className="group block border-b border-charcoal-900/5 pb-6 last:border-b-0 last:pb-0">
                     <div className="w-full h-[120px] rounded-[12px] overflow-hidden mb-4">
                       <img 
                         src={latest.coverImage} 

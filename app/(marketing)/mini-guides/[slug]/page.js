@@ -1,79 +1,750 @@
-import { miniGuides } from "@/data/mockData";
+import { miniGuides, blogPosts, freshPosts } from "@/data/mockData";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
+
+// Robust dynamic guide dataset mapping for cities mentioned in database
+const cityGuidesData = {
+  "lisbon": {
+    country: "Portugal",
+    flag: "🇵🇹",
+    pocketTitle: "LISBON MINI GUIDE • POCKET VERSION",
+    itineraryTitle: "7 DAYS IN PORTUGAL • FULL ITINERARY",
+    blogCountText: "4 POSTS FROM PORTUGAL",
+    excerpt: "A coastal city of inclines, golden hours, and small counters where the woman behind the bar starts your order before you sit down.",
+    sights: [
+      { num: "01", text: "Alfama at sunrise", color: "text-[#DCAE1D]" },
+      { num: "02", text: "Miradouro da Senhora do Monte", color: "text-[#46B6E6]" },
+      { num: "03", text: "Jerónimos Monastery", color: "text-[#8FC1A3]" },
+      { num: "04", text: "Belém Tower", color: "text-[#E76F51]" },
+      { num: "05", text: "Time Out Market", color: "text-[#DCAE1D]" },
+      { num: "06", text: "LX Factory", color: "text-[#46B6E6]" },
+      { num: "07", text: "Tram 28 (early morning only)", color: "text-[#8FC1A3]" },
+      { num: "08", text: "Castelo de São Jorge", color: "text-[#E76F51]" }
+    ],
+    stay: {
+      budget: [
+        { name: "Lisbon Destination Hostel", desc: "Inside Rossio station, surprisingly nice." },
+        { name: "Home Lisbon Hostel", desc: "Family dinners every night." }
+      ],
+      mid: [
+        { name: "Santiago de Alfama", desc: "19 rooms in a 15th-century palace." },
+        { name: "The Lumiares", desc: "Apartment-style, in the heart of Bairro Alto." }
+      ],
+      splurge: [
+        { name: "Memmo Alfama", desc: "The terrace pool at sunset is unbeatable." },
+        { name: "Bairro Alto Hotel", desc: "Rooftop with Tagus views." }
+      ]
+    },
+    activities: [
+      { num: "01", text: "Sintra day trip with a local guide", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" },
+      { num: "02", text: "Private catamaran cruise in Lisbon", bg: "bg-[#46B6E6]", textCol: "text-white" },
+      { num: "03", text: "Exploring the tile murals of Alfama", bg: "bg-[#8FC1A3]", textCol: "text-white" },
+      { num: "04", text: "Pasteis de nata baking masterclass", bg: "bg-[#E76F51]", textCol: "text-white" },
+      { num: "05", text: "Fado show in a neighborhood spot", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" }
+    ],
+    eat: [
+      { name: "Pastel de nata", desc: "Crisp puff pastry with custard caramelized to perfection." },
+      { name: "Bacalhau à Brás", desc: "Shredded salted cod sautéed with onions and thin matchstick potatoes." },
+      { name: "Bifana", desc: "The ultimate local pork sandwich, marinated in garlic and white wine." },
+      { name: "Arroz de Marisco", desc: "Rich soupy seafood rice loaded with prawns, clams, and fresh cilantro." },
+      { name: "Ginjinha", desc: "Sweet sour cherry liqueur served in a tiny chocolate cup." }
+    ],
+    restaurants: {
+      budget: [
+        { name: "Time Out Market Lisbon", desc: "Dozens of premium food stalls under one historic iron roof." },
+        { name: "Taberna do Sal Grosso", desc: "Stunning small-plate traditional taverna. Hard to get in." }
+      ],
+      mid: [
+        { name: "Bairro do Avillez", desc: "A creative culinary playground by Jose Avillez." },
+        { name: "Prado", desc: "Farm-to-table farm fresh ingredients and brilliant natural wines." }
+      ],
+      splurge: [
+        { name: "Alma", desc: "Two Michelin stars of masterfully elevated Portuguese classics." },
+        { name: "Belcanto", desc: "A cinematic fine dining experience in a beautiful historic convent vault." }
+      ]
+    },
+    dayTrips: [
+      { num: "01", name: "Sintra (Pena Palace, Quinta da Regaleira)", bg: "bg-[#E9C46A]/20 border-[#E9C46A]/40", badgeCol: "bg-[#E9C46A] text-charcoal-900" },
+      { num: "02", name: "Cascais & Boca do Inferno", bg: "bg-[#46B6E6]/20 border-[#46B6E6]/40", badgeCol: "bg-[#46B6E6] text-white" },
+      { num: "03", name: "Évora (historic Roman temple)", bg: "bg-[#8FC1A3]/20 border-[#8FC1A3]/40", badgeCol: "bg-[#8FC1A3] text-white" },
+      { num: "04", name: "Óbidos (walled medieval town)", bg: "bg-[#E76F51]/20 border-[#E76F51]/40", badgeCol: "bg-[#E76F51] text-white" }
+    ]
+  },
+  "kyoto": {
+    country: "Japan",
+    flag: "🇯🇵",
+    pocketTitle: "KYOTO MINI GUIDE • POCKET VERSION",
+    itineraryTitle: "10 DAYS IN JAPAN • FULL ITINERARY",
+    blogCountText: "3 POSTS FROM JAPAN",
+    excerpt: "Ancient temples, bamboo paths, and geisha districts layered in silent history and refined cypress rituals.",
+    sights: [
+      { num: "01", text: "Fushimi Inari shrine path gates", color: "text-[#DCAE1D]" },
+      { num: "02", text: "Kinkaku-ji Golden Pavilion views", color: "text-[#46B6E6]" },
+      { num: "03", text: "Gion historic alley evening wanders", color: "text-[#8FC1A3]" },
+      { num: "04", text: "Kiyomizu-dera wooden balcony temple", color: "text-[#E76F51]" },
+      { num: "05", text: "Arashiyama bamboo forest path", color: "text-[#DCAE1D]" },
+      { num: "06", text: "Nishiki Market street food crawl", color: "text-[#46B6E6]" },
+      { num: "07", text: "Silent stroll on Philosopher's Path", color: "text-[#8FC1A3]" },
+      { num: "08", text: "Ryoan-ji Zen rock garden contemplation", color: "text-[#E76F51]" }
+    ],
+    stay: {
+      budget: [
+        { name: "Piece Hostel Sanjo", desc: "High design hostel with premium concrete vibes." },
+        { name: "Len Kyoto Kawaramachi", desc: "Social cafe & bar lobby near the Kamogawa river." }
+      ],
+      mid: [
+        { name: "Sowaka Kyoto Ryokan", desc: "Perfect wooden architecture blend of history." },
+        { name: "Noku Kyoto", desc: "Boutique luxury directly adjacent to the Imperial Palace." }
+      ],
+      splurge: [
+        { name: "Hoshinoya Kyoto", desc: "Accessible only by a quiet wooden boat upriver." },
+        { name: "The Ritz-Carlton Kyoto", desc: "Ultimate luxury with pristine river views." }
+      ]
+    },
+    activities: [
+      { num: "01", text: "Private tea ceremony with a master", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" },
+      { num: "02", text: "Early morning hike up Fushimi Inari", bg: "bg-[#46B6E6]", textCol: "text-white" },
+      { num: "03", text: "Traditional Tofu lunch in Arashiyama", bg: "bg-[#8FC1A3]", textCol: "text-white" },
+      { num: "04", text: "Gion night walk with a culture expert", bg: "bg-[#E76F51]", textCol: "text-white" },
+      { num: "05", text: "Zen meditation garden breathing class", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" }
+    ],
+    eat: [
+      { name: "Kaiseki Dinner", desc: "Artistic, multi-course traditional dinner showcasing seasonal ingredients." },
+      { name: "Yuba (Tofu Skin)", desc: "Delicate and creamy tofu skin layers prepared in warm savory broths." },
+      { name: "Matcha Latte & Sweets", desc: "Whisked stone-ground green tea served with sweet red bean pastries." },
+      { name: "Kyoto-style Ramen", desc: "Rich chicken broth ramen with local bamboo shoots and tender pork." },
+      { name: "Sake Tasting in Fushimi", desc: "Crisp, sweet, and dry sake flight from local historic canal breweries." }
+    ],
+    restaurants: {
+      budget: [
+        { name: "Gyoza Hohei", desc: "Tucked-away counter in Gion known for spectacular ginger gyoza." },
+        { name: "Kura Sushi Kawaramachi", desc: "Fast-paced revolving conveyor belt plates with classic favorites." }
+      ],
+      mid: [
+        { name: "Monk Restaurant", desc: "7-course wood-fired tasting menu set next to the Philosopher's Path." },
+        { name: "Pontocho Kabuki", desc: "Seasonal riverbank dining overlooks the scenic water channel." }
+      ],
+      splurge: [
+        { name: "Gion Sasaki", desc: "Three Michelin stars of ultra-premium, interactive counter culinary art." },
+        { name: "Kikunoi Honten", desc: "Centuries-old absolute masterclass in traditional Kaiseki layout." }
+      ]
+    },
+    dayTrips: [
+      { num: "01", name: "Nara Deer Park & giant Todai-ji temple", bg: "bg-[#E9C46A]/20 border-[#E9C46A]/40", badgeCol: "bg-[#E9C46A] text-charcoal-900" },
+      { num: "02", name: "Osaka Castle & Dotonbori neon food street", bg: "bg-[#46B6E6]/20 border-[#46B6E6]/40", badgeCol: "bg-[#46B6E6] text-white" },
+      { num: "03", name: "Uji matcha tea farms & quiet canals", bg: "bg-[#8FC1A3]/20 border-[#8FC1A3]/40", badgeCol: "bg-[#8FC1A3] text-white" },
+      { num: "04", name: "Himeji Castle white wood architecture", bg: "bg-[#E76F51]/20 border-[#E76F51]/40", badgeCol: "bg-[#E76F51] text-white" }
+    ]
+  },
+  "marrakech": {
+    country: "Morocco",
+    flag: "🇲🇦",
+    pocketTitle: "MARRAKECH MINI GUIDE • POCKET VERSION",
+    itineraryTitle: "5 DAYS IN MARRAKECH • FULL ITINERARY",
+    blogCountText: "2 POSTS FROM MOROCCO",
+    excerpt: "Spiced souks, hidden riad pools, and sunset mint tea under palatial historic arches.",
+    sights: [
+      { num: "01", text: "Jemaa el-Fnaa night street stalls", color: "text-[#DCAE1D]" },
+      { num: "02", text: "Bahia Palace intricate carved rooms", color: "text-[#46B6E6]" },
+      { num: "03", text: "Jardin Majorelle cobalt blue path", color: "text-[#8FC1A3]" },
+      { num: "04", text: "Souk market alleys exploration", color: "text-[#E76F51]" },
+      { num: "05", text: "Ben Youssef Madrasa central pool", color: "text-[#DCAE1D]" },
+      { num: "06", text: "Saadian Tombs marble carvings", color: "text-[#46B6E6]" },
+      { num: "07", text: "Le Jardin Secret peaceful oasis", color: "text-[#8FC1A3]" },
+      { num: "08", text: "El Badi Palace towering stork nests", color: "text-[#E76F51]" }
+    ],
+    stay: {
+      budget: [
+        { name: "Riad Dia Hostels", desc: "Vibrant, highly social backpacker sanctuary near central souks." },
+        { name: "Riad Layla Rouge", desc: "Intimate and colorful multi-layered riad with high-view rooftop." }
+      ],
+      mid: [
+        { name: "Riad Yasmine", desc: "Pristine green courtyard pool, famous on Instagram." },
+        { name: "Riad Jardin Secret", desc: "Art-filled silent courtyard, highly peaceful." }
+      ],
+      splurge: [
+        { name: "La Mamounia Palace", desc: "Palatial gardens, rich history, and world-class spa." },
+        { name: "Royal Mansour Marrakech", desc: "Private multi-story riads for ultimate royal privacy." }
+      ]
+    },
+    activities: [
+      { num: "01", text: "Sahara desert sunset camel safari ride", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" },
+      { num: "02", text: "Traditional lamb tagine cooking class", bg: "bg-[#46B6E6]", textCol: "text-white" },
+      { num: "03", text: "Guided historical medina alley walk", bg: "bg-[#8FC1A3]", textCol: "text-white" },
+      { num: "04", text: "Hot air balloon flight over Atlas hills", bg: "bg-[#E76F51]", textCol: "text-white" },
+      { num: "05", text: "Royal Hammam mud scrub & massage bath", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" }
+    ],
+    eat: [
+      { name: "Lamb Tagine", desc: "Slow-braised lamb shanks with dried prunes, almonds, and warm spices." },
+      { name: "Couscous Royale", desc: "Fragrant steamed semolina grains topped with root vegetables and grilled meats." },
+      { name: "Fresh Mint Tea", desc: "Bubbling green tea poured with fresh spearmint leaves from high heights." },
+      { name: "Pastilla Pie", desc: "Layers of crisp brick pastry stuffed with spiced pigeon, almonds, and sugar dust." },
+      { name: "Harira Soup", desc: "Thick tomato, lentil, and chickpea broth flavored with lemon and cilantro." }
+    ],
+    restaurants: {
+      budget: [
+        { name: "Stall 117 Barbecue", desc: "Sensational grilled skewers in the heart of Jemaa el-Fnaa night action." },
+        { name: "Chez Chegrouni", desc: "Great rooftop view over the main square with budget beef tagines." }
+      ],
+      mid: [
+        { name: "Nomad Marrakech", desc: "Chic modern twists on classic Moroccan cooking with sunset view rooftops." },
+        { name: "Le Jardin", desc: "Lush garden dining oasis inside a beautifully restored 16th-century medina riad." }
+      ],
+      splurge: [
+        { name: "La Grande Table Marocaine", desc: "Highly refined fine dining inside the royal walls of Royal Mansour." },
+        { name: "Dar Moha Garden", desc: "Sensational palatial setting around a gorgeous pool with modern live lute tunes." }
+      ]
+    },
+    dayTrips: [
+      { num: "01", name: "Atlas Mountains & Berber waterfall hike", bg: "bg-[#E9C46A]/20 border-[#E9C46A]/40", badgeCol: "bg-[#E9C46A] text-charcoal-900" },
+      { num: "02", name: "Essaouira coastal blue streets & harbor", bg: "bg-[#46B6E6]/20 border-[#46B6E6]/40", badgeCol: "bg-[#46B6E6] text-white" },
+      { num: "03", name: "Ouzoud spectacular cascading waterfalls", bg: "bg-[#8FC1A3]/20 border-[#8FC1A3]/40", badgeCol: "bg-[#8FC1A3] text-white" },
+      { num: "04", name: "Agafay stone desert quad bike safari", bg: "bg-[#E76F51]/20 border-[#E76F51]/40", badgeCol: "bg-[#E76F51] text-white" }
+    ]
+  }
+};
+
+export async function generateStaticParams() {
+  return miniGuides.map((guide) => ({
+    slug: guide.slug,
+  }));
+}
 
 export default async function MiniGuideDetails({ params }) {
   const resolvedParams = await Promise.resolve(params);
   const guide = miniGuides.find(g => g.slug === resolvedParams.slug) || miniGuides[0];
 
+  const citySlug = guide.slug.toLowerCase();
+  
+  // Resolve rich custom data mapping, or default gracefully to Lisbon
+  const details = cityGuidesData[citySlug] || cityGuidesData["lisbon"];
+
+  const currentFlag = details.flag || "📍";
+  
+  // Combine all blogs and itineraries, filtering out duplicate slugs
+  const combinedBlogs = [...blogPosts, ...freshPosts];
+  const uniqueBlogs = [];
+  const seenSlugs = new Set();
+  for (const post of combinedBlogs) {
+    if (!seenSlugs.has(post.slug)) {
+      seenSlugs.add(post.slug);
+      uniqueBlogs.push(post);
+    }
+  }
+
+  // Related dispatches from the same country
+  const destinationBlogs = uniqueBlogs.filter(
+    (b) => b.destination.toLowerCase() === guide.destination.toLowerCase()
+  );
+  // Other dispatches to ensure rich scrollable options
+  const otherBlogs = uniqueBlogs.filter(
+    (b) => b.destination.toLowerCase() !== guide.destination.toLowerCase()
+  );
+  const allBlogsPreview = [...destinationBlogs, ...otherBlogs];
+  
   return (
-    <div className="bg-cream-100 min-h-screen pt-24 pb-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+    <div className="bg-[#FBF7EE] min-h-screen pt-32 pb-24 text-charcoal-900">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        <Link href="/mini-guides" className="inline-flex items-center gap-2 text-sm tracking-widest uppercase text-charcoal-800/60 hover:text-gold-600 transition-colors mb-10 border-b border-transparent hover:border-gold-600 pb-1">
-          <ArrowLeft size={16} /> Back to Guides
-        </Link>
-        
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-block bg-gold-500 text-white px-4 py-1 text-xs tracking-widest uppercase mb-6 font-semibold rounded-sm">
-            {guide.type === 'pocket' ? 'Pocket Guide' : 'Itinerary Guide'}
+        {/* Breadcrumbs */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 text-[10px] tracking-[0.2em] font-bold text-charcoal-700 uppercase">
+            <Link href="/mini-guides" className="hover:text-[#DCAE1D] transition-colors">MINI GUIDES</Link>
+            <span className="text-charcoal-300">/</span>
+            <Link href={`/destinations/${guide.slug}`} className="hover:text-[#DCAE1D] transition-colors">{details.country.toUpperCase()}</Link>
+            <span className="text-charcoal-300">/</span>
+            <span className="text-charcoal-900">{guide.title.split(" ")[0].toUpperCase()}</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-serif text-charcoal-900 mb-6 leading-tight">
+        </div>
+
+        {/* Title Block Header */}
+        <div className="max-w-4xl mb-12">
+          <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-3">
+            📍 PREMIUM POCKET GUIDE
+          </span>
+          <h1 className="text-[52px] md:text-[68px] font-serif font-bold text-charcoal-900 leading-[1.05] mb-6 tracking-tight">
             {guide.title}
           </h1>
-          <p className="text-xl text-charcoal-800/70 font-light">
-            {guide.shortDescription || guide.excerpt}
+          <p className="text-charcoal-700 text-base md:text-lg leading-relaxed mb-8 max-w-2xl font-light">
+            {details.excerpt}
           </p>
-        </div>
 
-      </div>
-
-      {/* Hero Image */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-        <div className="aspect-[21/9] w-full relative overflow-hidden rounded-xl shadow-xl">
-          <div 
-            className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${guide.heroImage})` }}
-          ></div>
-        </div>
-        
-        <div className="bg-white max-w-4xl mx-auto -mt-16 relative z-10 p-8 shadow-lg rounded-xl flex justify-between items-center text-center divide-x divide-cream-200">
-          <div className="flex-1 px-4">
-            <span className="block text-xs uppercase tracking-widest text-charcoal-800/60 mb-2">Destination</span>
-            <span className="font-serif text-lg text-charcoal-900">{guide.destination}</span>
-          </div>
-          <div className="flex-1 px-4">
-            <span className="block text-xs uppercase tracking-widest text-charcoal-800/60 mb-2">Duration</span>
-            <span className="font-serif text-lg text-charcoal-900">{guide.idealDuration || `${guide.numberOfDays} Days`}</span>
-          </div>
-          <div className="flex-1 px-4">
-            <span className="block text-xs uppercase tracking-widest text-charcoal-800/60 mb-2">
-              {guide.type === 'pocket' ? 'Best Time' : 'Travel Type'}
+          {/* Styled Pill Badges */}
+          <div className="flex flex-wrap gap-2.5">
+            <span className="bg-[#E9C46A] text-charcoal-900 text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
+              {details.pocketTitle}
             </span>
-            <span className="font-serif text-lg text-charcoal-900">{guide.bestTime || guide.travelType}</span>
+            <span className="bg-[#46B6E6] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
+              {details.itineraryTitle}
+            </span>
+            <span className="bg-[#8FC1A3] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
+              {details.blogCountText}
+            </span>
+          </div>
+        </div>
+
+        {/* Layout: Main content (70%) + Sticky Sidebar (30%) */}
+        <div className="flex flex-col lg:flex-row gap-16">
+          {/* Left Column */}
+          <div className="lg:w-[70%] w-full">
+            {/* Main Visual Image */}
+            <div className="relative h-[360px] md:h-[480px] rounded-[24px] overflow-hidden shadow-md mb-16">
+              <img 
+                src={guide.heroImage} 
+                alt={guide.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase text-charcoal-900 shadow-sm border border-charcoal-900/5">
+                {currentFlag} {guide.destination.toUpperCase()}
+              </div>
+            </div>
+
+        {/* Section Index Anchor Jumps */}
+        <div className="bg-[#E9C46A] border-2 border-charcoal-900 rounded-[32px] mb-16 max-w-4xl relative">
+          <div className="bg-white border-2 border-charcoal-900 rounded-[32px] p-8 md:p-10 transform -translate-x-2 -translate-y-2 transition-all duration-300 hover:-translate-x-1 hover:-translate-y-1">
+            <span className="text-[10px] md:text-[11px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-3">
+              IN THIS GUIDE
+            </span>
+            <h2 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 mb-8 leading-none">
+              Jump to a section
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+              <a href="#top-sights" className="flex items-center gap-4 pb-4 border-b border-dashed border-charcoal-900/10 hover:text-[#DCAE1D] transition-colors group">
+                <span className="font-serif text-[18px] font-bold text-[#E9C46A] w-6">01</span>
+                <span className="text-[20px] leading-none">📍</span>
+                <span className="font-serif text-[17px] font-bold text-charcoal-900 group-hover:text-[#DCAE1D] transition-colors">Top sights</span>
+              </a>
+              <a href="#where-to-stay" className="flex items-center gap-4 pb-4 border-b border-dashed border-charcoal-900/10 hover:text-[#DCAE1D] transition-colors group">
+                <span className="font-serif text-[18px] font-bold text-[#E9C46A] w-6">02</span>
+                <span className="text-[20px] leading-none">🛌</span>
+                <span className="font-serif text-[17px] font-bold text-charcoal-900 group-hover:text-[#DCAE1D] transition-colors">Where to stay</span>
+              </a>
+              <a href="#activities" className="flex items-center gap-4 pb-4 border-b border-dashed border-charcoal-900/10 hover:text-[#DCAE1D] transition-colors group">
+                <span className="font-serif text-[18px] font-bold text-[#E9C46A] w-6">03</span>
+                <span className="text-[20px] leading-none">🎟️</span>
+                <span className="font-serif text-[17px] font-bold text-charcoal-900 group-hover:text-[#DCAE1D] transition-colors">Best activities & tours</span>
+              </a>
+              <a href="#eat-drink" className="flex items-center gap-4 pb-4 border-b border-dashed border-charcoal-900/10 hover:text-[#DCAE1D] transition-colors group">
+                <span className="font-serif text-[18px] font-bold text-[#E9C46A] w-6">04</span>
+                <span className="text-[20px] leading-none">🍜</span>
+                <span className="font-serif text-[17px] font-bold text-charcoal-900 group-hover:text-[#DCAE1D] transition-colors">What to eat & drink</span>
+              </a>
+              <a href="#restaurants" className="flex items-center gap-4 pb-4 border-b border-dashed border-charcoal-900/10 hover:text-[#DCAE1D] transition-colors group">
+                <span className="font-serif text-[18px] font-bold text-[#E9C46A] w-6">05</span>
+                <span className="text-[20px] leading-none">🍽️</span>
+                <span className="font-serif text-[17px] font-bold text-charcoal-900 group-hover:text-[#DCAE1D] transition-colors">Best restaurants</span>
+              </a>
+              <a href="#day-trips" className="flex items-center gap-4 pb-4 border-b border-dashed border-charcoal-900/10 hover:text-[#DCAE1D] transition-colors group">
+                <span className="font-serif text-[18px] font-bold text-[#E9C46A] w-6">06</span>
+                <span className="text-[20px] leading-none">🚆</span>
+                <span className="font-serif text-[17px] font-bold text-charcoal-900 group-hover:text-[#DCAE1D] transition-colors">Best day trips</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* 1. Top Sights in City */}
+        <div id="top-sights" className="mb-20 scroll-mt-24">
+          <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-2 font-sans">
+            MUST-SEE
+          </span>
+          <h2 className="font-serif text-[38px] md:text-[46px] font-bold text-charcoal-900 mb-4 tracking-tight leading-tight">
+            Top sights in {guide.title.split(" ")[0]}
+          </h2>
+          <p className="text-charcoal-500/80 text-sm md:text-base leading-relaxed mb-10 max-w-xl font-normal font-sans">
+            The non-negotiables. Build your itinerary around these.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 mb-8">
+            {details.sights.map((sight, idx) => {
+              const pillColors = ["bg-[#E9C46A]", "bg-[#46B6E6]", "bg-[#8FC1A3]", "bg-[#E76F51]"];
+              const colorClass = pillColors[idx % pillColors.length];
+              return (
+                <div 
+                  key={sight.num}
+                  className="bg-white rounded-2xl border border-charcoal-900/10 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.06)] transition-all duration-300 flex items-stretch overflow-hidden group cursor-default"
+                >
+                  <div className={`w-14 md:w-16 flex-shrink-0 flex items-center justify-center font-serif font-bold text-lg md:text-xl text-charcoal-900 border-r-2 border-charcoal-900 ${colorClass}`}>
+                    {sight.num}
+                  </div>
+                  <div className="px-6 py-4 flex-1 flex items-center justify-start">
+                    <span className="font-serif text-[15px] md:text-[17px] font-bold text-charcoal-900 group-hover:text-[#DCAE1D] transition-colors leading-snug">
+                      {sight.text}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Dotted border Photo Badge for Top Sights */}
+          <div className="flex justify-center mt-12 mb-16">
+            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+              <span className="text-[7px] font-bold tracking-widest text-charcoal-400 uppercase mt-1 leading-none">TOP SIGHTS</span>
+            </div>
+          </div>
+
+          <div className="border-b border-charcoal-900/10 mb-12" />
+        </div>
+
+        {/* 2. Where to Stay in City */}
+        <div id="where-to-stay" className="mb-20 scroll-mt-24">
+          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-2">
+            ACCOMMODATION
+          </span>
+          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+            Where to stay in {guide.title.split(" ")[0]}
+          </h2>
+          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+            Picks across three price tiers. All hand-chosen — none of these are generic chains.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            {/* Budget */}
+            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
+              <div className="bg-[#8FC1A3] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
+                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Budget</span>
+                <span className="font-serif font-bold text-[24px]">£</span>
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                {details.stay.budget.map((hotel, idx) => (
+                  <div key={idx} className="flex flex-col">
+                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
+                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mid-range */}
+            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
+              <div className="bg-[#46B6E6] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
+                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Mid-range</span>
+                <span className="font-serif font-bold text-[24px]">££</span>
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                {details.stay.mid.map((hotel, idx) => (
+                  <div key={idx} className="flex flex-col">
+                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
+                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Splurge */}
+            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
+              <div className="bg-[#E9C46A] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
+                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Splurge</span>
+                <span className="font-serif font-bold text-[24px]">£££</span>
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                {details.stay.splurge.map((hotel, idx) => (
+                  <div key={idx} className="flex flex-col">
+                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
+                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Dotted border Photo Badge */}
+          <div className="flex justify-center mt-12 mb-16">
+            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+              <span className="text-[7px] font-bold tracking-widest text-charcoal-400 uppercase mt-1 leading-none">WHERE TO STAY</span>
+            </div>
+          </div>
+
+          <div className="border-b border-charcoal-900/10 mb-12" />
+        </div>
+
+        {/* 3. Best Activities & Tours in City */}
+        <div id="activities" className="mb-20 scroll-mt-24">
+          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
+            03 / BEST TOURS
+          </span>
+          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+            Best activities & tours
+          </h2>
+          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+            If you only have limited days, these represent the highest immersion experiences available.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+            {details.activities.map((act) => (
+              <div 
+                key={act.num}
+                className={`${act.bg} ${act.textCol} p-8 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[190px] relative overflow-hidden`}
+              >
+                <div className="absolute top-4 right-4">
+                  <Star size={16} className="opacity-40" fill="currentColor" />
+                </div>
+                <div className="w-8 h-8 rounded-full bg-white/20 border border-white/10 flex items-center justify-center font-bold text-xs mb-6">
+                  {act.num}
+                </div>
+                <p className="text-sm md:text-[15px] font-bold uppercase tracking-wider leading-snug">
+                  {act.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center py-6 border-b border-charcoal-900/10 mb-12">
+            <span className="px-5 py-2 border border-charcoal-900/10 text-[9px] font-bold tracking-widest uppercase rounded bg-white text-charcoal-500/70 shadow-sm flex items-center gap-2">
+              📷 PHOTO GALLERY SECTION
+            </span>
+          </div>
+        </div>
+
+        {/* 4. What to Eat & Drink in City */}
+        <div id="eat-drink" className="mb-20 scroll-mt-24">
+          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
+            04 / EAT & DRINK
+          </span>
+          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+            What to eat & drink
+          </h2>
+          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+            Food is a massive pillar of travel. These represent local specialties that carry high ritual significance.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            {details.eat.map((dish, idx) => {
+              const bgColors = ["bg-[#E9C46A]/10 text-[#DCAE1D]", "bg-[#46B6E6]/10 text-[#46B6E6]", "bg-[#8FC1A3]/10 text-[#8FC1A3]", "bg-[#E76F51]/10 text-[#E76F51]"];
+              const style = bgColors[idx % bgColors.length];
+              return (
+                <div key={idx} className="bg-white rounded-[24px] border border-charcoal-900/5 p-6 flex items-start gap-5 shadow-sm">
+                  <div className={`w-12 h-12 rounded-full ${style} flex items-center justify-center text-lg font-serif font-bold flex-shrink-0 shadow-inner`}>
+                    🍽
+                  </div>
+                  <div>
+                    <h4 className="font-serif text-lg font-bold text-charcoal-900 mb-1.5 uppercase tracking-wide">
+                      {dish.name}
+                    </h4>
+                    <p className="text-xs text-charcoal-700/80 leading-relaxed font-light">
+                      {dish.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-center py-6 border-b border-charcoal-900/10 mb-12">
+            <span className="px-5 py-2 border border-charcoal-900/10 text-[9px] font-bold tracking-widest uppercase rounded bg-white text-charcoal-500/70 shadow-sm flex items-center gap-2">
+              📷 PHOTO GALLERY SECTION
+            </span>
+          </div>
+        </div>
+
+        {/* 5. Best Restaurants & Rooftops in City */}
+        <div id="restaurants" className="mb-20 scroll-mt-24">
+          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-2">
+            DINING RITUALS
+          </span>
+          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+            Best restaurants & rooftops
+          </h2>
+          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+            From down-to-earth traditional tascas or small counters to sky-high Michelin stars and rooftops.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            {/* Budget */}
+            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
+              <div className="bg-[#8FC1A3] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
+                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Budget</span>
+                <span className="font-serif font-bold text-[24px]">£</span>
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                {details.restaurants.budget.map((spot, idx) => (
+                  <div key={idx} className="flex flex-col">
+                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{spot.name}</span>
+                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{spot.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Mid-range */}
+            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
+              <div className="bg-[#46B6E6] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
+                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Mid-range</span>
+                <span className="font-serif font-bold text-[24px]">££</span>
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                {details.restaurants.mid.map((spot, idx) => (
+                  <div key={idx} className="flex flex-col">
+                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{spot.name}</span>
+                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{spot.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Splurge */}
+            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
+              <div className="bg-[#E9C46A] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
+                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Splurge</span>
+                <span className="font-serif font-bold text-[24px]">£££</span>
+              </div>
+              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                {details.restaurants.splurge.map((spot, idx) => (
+                  <div key={idx} className="flex flex-col">
+                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{spot.name}</span>
+                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{spot.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Dotted border Photo Badge */}
+          <div className="flex justify-center mt-12 mb-16">
+            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+              <span className="text-[7px] font-bold tracking-widest text-charcoal-400 uppercase mt-1 leading-none">DINING RITUALS</span>
+            </div>
+          </div>
+
+          <div className="border-b border-charcoal-900/10 mb-12" />
+        </div>
+
+        {/* 6. Best Day Trips from City */}
+        <div id="day-trips" className="mb-24 scroll-mt-24">
+          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
+            06 / DAY TRIPS
+          </span>
+          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+            Best day trips from {guide.title.split(" ")[0]}
+          </h2>
+          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+            If you want to stretch your base and see the surrounding regions, do these exact outings.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            {details.dayTrips.map((trip) => (
+              <div 
+                key={trip.num} 
+                className={`p-6 rounded-[24px] border ${trip.bg} flex items-center gap-5 shadow-sm transition-transform duration-300 hover:scale-[1.005]`}
+              >
+                <div className={`w-8 h-8 rounded-full ${trip.badgeCol} flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm`}>
+                  {trip.num}
+                </div>
+                <div>
+                  <span className="text-[8px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1">RECOMMENDED EXCURSION</span>
+                  <span className="text-xs md:text-sm font-bold text-charcoal-900 uppercase tracking-wide">
+                    {trip.name}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-center py-6 border-b border-charcoal-900/10 mb-16">
+            <span className="px-5 py-2 border border-charcoal-900/10 text-[9px] font-bold tracking-widest uppercase rounded bg-white text-charcoal-500/70 shadow-sm flex items-center gap-2">
+              📷 PHOTO GALLERY SECTION
+            </span>
+          </div>
+        </div>
+
+        {/* Bottom CTA Callout banner row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Link 
+            href="/blog" 
+            className="bg-[#46B6E6] text-white hover:bg-[#3ca4cf] p-10 rounded-[24px] shadow-sm flex flex-col justify-between group min-h-[180px] transition-colors"
+          >
+            <span className="text-[9px] font-bold tracking-[0.2em] text-white/70 uppercase">EXPLORE STORIES</span>
+            <h3 className="font-serif text-2xl md:text-3xl font-bold leading-tight max-w-sm mt-4">
+              Read the best blog posts from {details.country} <span className="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
+            </h3>
+          </Link>
+
+          <Link 
+            href="/plan-with-me" 
+            className="bg-[#E9C46A] text-charcoal-900 hover:bg-[#dbb558] p-10 rounded-[24px] shadow-sm flex flex-col justify-between group min-h-[180px] transition-colors"
+          >
+            <span className="text-[9px] font-bold tracking-[0.2em] text-charcoal-950/60 uppercase">CUSTOM PLANNING</span>
+            <h3 className="font-serif text-2xl md:text-3xl font-bold leading-tight max-w-sm mt-4">
+              Let me plan your {guide.title.split(" ")[0]} itinerary <span className="inline-block transition-transform group-hover:translate-x-1 ml-1">→</span>
+            </h3>
+          </Link>
+        </div>
+
+      </div>
+
+      {/* Right Column / Sidebar */}
+      <div className="lg:w-[30%] w-full">
+        <div className="sticky top-32">
+          <div className="border border-charcoal-900/10 bg-white rounded-[20px] p-6 shadow-sm">
+            <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-6">
+              📖 RELATED DISPATCHES
+            </span>
+            
+            {/* Custom styled scroll container */}
+            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-3 custom-sidebar-scroll">
+              <style>{`
+                .custom-sidebar-scroll::-webkit-scrollbar {
+                  width: 4px;
+                }
+                .custom-sidebar-scroll::-webkit-scrollbar-track {
+                  background: rgba(220, 174, 29, 0.05);
+                  border-radius: 10px;
+                }
+                .custom-sidebar-scroll::-webkit-scrollbar-thumb {
+                  background: rgba(220, 174, 29, 0.3);
+                  border-radius: 10px;
+                  transition: background 0.2s;
+                }
+                .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+                  background: rgba(220, 174, 29, 0.6);
+                }
+              `}</style>
+              
+              {allBlogsPreview.map((blog) => (
+                <Link 
+                  href={`/blog/${blog.slug}`} 
+                  key={blog.slug} 
+                  className="group flex gap-4 bg-white border border-charcoal-900/5 p-4 rounded-[16px] shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 relative bg-cream-200">
+                    <img 
+                      src={blog.coverImage} 
+                      alt={blog.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0">
+                    <div>
+                      <span className="text-[8px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1">
+                        {blog.countryCode || "TR"} • {blog.category?.split(" • ")[0] || "STORY"}
+                      </span>
+                      <h4 className="font-serif text-sm font-bold text-charcoal-900 group-hover:text-coral-500 transition-colors leading-snug line-clamp-2">
+                        {blog.title}
+                      </h4>
+                    </div>
+                    <span className="text-[9px] font-bold tracking-widest uppercase text-coral-500 flex items-center gap-0.5 mt-1">
+                      READ ARTICLE <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="prose prose-lg prose-headings:font-serif prose-headings:font-normal max-w-none text-charcoal-800/80 font-light leading-relaxed">
-          <h2 className="text-3xl font-serif text-charcoal-900 mb-6">Overview</h2>
-          <p>
-            This detailed guide gives you everything you need to know to experience the very best of {guide.destination}. We've handpicked our absolute favorite spots.
-          </p>
-          
-          <h3 className="text-2xl font-serif text-charcoal-900 mt-12 mb-6">Day 1: Arrival & Exploration</h3>
-          <p>Start your morning with a pastry at a local favorite before heading out to the main attractions...</p>
-          
-          <h3 className="text-2xl font-serif text-charcoal-900 mt-12 mb-6">Where to Sleep</h3>
-          <ul>
-            <li>Luxury: The Grand Hotel</li>
-            <li>Boutique: The Hidden Gem Inn</li>
-          </ul>
-        </div>
-      </div>
     </div>
+  </div>
+</div>
   );
 }

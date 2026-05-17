@@ -45,3 +45,20 @@
     @apply overflow-hidden rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 border border-charcoal-900/5;
   }
 }
+
+/* Custom luxury scrollbar style */
+.scrollbar-luxury::-webkit-scrollbar {
+  width: 5px;
+}
+.scrollbar-luxury::-webkit-scrollbar-track {
+  background: #f4f0e6;
+  border-radius: 4px;
+}
+.scrollbar-luxury::-webkit-scrollbar-thumb {
+  background: #e3b64c;
+  border-radius: 4px;
+}
+.scrollbar-luxury::-webkit-scrollbar-thumb:hover {
+  background: #d0a33c;
+}
+

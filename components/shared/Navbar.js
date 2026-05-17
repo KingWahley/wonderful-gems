@@ -2,10 +2,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, Search } from "lucide-react";
+import SearchModal from "./SearchModal";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -13,6 +15,18 @@ export default function Navbar() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Global ⌘K / Ctrl+K keyboard listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const navLinks = [
@@ -54,11 +68,15 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden lg:flex items-center space-x-5">
-            <div className="relative group">
+            <div 
+              className="relative cursor-pointer group"
+              onClick={() => setIsSearchOpen(true)}
+            >
               <input 
                 type="text" 
+                readOnly
                 placeholder="Search..." 
-                className="bg-white border border-[#2b3a4a] rounded-full py-2 pl-9 pr-14 text-xs text-charcoal-900 focus:outline-none w-48 focus:w-56 transition-all duration-300 placeholder:text-gray-500"
+                className="bg-white border border-[#2b3a4a] rounded-full py-2 pl-9 pr-14 text-xs text-charcoal-900 focus:outline-none w-48 focus:w-56 cursor-pointer transition-all duration-300 placeholder:text-gray-500"
               />
               <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
               <div className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-cream-200 border border-gray-200 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center">
@@ -101,6 +119,23 @@ export default function Navbar() {
             </button>
           </div>
           <div className="flex flex-col space-y-6 px-10 pt-4">
+            {/* Mobile Search Bar */}
+            <div 
+              className="relative cursor-pointer mb-2"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsSearchOpen(true);
+              }}
+            >
+              <input 
+                type="text" 
+                readOnly
+                placeholder="Search..." 
+                className="bg-white border border-[#2b3a4a] rounded-full py-3 pl-11 pr-4 text-sm text-charcoal-900 focus:outline-none w-full cursor-pointer placeholder:text-gray-500"
+              />
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+            </div>
+
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -121,6 +156,9 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Global Interactive Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }
