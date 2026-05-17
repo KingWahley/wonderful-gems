@@ -24,7 +24,7 @@ export default function MiniGuidesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {pocketGuides.map((guide) => (
               <div key={guide.id} className="bg-white rounded-[20px] overflow-hidden group flex flex-col border border-charcoal-900/5 shadow-sm">
-                <div className="relative h-56 overflow-hidden">
+                <Link href={`/mini-guides/${guide.slug}`} className="relative h-56 overflow-hidden block">
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                     style={{ backgroundImage: `url(${guide.heroImage})` }}
@@ -34,7 +34,7 @@ export default function MiniGuidesPage() {
                       <span>⚡</span> MINI GUIDE
                     </span>
                   </div>
-                </div>
+                </Link>
                 <div className="p-8 flex flex-col flex-grow">
                   <span className="text-charcoal-900/50 font-bold text-[10px] tracking-[0.2em] uppercase mb-3 block">
                     <span className="font-serif text-charcoal-900 mr-1">{guide.countryCode}</span> {guide.destination}
@@ -67,7 +67,7 @@ export default function MiniGuidesPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {itineraryGuides.map((guide) => (
               <div key={guide.id} className="bg-white rounded-[20px] overflow-hidden group flex flex-col border border-charcoal-900/5 shadow-sm">
-                <div className="relative h-56 overflow-hidden">
+                <Link href={`/mini-guides/${guide.slug}`} className="relative h-56 overflow-hidden block">
                   <div 
                     className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                     style={{ backgroundImage: `url(${guide.heroImage})` }}
@@ -77,7 +77,7 @@ export default function MiniGuidesPage() {
                       <span className="font-serif mr-0.5">{guide.countryCode}</span> {guide.destination}
                     </span>
                   </div>
-                </div>
+                </Link>
                 <div className="p-8 flex flex-col flex-grow">
                   <span className="text-charcoal-900/50 font-bold text-[10px] tracking-[0.2em] uppercase mb-4 block leading-relaxed">
                     {guide.excerpt}

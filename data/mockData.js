@@ -27,7 +27,7 @@ export const destinations = [
     description: "Experience the sun-drenched coastlines, historic tiles, and the melancholic beauty of Fado.",
     whyILoveIt: "The pace of life here makes it impossible not to slow down and savor every moment.",
     moments: ["Sunset over the Douro River", "Wandering the steep streets of Alfama", "Surfing in the Algarve"],
-    coverImage: "https://images.unsplash.com/photo-1513622470522-26cb33260feb?q=80&w=2000&auto=format&fit=crop",
+    coverImage: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop",
     gallery: [
       "https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?q=80&w=1000&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1498503182468-3b51cbb6cb24?q=80&w=1000&auto=format&fit=crop",
@@ -192,7 +192,7 @@ export const blogPosts = [
     destination: "Portugal",
     countryCode: "PT",
     category: "TRAVEL DIARY • LISBON • SEP 2024",
-    coverImage: "https://images.unsplash.com/photo-1513622470522-26cb33260feb?q=80&w=2000&auto=format&fit=crop",
+    coverImage: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop",
     excerpt: "Wandering the steep streets of Alfama as the sun sets."
   },
   {
@@ -276,7 +276,7 @@ export const freshPosts = [
     destination: "Portugal",
     countryCode: "PT",
     date: "LISBON · SINTRA · ÉVORA · PORTO · DOURO VALLEY · OCTOBER 2025",
-    coverImage: "https://images.unsplash.com/photo-1513622470522-26cb33260feb?q=80&w=2000&auto=format&fit=crop"
+    coverImage: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop"
   },
   {
     id: "2",
@@ -462,7 +462,7 @@ export const miniGuides = [
     destination: "Portugal",
     title: "Lisbon Travel Guide",
     excerpt: "Lisbon is a city of inclines, golden hours, and small counters where the woman behind the bar starts your order before you sit down. This guide is the pocket version: where to stay, what t...",
-    heroImage: "https://images.unsplash.com/photo-1513622470522-26cb33260feb?q=80&w=2000&auto=format&fit=crop"
+    heroImage: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop"
   },
   {
     id: "4",
@@ -492,7 +492,7 @@ export const miniGuides = [
     destination: "Portugal",
     title: "Seven Days in Portugal: A Long-Read Itinerary",
     excerpt: "LISBON • SINTRA • ÉVORA • PORTO • DOURO VALLEY • OCTOBER 2025",
-    heroImage: "https://images.unsplash.com/photo-1513622470522-26cb33260feb?q=80&w=2000&auto=format&fit=crop"
+    heroImage: "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop"
   }
 ];
 

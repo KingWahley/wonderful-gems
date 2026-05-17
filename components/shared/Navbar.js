@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Menu, X, Search } from "lucide-react";
 import SearchModal from "./SearchModal";
@@ -7,6 +8,10 @@ import SearchModal from "./SearchModal";
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isActive = (path) =>
+    path === "/" ? pathname === "/" : pathname.startsWith(path);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
@@ -58,7 +63,9 @@ export default function Navbar() {
                 key={link.name}
                 href={link.path}
                 className={`text-[11px] font-bold tracking-[0.15em] uppercase transition-colors relative group ${
-                  link.name === "HOME" ? "text-mustard-500" : "text-[#2b3a4a] hover:text-mustard-500"
+                  isActive(link.path)
+                    ? "text-mustard-500"
+                    : "text-[#2b3a4a] hover:text-mustard-500"
                 }`}
               >
                 {link.name.replace("-", " ")}
@@ -141,7 +148,11 @@ export default function Navbar() {
                 key={link.name}
                 href={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-xl font-serif text-charcoal-800 hover:text-mustard-600 transition-colors"
+                className={`text-xl font-serif transition-colors ${
+                  isActive(link.path)
+                    ? "text-mustard-500 font-bold"
+                    : "text-charcoal-800 hover:text-mustard-600"
+                }`}
               >
                 {link.name}
               </Link>

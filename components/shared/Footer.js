@@ -17,7 +17,7 @@ export default function Footer() {
           </div>
 
           <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.15em] text-charcoal-900/90 mt-4 md:mt-0">
-            © 2026 — MADE WITH COFFEE
+            © 2026
           </div>
           
         </div>
