@@ -1,6 +1,6 @@
 import { miniGuides, blogPosts, freshPosts } from "@/data/mockData";
 import Link from "next/link";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, Star, Sparkle, Utensils } from "lucide-react";
 
 // Robust dynamic guide dataset mapping for cities mentioned in database
 const cityGuidesData = {
@@ -36,18 +36,18 @@ const cityGuidesData = {
       ]
     },
     activities: [
-      { num: "01", text: "Sintra day trip with a local guide", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" },
-      { num: "02", text: "Private catamaran cruise in Lisbon", bg: "bg-[#46B6E6]", textCol: "text-white" },
-      { num: "03", text: "Exploring the tile murals of Alfama", bg: "bg-[#8FC1A3]", textCol: "text-white" },
-      { num: "04", text: "Pasteis de nata baking masterclass", bg: "bg-[#E76F51]", textCol: "text-white" },
-      { num: "05", text: "Fado show in a neighborhood spot", bg: "bg-[#E9C46A]", textCol: "text-charcoal-900" }
+      { num: "01", text: "Sintra day trip with a private driver" },
+      { num: "02", text: "Pastel de nata workshop in Belém" },
+      { num: "03", text: "Fado night in a small Alfama tasca" },
+      { num: "04", text: "Sunset sailing on the Tagus" },
+      { num: "05", text: "Tile-painting workshop" }
     ],
     eat: [
-      { name: "Pastel de nata", desc: "Crisp puff pastry with custard caramelized to perfection." },
-      { name: "Bacalhau à Brás", desc: "Shredded salted cod sautéed with onions and thin matchstick potatoes." },
-      { name: "Bifana", desc: "The ultimate local pork sandwich, marinated in garlic and white wine." },
-      { name: "Arroz de Marisco", desc: "Rich soupy seafood rice loaded with prawns, clams, and fresh cilantro." },
-      { name: "Ginjinha", desc: "Sweet sour cherry liqueur served in a tiny chocolate cup." }
+      { name: "Pastel de nata", desc: "Manteigaria over Pastéis de Belém. Fight me." },
+      { name: "Bacalhau à brás", desc: "Salt cod, eggs, potato — the comfort food." },
+      { name: "Bifana", desc: "Marinated pork sandwich, eaten standing up." },
+      { name: "Amêijoas à bulhão pato", desc: "Clams in garlic, white wine, coriander." },
+      { name: "Vinho verde", desc: "Young, slightly fizzy, drink-it-cold-with-everything wine." }
     ],
     restaurants: {
       budget: [
@@ -64,10 +64,10 @@ const cityGuidesData = {
       ]
     },
     dayTrips: [
-      { num: "01", name: "Sintra (Pena Palace, Quinta da Regaleira)", bg: "bg-[#E9C46A]/20 border-[#E9C46A]/40", badgeCol: "bg-[#E9C46A] text-charcoal-900" },
-      { num: "02", name: "Cascais & Boca do Inferno", bg: "bg-[#46B6E6]/20 border-[#46B6E6]/40", badgeCol: "bg-[#46B6E6] text-white" },
-      { num: "03", name: "Évora (historic Roman temple)", bg: "bg-[#8FC1A3]/20 border-[#8FC1A3]/40", badgeCol: "bg-[#8FC1A3] text-white" },
-      { num: "04", name: "Óbidos (walled medieval town)", bg: "bg-[#E76F51]/20 border-[#E76F51]/40", badgeCol: "bg-[#E76F51] text-white" }
+      { num: "1", name: "Sintra (Pena Palace, Quinta da Regaleira)", solidBg: "bg-[#E9C46A]", emoji: "🚌" },
+      { num: "2", name: "Cascais & the Boca do Inferno cliffs", solidBg: "bg-[#46B6E6]", emoji: "🚌" },
+      { num: "3", name: "Évora & the bone chapel", solidBg: "bg-[#8FC1A3]", emoji: "🚌" },
+      { num: "4", name: "Arrábida natural park", solidBg: "bg-[#E76F51]", emoji: "🚌" }
     ]
   },
   "kyoto": {
@@ -284,9 +284,9 @@ export default async function MiniGuideDetails({ params }) {
         </div>
 
         {/* Layout: Main content (70%) + Sticky Sidebar (30%) */}
-        <div className="flex flex-col lg:flex-row gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-16">
           {/* Left Column */}
-          <div className="lg:w-[70%] w-full">
+          <div className="lg:col-span-7 w-full">
             {/* Main Visual Image */}
             <div className="relative h-[360px] md:h-[480px] rounded-[24px] overflow-hidden shadow-md mb-16">
               <img 
@@ -466,68 +466,84 @@ export default async function MiniGuideDetails({ params }) {
 
         {/* 3. Best Activities & Tours in City */}
         <div id="activities" className="mb-20 scroll-mt-24">
-          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
-            03 / BEST TOURS
+          <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-2 font-sans">
+            THINGS TO DO
           </span>
-          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+          <h2 className="font-serif text-[38px] md:text-[46px] font-bold text-charcoal-900 mb-4 tracking-tight leading-tight">
             Best activities & tours
           </h2>
-          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
-            If you only have limited days, these represent the highest immersion experiences available.
+          <p className="text-charcoal-500/80 text-sm md:text-base leading-relaxed mb-10 max-w-xl font-normal font-sans">
+            Beyond the sights — the experiences worth booking ahead of time.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
-            {details.activities.map((act) => (
-              <div 
-                key={act.num}
-                className={`${act.bg} ${act.textCol} p-8 rounded-[24px] shadow-sm flex flex-col justify-between min-h-[190px] relative overflow-hidden`}
-              >
-                <div className="absolute top-4 right-4">
-                  <Star size={16} className="opacity-40" fill="currentColor" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            {details.activities.map((act, idx) => {
+              const pillColors = ["bg-[#E9C46A]", "bg-[#46B6E6]", "bg-[#8FC1A3]", "bg-[#E76F51]"];
+              const colorClass = pillColors[idx % pillColors.length];
+              const displayNum = act.num.startsWith("#") ? act.num : `#${parseInt(act.num, 10)}`;
+              return (
+                <div 
+                  key={act.num}
+                  className={`${colorClass} p-8 rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.06)] hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between min-h-[160px] relative overflow-hidden group cursor-default`}
+                >
+                  <div className="absolute top-6 right-6">
+                    <Sparkle size={28} className="text-charcoal-900/15 fill-charcoal-900/15 transition-transform duration-500 group-hover:rotate-45" />
+                  </div>
+                  <div>
+                    <span className="font-serif font-bold text-xl md:text-2xl text-charcoal-900/40 block mb-3">
+                      {displayNum}
+                    </span>
+                    <h3 className="font-serif font-bold text-lg md:text-[20px] text-charcoal-900 leading-snug max-w-[90%]">
+                      {act.text}
+                    </h3>
+                  </div>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-white/20 border border-white/10 flex items-center justify-center font-bold text-xs mb-6">
-                  {act.num}
-                </div>
-                <p className="text-sm md:text-[15px] font-bold uppercase tracking-wider leading-snug">
-                  {act.text}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="flex justify-center py-6 border-b border-charcoal-900/10 mb-12">
-            <span className="px-5 py-2 border border-charcoal-900/10 text-[9px] font-bold tracking-widest uppercase rounded bg-white text-charcoal-500/70 shadow-sm flex items-center gap-2">
-              📷 PHOTO GALLERY SECTION
-            </span>
+          {/* Dotted border Photo Badge for Activities */}
+          <div className="flex justify-center mt-12 mb-16">
+            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+              <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">THINGS TO DO</span>
+            </div>
           </div>
+
+          <div className="border-b border-charcoal-900/10 mb-12" />
         </div>
 
         {/* 4. What to Eat & Drink in City */}
         <div id="eat-drink" className="mb-20 scroll-mt-24">
           <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
-            04 / EAT & DRINK
+            FOOD
           </span>
           <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
-            What to eat & drink
+            What to eat &amp; drink
           </h2>
           <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
-            Food is a massive pillar of travel. These represent local specialties that carry high ritual significance.
+            The flavours that define this place — order these without overthinking.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {details.eat.map((dish, idx) => {
-              const bgColors = ["bg-[#E9C46A]/10 text-[#DCAE1D]", "bg-[#46B6E6]/10 text-[#46B6E6]", "bg-[#8FC1A3]/10 text-[#8FC1A3]", "bg-[#E76F51]/10 text-[#E76F51]"];
-              const style = bgColors[idx % bgColors.length];
+              const iconBgs = [
+                "bg-[#E9C46A] text-white",
+                "bg-[#46B6E6] text-white",
+                "bg-[#8FC1A3] text-white",
+                "bg-[#E76F51] text-white",
+                "bg-[#E9C46A] text-white"
+              ];
               return (
-                <div key={idx} className="bg-white rounded-[24px] border border-charcoal-900/5 p-6 flex items-start gap-5 shadow-sm">
-                  <div className={`w-12 h-12 rounded-full ${style} flex items-center justify-center text-lg font-serif font-bold flex-shrink-0 shadow-inner`}>
-                    🍽
+                <div key={idx} className="bg-white rounded-[20px] border border-charcoal-900/8 p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className={`w-12 h-12 rounded-full ${iconBgs[idx % iconBgs.length]} flex items-center justify-center flex-shrink-0`}>
+                    <Utensils className="w-5 h-5" strokeWidth={2} />
                   </div>
                   <div>
-                    <h4 className="font-serif text-lg font-bold text-charcoal-900 mb-1.5 uppercase tracking-wide">
+                    <h4 className="font-serif text-[17px] font-bold text-charcoal-900 mb-1 leading-tight">
                       {dish.name}
                     </h4>
-                    <p className="text-xs text-charcoal-700/80 leading-relaxed font-light">
+                    <p className="text-[13px] text-charcoal-600 leading-relaxed font-light">
                       {dish.desc}
                     </p>
                   </div>
@@ -536,11 +552,15 @@ export default async function MiniGuideDetails({ params }) {
             })}
           </div>
 
-          <div className="flex justify-center py-6 border-b border-charcoal-900/10 mb-12">
-            <span className="px-5 py-2 border border-charcoal-900/10 text-[9px] font-bold tracking-widest uppercase rounded bg-white text-charcoal-500/70 shadow-sm flex items-center gap-2">
-              📷 PHOTO GALLERY SECTION
-            </span>
+          {/* Photo Badge */}
+          <div className="flex justify-center mt-12 mb-16">
+            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+              <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">WHAT TO EAT</span>
+            </div>
           </div>
+
+          <div className="border-b border-charcoal-900/10 mb-12" />
         </div>
 
         {/* 5. Best Restaurants & Rooftops in City */}
@@ -622,27 +642,31 @@ export default async function MiniGuideDetails({ params }) {
         {/* 6. Best Day Trips from City */}
         <div id="day-trips" className="mb-24 scroll-mt-24">
           <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
-            06 / DAY TRIPS
+            FURTHER AFIELD
           </span>
           <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
             Best day trips from {guide.title.split(" ")[0]}
           </h2>
           <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
-            If you want to stretch your base and see the surrounding regions, do these exact outings.
+            Worth the early start — each is reachable as a single-day excursion.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             {details.dayTrips.map((trip) => (
-              <div 
-                key={trip.num} 
-                className={`p-6 rounded-[24px] border ${trip.bg} flex items-center gap-5 shadow-sm transition-transform duration-300 hover:scale-[1.005]`}
+              <div
+                key={trip.num}
+                className="flex rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 bg-white border border-charcoal-900/8"
               >
-                <div className={`w-8 h-8 rounded-full ${trip.badgeCol} flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm`}>
-                  {trip.num}
+                {/* Solid colored left panel */}
+                <div className={`${trip.solidBg} flex items-center justify-center w-[72px] flex-shrink-0`}>
+                  <span className="text-[28px]">{trip.emoji}</span>
                 </div>
-                <div>
-                  <span className="text-[8px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1">RECOMMENDED EXCURSION</span>
-                  <span className="text-xs md:text-sm font-bold text-charcoal-900 uppercase tracking-wide">
+                {/* White content area */}
+                <div className="flex-1 px-5 py-4">
+                  <span className="text-[9px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1.5">
+                    DAY TRIP {trip.num}
+                  </span>
+                  <span className="font-serif text-[16px] font-bold text-charcoal-900 leading-snug">
                     {trip.name}
                   </span>
                 </div>
@@ -650,10 +674,12 @@ export default async function MiniGuideDetails({ params }) {
             ))}
           </div>
 
-          <div className="flex justify-center py-6 border-b border-charcoal-900/10 mb-16">
-            <span className="px-5 py-2 border border-charcoal-900/10 text-[9px] font-bold tracking-widest uppercase rounded bg-white text-charcoal-500/70 shadow-sm flex items-center gap-2">
-              📷 PHOTO GALLERY SECTION
-            </span>
+          {/* Photo Badge */}
+          <div className="flex justify-center mt-12 mb-16">
+            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+              <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">DAY TRIPS</span>
+            </div>
           </div>
         </div>
 
@@ -683,7 +709,7 @@ export default async function MiniGuideDetails({ params }) {
       </div>
 
       {/* Right Column / Sidebar */}
-      <div className="lg:w-[30%] w-full">
+      <div className="lg:col-span-3 w-full">
         <div className="sticky top-32">
           <div className="border border-charcoal-900/10 bg-white rounded-[20px] p-6 shadow-sm">
             <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-6">
