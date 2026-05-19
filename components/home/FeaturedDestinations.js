@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { destinations } from "@/data/mockData";
 import Image from "next/image";
 
-export default function FeaturedDestinations() {
+export default function FeaturedDestinations({ destinations = [] }) {
   return (
     <section className="py-20 lg:py-28 bg-mustard-500 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">

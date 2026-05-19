@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { miniGuides } from "@/data/mockData";
 import Image from "next/image";
 
-export default function MiniTravelGuides() {
+export default function MiniTravelGuides({ miniGuides = [] }) {
   return (
     <section className="py-20 lg:py-28 bg-cream-100">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">

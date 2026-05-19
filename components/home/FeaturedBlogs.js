@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { blogPosts } from "@/data/mockData";
 import Image from "next/image";
 
-export default function FeaturedBlogs() {
+export default function FeaturedBlogs({ blogs = [] }) {
   return (
     <section className="py-20 lg:py-28 bg-cream-100">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
@@ -16,7 +15,7 @@ export default function FeaturedBlogs() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogPosts.slice(0, 3).map((post) => (
+          {blogs.slice(0, 3).map((post) => (
             <article key={post.id} className="luxury-card group flex flex-col h-full bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
               <Link href={`/blog/${post.slug}`} className="block relative aspect-[4/3] w-full overflow-hidden">
                 <Image 

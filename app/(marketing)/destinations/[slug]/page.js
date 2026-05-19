@@ -1,5 +1,7 @@
-import { destinations, blogPosts } from "@/data/mockData";
+import { fetchDestinations, fetchBlogs, fetchMiniGuides } from "@/lib/db";
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 
 const flagMap = {
   "japan": "🇯🇵",
@@ -13,18 +15,49 @@ const flagMap = {
   "belgium": "🇧🇪"
 };
 
-export async function generateStaticParams() {
-  return destinations.map((d) => ({
-    slug: d.slug,
-  }));
-}
-
 export default async function DestinationDetails({ params }) {
   const resolvedParams = await Promise.resolve(params);
-  const destination = destinations.find(d => d.slug === resolvedParams.slug) || destinations[0];
-  
-  const relatedBlogs = blogPosts.filter(b => b.destination.toLowerCase() === destination.country.toLowerCase());
-  const otherCountries = destinations.filter(d => d.slug !== destination.slug);
+  const { slug } = resolvedParams;
+
+  let destination = null;
+  let relatedBlogs = [];
+  let otherCountries = [];
+  let companionGuide = null;
+
+  try {
+    const [destData, blogData, guidesData] = await Promise.all([
+      fetchDestinations(),
+      fetchBlogs(),
+      fetchMiniGuides()
+    ]);
+
+    destination = destData.find(d => d.slug === slug);
+    if (!destination) {
+      // Fallback if not found
+      destination = destData[0];
+    }
+
+    if (destination) {
+      relatedBlogs = blogData.filter(
+        b => b.destination.toLowerCase() === destination.country.toLowerCase()
+      );
+      companionGuide = guidesData.find(
+        g => g.destination.toLowerCase() === destination.country.toLowerCase()
+      );
+    }
+
+    otherCountries = destData.filter(d => d.slug !== (destination?.slug || ""));
+  } catch (err) {
+    console.error("Failed to load destination details frontend", err);
+  }
+
+  if (!destination) {
+    return (
+      <div className="pt-32 pb-24 bg-[#FBF7EE] min-h-screen flex items-center justify-center">
+        <p className="text-charcoal-800 font-serif">Destination not found.</p>
+      </div>
+    );
+  }
 
   const currentFlag = flagMap[destination.slug] || "📍";
 
@@ -61,12 +94,14 @@ export default async function DestinationDetails({ params }) {
             </span>
           </div>
 
-          <div className="relative w-full h-[320px] md:h-[420px] rounded-[24px] overflow-hidden shadow-md">
-            <img 
-              src={destination.coverImage} 
-              alt={destination.country}
-              className="w-full h-full object-cover"
-            />
+          <div className="relative w-full h-[320px] md:h-[420px] rounded-[24px] overflow-hidden shadow-md bg-cream-200">
+            {destination.coverImage && (
+              <img 
+                src={destination.coverImage} 
+                alt={destination.country}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
         </div>
 
@@ -86,7 +121,7 @@ export default async function DestinationDetails({ params }) {
               </h2>
             </div>
             <p className="text-white/90 text-sm md:text-[15px] leading-relaxed font-medium">
-              {destination.country} rearranges your nervous system in the best way. It's a country built on tiny, deliberate gestures — the way a tea is poured, a door is slid, a meal is plated — and once you tune into it, the rest of the world feels a little louder than it needs to be. I keep going back for the contrast: ancient ritual on Monday, neon arcade on Tuesday, both equally serious.
+              {destination.whyILoveIt || `${destination.country} rearranges your nervous system in the best way. It's a country built on tiny, deliberate gestures — the way a tea is poured, a door is slid, a meal is plated — and once you tune into it, the rest of the world feels a little louder than it needs to be.`}
             </p>
           </div>
 
@@ -99,28 +134,30 @@ export default async function DestinationDetails({ params }) {
               The moments I'd repeat tomorrow
             </h2>
             <div className="space-y-4">
-              {destination.moments ? destination.moments.map((moment, idx) => (
-                <div key={idx} className="flex items-start gap-4">
-                  <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5 shadow-sm">
-                    {idx + 1}
+              {destination.moments && destination.moments.length > 0 ? (
+                destination.moments.map((moment, idx) => (
+                  <div key={idx} className="flex items-start gap-4">
+                    <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5 shadow-sm">
+                      {idx + 1}
+                    </div>
+                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">
+                      {moment}
+                    </p>
                   </div>
-                  <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">
-                    {moment}
-                  </p>
-                </div>
-              )) : (
+                ))
+              ) : (
                 <>
                   <div className="flex items-start gap-4">
                     <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">1</div>
-                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Sunrise before the buses arrive.</p>
+                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Exploring local neighborhoods off the beaten path.</p>
                   </div>
                   <div className="flex items-start gap-4">
                     <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">2</div>
-                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Sampling local snacks from neighborhood shops.</p>
+                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Savoring traditional culinary offerings.</p>
                   </div>
                   <div className="flex items-start gap-4">
                     <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">3</div>
-                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">A long, silent evening walk through historic alleys.</p>
+                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Watching the sunrise over historic landmarks.</p>
                   </div>
                 </>
               )}
@@ -135,9 +172,11 @@ export default async function DestinationDetails({ params }) {
           <a href="#blog-posts" className="px-4 py-1.5 border border-charcoal-900/10 bg-[#EFEBE4] text-[9px] font-bold tracking-widest uppercase rounded-full hover:bg-charcoal-900 hover:text-white hover:border-charcoal-900 transition-all shadow-sm">
             BLOG POSTS
           </a>
-          <a href="#mini-guides" className="px-4 py-1.5 border border-charcoal-900/10 bg-[#EFEBE4] text-[9px] font-bold tracking-widest uppercase rounded-full hover:bg-charcoal-900 hover:text-white hover:border-charcoal-900 transition-all shadow-sm">
-            MINI GUIDES
-          </a>
+          {companionGuide && (
+            <a href="#mini-guides" className="px-4 py-1.5 border border-charcoal-900/10 bg-[#EFEBE4] text-[9px] font-bold tracking-widest uppercase rounded-full hover:bg-charcoal-900 hover:text-white hover:border-charcoal-900 transition-all shadow-sm">
+              MINI GUIDES
+            </a>
+          )}
         </div>
 
         {/* Related Blog Posts */}
@@ -149,94 +188,104 @@ export default async function DestinationDetails({ params }) {
             Blog posts from {destination.country}
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {relatedBlogs.map((blog) => (
-              <Link key={blog.id} href={`/blog/${blog.slug}`} className="group block bg-white rounded-[24px] overflow-hidden border border-charcoal-900/10 hover:shadow-md transition-shadow">
-                <div className="relative h-[220px] md:h-[260px] w-full overflow-hidden">
-                  <img 
-                    src={blog.coverImage} 
-                    alt={blog.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3.5 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase text-charcoal-900 shadow-sm flex items-center gap-1.5 border border-charcoal-900/5">
-                    <span>{currentFlag}</span> {destination.country.toUpperCase()}
+          {relatedBlogs.length === 0 ? (
+            <div className="p-12 text-center text-charcoal-800/60 text-sm font-medium bg-white rounded-[24px] border border-charcoal-900/10">
+              No blog stories published from this destination yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {relatedBlogs.map((blog) => (
+                <Link key={blog.id} href={`/blog/${blog.slug}`} className="group block bg-white rounded-[24px] overflow-hidden border border-charcoal-900/10 hover:shadow-md transition-shadow">
+                  <div className="relative h-[220px] md:h-[260px] w-full overflow-hidden bg-cream-200">
+                    {blog.coverImage && (
+                      <img 
+                        src={blog.coverImage} 
+                        alt={blog.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    )}
+                    <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3.5 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase text-charcoal-900 shadow-sm flex items-center gap-1.5 border border-charcoal-900/5">
+                      <span>{currentFlag}</span> {destination.country.toUpperCase()}
+                    </div>
                   </div>
-                </div>
-                <div className="p-6 md:p-8 bg-white">
-                  <span className="text-[9px] font-bold tracking-[0.2em] text-[#DCAE1D] uppercase block mb-2">
-                    {blog.category.split(" • ")[1] || "TRAVEL"} • {blog.category.split(" • ")[2] || "2025"}
-                  </span>
-                  <h3 className="font-serif text-[22px] md:text-[26px] font-bold text-charcoal-900 mb-4 group-hover:text-coral-500 transition-colors leading-tight">
-                    {blog.title}
-                  </h3>
-                  <span className="text-coral-500 font-serif font-bold text-sm inline-flex items-center gap-1">
-                    Read the story <span className="transition-transform group-hover:translate-x-1">→</span>
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className="p-6 md:p-8 bg-white">
+                    <span className="text-[9px] font-bold tracking-[0.2em] text-[#DCAE1D] uppercase block mb-2">
+                      {blog.category?.split(" • ")[1] || "TRAVEL"} • {blog.category?.split(" • ")[2] || "2025"}
+                    </span>
+                    <h3 className="font-serif text-[22px] md:text-[26px] font-bold text-charcoal-900 mb-4 group-hover:text-coral-500 transition-colors leading-tight">
+                      {blog.title}
+                    </h3>
+                    <span className="text-coral-500 font-serif font-bold text-sm inline-flex items-center gap-1">
+                      Read the story <span className="transition-transform group-hover:translate-x-1">→</span>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Mini Guides Section */}
-        <div id="mini-guides" className="mb-24 scroll-mt-24">
-          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
-            ⚡ MINI GUIDES
-          </span>
-          <h2 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 mb-8 tracking-tight">
-            Mini guides for {destination.country}
-          </h2>
+        {companionGuide && (
+          <div id="mini-guides" className="mb-24 scroll-mt-24">
+            <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
+              ⚡ COMPANION GUIDE
+            </span>
+            <h2 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 mb-8 tracking-tight">
+              Mini guides for {destination.country}
+            </h2>
 
-          <div className="bg-white rounded-[24px] border border-charcoal-900/10 overflow-hidden shadow-sm flex flex-col md:flex-row">
-            
-            {/* Left Block */}
-            <div className="bg-[#E9C46A] p-8 md:p-12 md:w-[60%] flex flex-col justify-between min-h-[320px]">
-              <div>
-                <span className="text-[9px] font-bold tracking-widest text-charcoal-800/60 uppercase block mb-4">
-                  ⚡ COMPANION GUIDE
-                </span>
-                <h3 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 leading-tight mb-4 tracking-tight">
-                  The {destination.country} Mini Travel Guide
-                </h3>
-                <p className="text-charcoal-800 text-sm md:text-[15px] leading-relaxed mb-8 max-w-lg font-medium">
-                  {destination.country} rewards a slower pace. This guide pulls together the temples worth seeing, where to stay across price points, and the small counters and rituals that turn a trip here into something you'll keep coming back for.
-                </p>
+            <div className="bg-white rounded-[24px] border border-charcoal-900/10 overflow-hidden shadow-sm flex flex-col md:flex-row">
+              
+              {/* Left Block */}
+              <div className="bg-[#E9C46A] p-8 md:p-12 md:w-[60%] flex flex-col justify-between min-h-[320px]">
+                <div>
+                  <span className="text-[9px] font-bold tracking-widest text-charcoal-800/60 uppercase block mb-4">
+                    ⚡ COMPANION GUIDE
+                  </span>
+                  <h3 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 leading-tight mb-4 tracking-tight">
+                    {companionGuide.title}
+                  </h3>
+                  <p className="text-charcoal-800 text-sm md:text-[15px] leading-relaxed mb-8 max-w-lg font-medium">
+                    {companionGuide.excerpt || `${destination.country} rewards a slower pace. This companion guide pulls together where to stay, what to eat, and core active activities.`}
+                  </p>
+                </div>
+                <Link 
+                  href={`/mini-guides/${companionGuide.slug}`} 
+                  className="inline-flex items-center gap-1.5 text-charcoal-900 font-bold text-sm uppercase tracking-widest hover:text-black transition-colors"
+                >
+                  Open the guide <span className="text-coral-500 text-lg">→</span>
+                </Link>
               </div>
-              <Link 
-                href="/mini-guides" 
-                className="inline-flex items-center gap-1.5 text-charcoal-900 font-bold text-sm uppercase tracking-widest hover:text-black transition-colors"
-              >
-                Open the guide <span className="text-coral-500 text-lg">→</span>
-              </Link>
-            </div>
 
-            {/* Right Block */}
-            <div className="bg-[#F6E3B3] p-8 md:p-12 md:w-[40%] flex flex-col justify-center border-t md:border-t-0 md:border-l border-charcoal-900/5">
-              <span className="font-serif italic text-coral-500 text-[26px] block mb-6 font-bold">inside →</span>
-              <ul className="space-y-3.5 text-charcoal-900 font-bold text-[11px] tracking-widest uppercase">
-                <li className="flex items-center gap-2">
-                  <span className="text-[#DCAE1D] text-xs">◆</span> TOP SIGHTS
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#DCAE1D] text-xs">◆</span> WHERE TO STAY ($, $$, $$$)
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#DCAE1D] text-xs">◆</span> WHAT TO EAT & DRINK
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#DCAE1D] text-xs">◆</span> BEST RESTAURANTS
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#DCAE1D] text-xs">◆</span> TOURS & ACTIVITIES
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-[#DCAE1D] text-xs">◆</span> BEST DAY TRIPS
-                </li>
-              </ul>
-            </div>
+              {/* Right Block */}
+              <div className="bg-[#F6E3B3] p-8 md:p-12 md:w-[40%] flex flex-col justify-center border-t md:border-t-0 md:border-l border-charcoal-900/5">
+                <span className="font-serif italic text-coral-500 text-[26px] block mb-6 font-bold">inside →</span>
+                <ul className="space-y-3.5 text-charcoal-900 font-bold text-[11px] tracking-widest uppercase">
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> TOP SIGHTS
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> WHERE TO STAY ($, $$, $$$)
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> WHAT TO EAT & DRINK
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> BEST RESTAURANTS
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> TOURS & ACTIVITIES
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> BEST DAY TRIPS
+                  </li>
+                </ul>
+              </div>
 
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Other Countries Selection */}
         <div>

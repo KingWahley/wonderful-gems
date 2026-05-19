@@ -1,19 +1,34 @@
-import { tours } from "@/data/mockData";
+import { fetchTours } from "@/lib/db";
 import { Check } from "lucide-react";
 
+export const revalidate = 0;
+
 export async function generateStaticParams() {
-  return tours.map((tour) => ({
-    slug: tour.slug || tour.id,
-  }));
+  try {
+    const toursList = await fetchTours();
+    return toursList.map((tour) => ({
+      slug: tour.slug || tour.id,
+    }));
+  } catch (e) {
+    return [];
+  }
 }
 
 export default async function TourDetails({ params }) {
   const resolvedParams = await Promise.resolve(params);
   
+  let toursList = [];
+  try {
+    toursList = await fetchTours() || [];
+  } catch (error) {
+    console.error("Error fetching tour details from Supabase:", error);
+  }
+  
   // Resilient lookup checking slug first, then fallback to ID, and finally defaulting to the first tour
-  const tour = tours.find(t => t.slug === resolvedParams.slug) 
-    || tours.find(t => t.id === resolvedParams.slug) 
-    || tours[0];
+  const tour = toursList.find(t => t.slug === resolvedParams.slug) 
+    || toursList.find(t => t.id === resolvedParams.slug) 
+    || toursList[0]
+    || {};
 
   // Robust fallback values for undefined mock data properties to guarantee zero runtime failures
   const duration = tour.duration || tour.details || "3 Hours";

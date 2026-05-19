@@ -1,4 +1,6 @@
-import { miniGuides, blogPosts, freshPosts } from "@/data/mockData";
+export const dynamic = "force-dynamic";
+
+import { fetchMiniGuides, fetchBlogs, fetchDestinations, fetchTours } from "@/lib/db";
 import Link from "next/link";
 import { ArrowLeft, Star, Sparkle, Utensils } from "lucide-react";
 
@@ -204,28 +206,132 @@ const cityGuidesData = {
   }
 };
 
-export async function generateStaticParams() {
-  return miniGuides.map((guide) => ({
-    slug: guide.slug,
-  }));
-}
-
 export default async function MiniGuideDetails({ params }) {
-  const resolvedParams = await Promise.resolve(params);
-  const guide = miniGuides.find(g => g.slug === resolvedParams.slug) || miniGuides[0];
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
+
+  let guides = [];
+  let destinations = [];
+  let tours = [];
+  let blogs = [];
+  
+  try {
+    const [guidesData, destData, toursData, blogsData] = await Promise.all([
+      fetchMiniGuides(),
+      fetchDestinations(),
+      fetchTours(),
+      fetchBlogs()
+    ]);
+    guides = guidesData;
+    destinations = destData;
+    tours = toursData;
+    blogs = blogsData;
+  } catch (err) {
+    console.error("Failed to load mini guide detail data dynamically", err);
+  }
+
+  const guide = guides.find(g => g.slug === slug);
+  if (!guide) {
+    return (
+      <div className="pt-32 pb-24 bg-[#FBF7EE] min-h-screen flex flex-col items-center justify-center text-charcoal-900">
+        <h1 className="text-3xl font-serif mb-4">Guide Not Found</h1>
+        <p className="text-sm text-charcoal-500 mb-8">We couldn't find the mini guide you're looking for.</p>
+        <Link href="/mini-guides" className="text-coral-500 text-sm font-bold uppercase tracking-widest hover:text-coral-600 flex items-center gap-2">
+          Back to Mini Guides
+        </Link>
+      </div>
+    );
+  }
 
   const citySlug = guide.slug.toLowerCase();
   
-  // Resolve rich custom data mapping, or default gracefully to Lisbon
-  const details = cityGuidesData[citySlug] || cityGuidesData["lisbon"];
+  // Resolve rich custom data mapping, or default to dynamically generated details if not in cityGuidesData
+  const flags = { JP: "🇯🇵", PT: "🇵🇹", CL: "🇨🇱", MX: "🇲🇽", MA: "🇲🇦", IS: "🇮🇸", VN: "🇻🇳", IT: "🇮🇹", BE: "🇧🇪", US: "🇺🇸", FR: "🇫🇷", ES: "🇪🇸" };
+  const currentFlag = flags[guide.countryCode] || "📍";
 
-  const currentFlag = details.flag || "📍";
+  // Let's build details dynamically with robust fallbacks
+  const customDetails = cityGuidesData[citySlug];
   
+  // Find destination matching this guide
+  const destination = destinations.find(
+    (d) => d.code === guide.countryCode || d.country.toLowerCase() === guide.destination.toLowerCase()
+  );
+
+  const details = {
+    country: guide.destination,
+    flag: currentFlag,
+    pocketTitle: guide.details?.pocketTitle || customDetails?.pocketTitle || `${guide.destination.toUpperCase()} MINI GUIDE • POCKET VERSION`,
+    itineraryTitle: guide.details?.itineraryTitle || customDetails?.itineraryTitle || `RECOMMENDED ITINERARY`,
+    blogCountText: guide.details?.blogCountText || customDetails?.blogCountText || `${blogs.filter(b => b.destination.toLowerCase() === guide.destination.toLowerCase()).length} POSTS FROM ${guide.destination.toUpperCase()}`,
+    excerpt: guide.excerpt || guide.details?.excerpt || customDetails?.excerpt || destination?.excerpt || "A carefully curated pocket guide.",
+    sights: (guide.details?.sights || customDetails?.sights || destination?.moments?.map((m, idx) => ({
+      num: String(idx + 1).padStart(2, "0"),
+      text: m
+    })) || [
+      { num: "01", text: "Main historic center alleys walk" },
+      { num: "02", text: "Top viewpoint sunset watch" },
+      { num: "03", text: "Local morning market tour" }
+    ]).map((s, idx) => ({
+      ...s,
+      color: s.color || ["text-[#DCAE1D]", "text-[#46B6E6]", "text-[#8FC1A3]", "text-[#E76F51]"][idx % 4]
+    })),
+    stay: guide.details?.stay || customDetails?.stay || {
+      budget: [
+        { name: "Top-rated boutique hostel", desc: "Clean, highly social, and in a central neighborhood." }
+      ],
+      mid: [
+        { name: "Comfort boutique hotel", desc: "Local style with great amenities and breakfast." }
+      ],
+      splurge: [
+        { name: "Luxury historic hotel", desc: "Pristine service and beautiful views." }
+      ]
+    },
+    activities: (guide.details?.activities || customDetails?.activities || tours
+      .filter(t => t.countryCode === guide.countryCode || t.destination.toLowerCase() === guide.destination.toLowerCase())
+      .map((t, idx) => ({
+        num: String(idx + 1).padStart(2, "0"),
+        text: t.title
+      })) || [
+        { num: "01", text: "Guided walking food tasting crawl" },
+        { num: "02", text: "Sunset coastal/scenic boat ride" }
+      ]).map((a, idx) => ({
+        ...a,
+        num: a.num || String(idx + 1).padStart(2, "0")
+      })),
+    eat: guide.details?.eat || customDetails?.eat || [
+      { name: "Local signature dish", desc: "A must-try classic found across the destination." },
+      { name: "Traditional dessert", desc: "Perfect sweet bite from local bakeries." }
+    ],
+    restaurants: guide.details?.restaurants || customDetails?.restaurants || {
+      budget: [
+        { name: "Popular street vendor / small tavern", desc: "Stunning flavors, very friendly, very low price." }
+      ],
+      mid: [
+        { name: "Scenic local bistro", desc: "Beautiful food prepared with regional ingredients." }
+      ],
+      splurge: [
+        { name: "Michelin-recommended fine dining", desc: "Elevated classic flavors in a lovely historic venue." }
+      ]
+    },
+    dayTrips: (guide.details?.dayTrips || customDetails?.dayTrips || destinations
+      .filter(d => d.region === destination?.region && d.id !== destination?.id)
+      .slice(0, 4)
+      .map((d, idx) => ({
+        num: String(idx + 1).padStart(2, "0"),
+        name: `${d.country} (${d.excerpt?.split(",")[0] || d.country})`
+      })) || [
+        { num: "01", name: "Nearby historic countryside town" }
+      ]).map((dt, idx) => ({
+        ...dt,
+        bg: dt.bg || ["bg-[#E9C46A]/20 border-[#E9C46A]/40", "bg-[#46B6E6]/20 border-[#46B6E6]/40", "bg-[#8FC1A3]/20 border-[#8FC1A3]/40", "bg-[#E76F51]/20 border-[#E76F51]/40"][idx % 4],
+        badgeCol: dt.badgeCol || ["bg-[#E9C46A] text-charcoal-900", "bg-[#46B6E6] text-white", "bg-[#8FC1A3] text-white", "bg-[#E76F51] text-white"][idx % 4]
+      }))
+  };
+
   // Combine all blogs and itineraries, filtering out duplicate slugs
-  const combinedBlogs = [...blogPosts, ...freshPosts];
   const uniqueBlogs = [];
   const seenSlugs = new Set();
-  for (const post of combinedBlogs) {
+  for (const post of blogs) {
     if (!seenSlugs.has(post.slug)) {
       seenSlugs.add(post.slug);
       uniqueBlogs.push(post);
@@ -251,7 +357,7 @@ export default async function MiniGuideDetails({ params }) {
           <div className="flex items-center gap-2 text-[10px] tracking-[0.2em] font-bold text-charcoal-700 uppercase">
             <Link href="/mini-guides" className="hover:text-[#DCAE1D] transition-colors">MINI GUIDES</Link>
             <span className="text-charcoal-300">/</span>
-            <Link href={`/destinations/${guide.slug}`} className="hover:text-[#DCAE1D] transition-colors">{details.country.toUpperCase()}</Link>
+            <Link href={`/destinations/${destination?.slug || guide.slug.split("-")[0]}`} className="hover:text-[#DCAE1D] transition-colors">{details.country.toUpperCase()}</Link>
             <span className="text-charcoal-300">/</span>
             <span className="text-charcoal-900">{guide.title.split(" ")[0].toUpperCase()}</span>
           </div>

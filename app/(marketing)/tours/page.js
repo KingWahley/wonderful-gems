@@ -1,13 +1,22 @@
 import Link from "next/link";
-import { tours } from "@/data/mockData";
+import { fetchTours } from "@/lib/db";
 
-export default function ToursPage() {
+export const revalidate = 0;
+
+export default async function ToursPage() {
+  let tours = [];
+  try {
+    tours = await fetchTours() || [];
+  } catch (error) {
+    console.error("Error fetching tours from Supabase:", error);
+  }
+
   // Group tours by destination
   const destinationsMap = tours.reduce((acc, tour) => {
     if (!acc[tour.destination]) {
       acc[tour.destination] = {
         name: tour.destination,
-        code: tour.countryCode,
+        code: tour.countryCode || "",
         count: 0,
         tours: []
       };

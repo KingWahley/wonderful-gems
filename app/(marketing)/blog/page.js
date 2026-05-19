@@ -1,25 +1,30 @@
 import Link from "next/link";
-import { blogPosts } from "@/data/mockData";
+import { fetchDestinations, fetchBlogs } from "@/lib/db";
 
-export default function BlogPage() {
-  // Group posts by destination
-  const destinationsList = [
-    { name: "Japan", code: "JP" },
-    { name: "Portugal", code: "PT" },
-    { name: "Chile", code: "CL" },
-    { name: "Mexico", code: "MX" },
-    { name: "Morocco", code: "MA" },
-    { name: "Iceland", code: "IS" },
-    { name: "Vietnam", code: "VN" },
-    { name: "Italy", code: "IT" },
-    { name: "Belgium", code: "BE" }
-  ];
+export const dynamic = "force-dynamic";
+
+export default async function BlogPage() {
+  let destinationsList = [];
+  let blogPosts = [];
+
+  try {
+    const [destData, blogData] = await Promise.all([
+      fetchDestinations(),
+      fetchBlogs()
+    ]);
+    destinationsList = destData;
+    blogPosts = blogData;
+  } catch (err) {
+    console.error("Failed to load blog page dynamically", err);
+  }
 
   const pills = [
-    { label: "All", count: 10 },
+    { label: "All", count: blogPosts.length },
     ...destinationsList.map(d => {
-      const count = blogPosts.filter(p => p.destination === d.name).length;
-      return { label: d.name, count };
+      const count = blogPosts.filter(
+        p => p.destination?.toLowerCase() === d.country?.toLowerCase()
+      ).length;
+      return { label: d.country, count };
     })
   ];
 
@@ -43,9 +48,9 @@ export default function BlogPage() {
           {/* Pills */}
           <div className="flex flex-wrap gap-2">
             {pills.map((pill, idx) => (
-              <button key={idx} className="border border-charcoal-900/10 bg-white px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest text-charcoal-900 hover:bg-cream-200 transition-colors uppercase shadow-sm">
+              <span key={idx} className="border border-charcoal-900/10 bg-white px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest text-charcoal-900 uppercase shadow-sm">
                 {pill.label} ({pill.count})
-              </button>
+              </span>
             ))}
           </div>
         </div>
@@ -53,17 +58,19 @@ export default function BlogPage() {
         {/* Content sections grouped by destination */}
         <div className="space-y-16 mt-16">
           {destinationsList.map((dest) => {
-            const posts = blogPosts.filter(p => p.destination === dest.name);
+            const posts = blogPosts.filter(
+              p => p.destination?.toLowerCase() === dest.country?.toLowerCase()
+            );
             if (posts.length === 0) return null;
 
             return (
-              <div key={dest.code}>
+              <div key={dest.id}>
                 <div className="flex items-baseline justify-between border-b border-charcoal-900/10 pb-3 mb-6">
                   <h2 className="flex items-baseline gap-2 text-charcoal-900">
                     <span className="text-sm font-sans font-bold uppercase">{dest.code}</span>
-                    <span className="font-serif text-[28px] font-bold">{dest.name}</span>
+                    <span className="font-serif text-[28px] font-bold">{dest.country}</span>
                   </h2>
-                  <Link href={`/destinations/${dest.name.toLowerCase()}`} className="text-[10px] font-bold text-coral-500 uppercase tracking-widest hover:text-coral-600 transition-colors">
+                  <Link href={`/destinations/${dest.slug}`} className="text-[10px] font-bold text-coral-500 uppercase tracking-widest hover:text-coral-600 transition-colors">
                     View {posts.length} {posts.length === 1 ? 'post' : 'posts'} <span className="ml-0.5 text-sm leading-none">→</span>
                   </Link>
                 </div>
@@ -73,12 +80,14 @@ export default function BlogPage() {
                     <Link key={post.id} href={`/blog/${post.slug}`} className="group block bg-white rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-charcoal-900/5 flex flex-col h-full">
                       
                       {/* Image Container */}
-                      <div className="relative h-[200px] md:h-[220px] w-full overflow-hidden shrink-0">
-                        <img 
-                          src={post.coverImage} 
-                          alt={post.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
+                      <div className="relative h-[200px] md:h-[220px] w-full overflow-hidden shrink-0 bg-cream-200">
+                        {post.coverImage && (
+                          <img 
+                            src={post.coverImage} 
+                            alt={post.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        )}
                         {/* Pill */}
                         <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center shadow-sm">
                           <span className="text-[9px] font-bold tracking-widest uppercase text-charcoal-900">{post.destination}</span>

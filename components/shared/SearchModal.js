@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, Globe, BookOpen, Map, Compass } from "lucide-react";
-import { destinations, blogPosts, miniGuides, tours } from "@/data/mockData";
+import { supabase } from "@/lib/db";
 
 const flagMap = {
   "japan": "🇯🇵",
@@ -23,13 +23,52 @@ export default function SearchModal({ isOpen, onClose }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef(null);
   const resultsContainerRef = useRef(null);
+  
+  const [data, setData] = useState({
+    destinations: [],
+    blogPosts: [],
+    miniGuides: [],
+    tours: []
+  });
+  const [loading, setLoading] = useState(false);
 
-  // Reset search state on open/close
+  // Reset search state and load data on open
   useEffect(() => {
     if (isOpen) {
       setQuery("");
       setActiveTab("all");
       setSelectedIndex(0);
+      
+      const loadSearchData = async () => {
+        setLoading(true);
+        try {
+          const [
+            { data: destinations },
+            { data: blogPosts },
+            { data: miniGuides },
+            { data: tours }
+          ] = await Promise.all([
+            supabase.from("destinations").select("*"),
+            supabase.from("blog_posts").select("*"),
+            supabase.from("mini_guides").select("*"),
+            supabase.from("tours").select("*")
+          ]);
+          
+          setData({
+            destinations: destinations || [],
+            blogPosts: blogPosts || [],
+            miniGuides: miniGuides || [],
+            tours: tours || []
+          });
+        } catch (error) {
+          console.error("Error loading search data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadSearchData();
+
       setTimeout(() => {
         inputRef.current?.focus();
       }, 50);
@@ -41,7 +80,7 @@ export default function SearchModal({ isOpen, onClose }) {
     const items = [];
 
     // 1. Destinations
-    destinations.forEach(dest => {
+    data.destinations.forEach(dest => {
       items.push({
         id: `dest-${dest.id}`,
         type: "destination",
@@ -55,7 +94,7 @@ export default function SearchModal({ isOpen, onClose }) {
     });
 
     // 2. Blog Posts
-    blogPosts.forEach(post => {
+    data.blogPosts.forEach(post => {
       items.push({
         id: `blog-${post.id}`,
         type: "blog",
@@ -69,7 +108,7 @@ export default function SearchModal({ isOpen, onClose }) {
     });
 
     // 3. Mini Guides
-    miniGuides.forEach(guide => {
+    data.miniGuides.forEach(guide => {
       items.push({
         id: `guide-${guide.id}`,
         type: "guide",
@@ -83,7 +122,7 @@ export default function SearchModal({ isOpen, onClose }) {
     });
 
     // 4. Tours
-    tours.forEach(tour => {
+    data.tours.forEach(tour => {
       items.push({
         id: `tour-${tour.id}`,
         type: "tour",

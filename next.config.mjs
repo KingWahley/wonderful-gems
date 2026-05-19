@@ -10,6 +10,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'plus.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'wanderful-gems.lovable.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'aehjcuowbyugudhmvcag.supabase.co',
+      },
     ],
   },
 };
