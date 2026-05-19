@@ -263,6 +263,9 @@ export default async function MiniGuideDetails({ params }) {
     pocketTitle: guide.details?.pocketTitle || customDetails?.pocketTitle || `${guide.destination.toUpperCase()} MINI GUIDE • POCKET VERSION`,
     itineraryTitle: guide.details?.itineraryTitle || customDetails?.itineraryTitle || `RECOMMENDED ITINERARY`,
     blogCountText: guide.details?.blogCountText || customDetails?.blogCountText || `${blogs.filter(b => b.destination.toLowerCase() === guide.destination.toLowerCase()).length} POSTS FROM ${guide.destination.toUpperCase()}`,
+    bestTimeToVisit: guide.details?.bestTimeToVisit || customDetails?.bestTimeToVisit || "March to May & Oct to Nov",
+    idealDuration: guide.details?.idealDuration || customDetails?.idealDuration || "4-5 Days",
+    budgetLevel: guide.details?.budgetLevel || customDetails?.budgetLevel || "Mid-range",
     excerpt: guide.excerpt || guide.details?.excerpt || customDetails?.excerpt || destination?.excerpt || "A carefully curated pocket guide.",
     sights: (guide.details?.sights || customDetails?.sights || destination?.moments?.map((m, idx) => ({
       num: String(idx + 1).padStart(2, "0"),
@@ -385,13 +388,13 @@ export default async function MiniGuideDetails({ params }) {
           {/* Styled Pill Badges */}
           <div className="flex flex-wrap gap-2.5">
             <span className="bg-[#E9C46A] text-charcoal-900 text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
-              {details.pocketTitle}
+              Best Time to Visit: {details.bestTimeToVisit}
             </span>
             <span className="bg-[#46B6E6] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
-              {details.itineraryTitle}
+              Ideal Duration: {details.idealDuration}
             </span>
             <span className="bg-[#8FC1A3] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
-              {details.blogCountText}
+              Budget Level: {details.budgetLevel}
             </span>
           </div>
         </div>
