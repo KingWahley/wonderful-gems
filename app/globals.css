@@ -10,6 +10,26 @@
   --color-charcoal-900: #111111;
   --color-coral-500: #ea5849;
   
+  /* Brand Premium Design System */
+  --color-brand-mustard: #c7962d;
+  --color-brand-mustard-soft: #f6ead0;
+  --color-brand-coral: #d95f43;
+  --color-brand-bg: #faf7f1;
+  --color-brand-card: #fff;
+  --color-brand-ink: #161616;
+  --color-brand-muted: #6f6b63;
+  --color-brand-border: #e7dfd2;
+  --color-brand-sidebar: #111312;
+  
+  --color-brand-success-bg: #e7f5e9;
+  --color-brand-success: #1f7a3f;
+  --color-brand-warning-bg: #fff4d6;
+  --color-brand-warning: #8a5b00;
+  --color-brand-blue-bg: #edf4ff;
+  --color-brand-blue: #2357a6;
+  --color-brand-danger-bg: #fdecec;
+  --color-brand-danger: #b42318;
+  
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
 }
@@ -44,6 +64,41 @@
   .luxury-card {
     @apply overflow-hidden rounded-2xl bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 border border-charcoal-900/5;
   }
+}
+
+/* Explicit brand color utilities to prevent Tailwind compilation mismatch */
+@utility bg-brand-sidebar {
+  background-color: #111312;
+}
+@utility bg-brand-bg {
+  background-color: #faf7f1;
+}
+@utility bg-brand-ink {
+  background-color: #161616;
+}
+@utility bg-brand-mustard {
+  background-color: #c7962d;
+}
+@utility bg-brand-mustard-soft {
+  background-color: #f6ead0;
+}
+@utility bg-brand-danger-bg {
+  background-color: #fdecec;
+}
+@utility text-brand-mustard {
+  color: #c7962d;
+}
+@utility text-brand-ink {
+  color: #161616;
+}
+@utility text-brand-muted {
+  color: #6f6b63;
+}
+@utility text-brand-coral {
+  color: #d95f43;
+}
+@utility border-brand-border {
+  border-color: #e7dfd2;
 }
 
 /* Custom luxury scrollbar style */
