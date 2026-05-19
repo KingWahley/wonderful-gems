@@ -34,7 +34,7 @@ export default async function Home() {
       <Hero />
       <FeaturedBlogs blogs={popularBlogs} />
       <FeaturedDestinations destinations={destinations} />
-      <FreshOffTheRoad freshPosts={freshBlogs} />
+      <FreshOffTheRoad miniGuides={miniGuides} />
       <WhyTravelWithMe />
       <Testimonials miniGuides={miniGuides} />
     </>

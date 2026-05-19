@@ -324,8 +324,15 @@ export default async function MiniGuideDetails({ params }) {
       ]).map((dt, idx) => ({
         ...dt,
         bg: dt.bg || ["bg-[#E9C46A]/20 border-[#E9C46A]/40", "bg-[#46B6E6]/20 border-[#46B6E6]/40", "bg-[#8FC1A3]/20 border-[#8FC1A3]/40", "bg-[#E76F51]/20 border-[#E76F51]/40"][idx % 4],
-        badgeCol: dt.badgeCol || ["bg-[#E9C46A] text-charcoal-900", "bg-[#46B6E6] text-white", "bg-[#8FC1A3] text-white", "bg-[#E76F51] text-white"][idx % 4]
-      }))
+        badgeCol: dt.badgeCol || ["bg-[#E9C46A] text-charcoal-900", "bg-[#46B6E6] text-white", "bg-[#8FC1A3] text-white", "bg-[#E76F51] text-white"][idx % 4],
+        solidBg: dt.solidBg || ["bg-[#E9C46A]", "bg-[#46B6E6]", "bg-[#8FC1A3]", "bg-[#E76F51]"][idx % 4],
+        emoji: dt.emoji || "🚌"
+      })),
+    days: guide.details?.days || customDetails?.days || [],
+    introText: guide.details?.introText || customDetails?.introText || `A custom day-by-day itinerary.`,
+    introHtml: guide.details?.introHtml || customDetails?.introHtml || "",
+    routeTitle: guide.details?.routeTitle || customDetails?.routeTitle || "ROUTE FLOW",
+    routeFlow: guide.details?.routeFlow || customDetails?.routeFlow || ""
   };
 
   // Combine all blogs and itineraries, filtering out duplicate slugs
@@ -404,9 +411,10 @@ export default async function MiniGuideDetails({ params }) {
                 {currentFlag} {guide.destination.toUpperCase()}
               </div>
             </div>
-
-        {/* Section Index Anchor Jumps */}
-        <div className="bg-[#E9C46A] border-2 border-charcoal-900 rounded-[32px] mb-16 max-w-4xl relative">
+            {guide.type !== "itinerary" ? (
+              <>
+                {/* Section Index Anchor Jumps */}
+                <div className="bg-[#E9C46A] border-2 border-charcoal-900 rounded-[32px] mb-16 max-w-4xl relative">
           <div className="bg-white border-2 border-charcoal-900 rounded-[32px] p-8 md:p-10 transform -translate-x-2 -translate-y-2 transition-all duration-300 hover:-translate-x-1 hover:-translate-y-1">
             <span className="text-[10px] md:text-[11px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-3">
               IN THIS GUIDE
@@ -494,300 +502,483 @@ export default async function MiniGuideDetails({ params }) {
           <div className="border-b border-charcoal-900/10 mb-12" />
         </div>
 
-        {/* 2. Where to Stay in City */}
-        <div id="where-to-stay" className="mb-20 scroll-mt-24">
-          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-2">
-            ACCOMMODATION
-          </span>
-          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
-            Where to stay in {guide.title.split(" ")[0]}
-          </h2>
-          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
-            Picks across three price tiers. All hand-chosen — none of these are generic chains.
-          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* Budget */}
-            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
-              <div className="bg-[#8FC1A3] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
-                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Budget</span>
-                <span className="font-serif font-bold text-[24px]">£</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
-                {details.stay.budget.map((hotel, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
-                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
-                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
+            {/* 2. Where to Stay in City */}
+            <div id="where-to-stay" className="mb-20 scroll-mt-24">
+              <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-2 font-sans">
+                ACCOMMODATION
+              </span>
+              <h2 className="font-serif text-[38px] md:text-[46px] font-bold text-charcoal-900 mb-4 tracking-tight leading-tight">
+                Where to stay
+              </h2>
+              <p className="text-charcoal-500/80 text-sm md:text-base leading-relaxed mb-10 max-w-xl font-normal font-sans">
+                The neighborhoods and specific stays that put you in the heart of the action.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Budget Column */}
+                <div className="bg-white border-2 border-charcoal-900 rounded-[28px] shadow-[4px_4px_0px_0px_#2B2A27] flex flex-col overflow-hidden">
+                  <div className="bg-[#E9C46A] border-b-2 border-charcoal-900 p-5 text-center">
+                    <span className="text-[10px] font-bold tracking-[0.25em] text-charcoal-900 uppercase">BUDGET</span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Mid-range */}
-            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
-              <div className="bg-[#46B6E6] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
-                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Mid-range</span>
-                <span className="font-serif font-bold text-[24px]">££</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
-                {details.stay.mid.map((hotel, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
-                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
-                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Splurge */}
-            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
-              <div className="bg-[#E9C46A] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
-                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Splurge</span>
-                <span className="font-serif font-bold text-[24px]">£££</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
-                {details.stay.splurge.map((hotel, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
-                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
-                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Dotted border Photo Badge */}
-          <div className="flex justify-center mt-12 mb-16">
-            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
-              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
-              <span className="text-[7px] font-bold tracking-widest text-charcoal-400 uppercase mt-1 leading-none">WHERE TO STAY</span>
-            </div>
-          </div>
-
-          <div className="border-b border-charcoal-900/10 mb-12" />
-        </div>
-
-        {/* 3. Best Activities & Tours in City */}
-        <div id="activities" className="mb-20 scroll-mt-24">
-          <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-2 font-sans">
-            THINGS TO DO
-          </span>
-          <h2 className="font-serif text-[38px] md:text-[46px] font-bold text-charcoal-900 mb-4 tracking-tight leading-tight">
-            Best activities & tours
-          </h2>
-          <p className="text-charcoal-500/80 text-sm md:text-base leading-relaxed mb-10 max-w-xl font-normal font-sans">
-            Beyond the sights — the experiences worth booking ahead of time.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-            {details.activities.map((act, idx) => {
-              const pillColors = ["bg-[#E9C46A]", "bg-[#46B6E6]", "bg-[#8FC1A3]", "bg-[#E76F51]"];
-              const colorClass = pillColors[idx % pillColors.length];
-              const displayNum = act.num.startsWith("#") ? act.num : `#${parseInt(act.num, 10)}`;
-              return (
-                <div 
-                  key={act.num}
-                  className={`${colorClass} p-8 rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.06)] hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between min-h-[160px] relative overflow-hidden group cursor-default`}
-                >
-                  <div className="absolute top-6 right-6">
-                    <Sparkle size={28} className="text-charcoal-900/15 fill-charcoal-900/15 transition-transform duration-500 group-hover:rotate-45" />
-                  </div>
-                  <div>
-                    <span className="font-serif font-bold text-xl md:text-2xl text-charcoal-900/40 block mb-3">
-                      {displayNum}
-                    </span>
-                    <h3 className="font-serif font-bold text-lg md:text-[20px] text-charcoal-900 leading-snug max-w-[90%]">
-                      {act.text}
-                    </h3>
+                  <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                    {details.stay.budget.map((hotel, idx) => (
+                      <div key={idx} className="flex flex-col">
+                        {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                        <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
+                        <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Dotted border Photo Badge for Activities */}
-          <div className="flex justify-center mt-12 mb-16">
-            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
-              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
-              <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">THINGS TO DO</span>
-            </div>
-          </div>
-
-          <div className="border-b border-charcoal-900/10 mb-12" />
-        </div>
-
-        {/* 4. What to Eat & Drink in City */}
-        <div id="eat-drink" className="mb-20 scroll-mt-24">
-          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
-            FOOD
-          </span>
-          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
-            What to eat &amp; drink
-          </h2>
-          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
-            The flavours that define this place — order these without overthinking.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {details.eat.map((dish, idx) => {
-              const iconBgs = [
-                "bg-[#E9C46A] text-white",
-                "bg-[#46B6E6] text-white",
-                "bg-[#8FC1A3] text-white",
-                "bg-[#E76F51] text-white",
-                "bg-[#E9C46A] text-white"
-              ];
-              return (
-                <div key={idx} className="bg-white rounded-[20px] border border-charcoal-900/8 p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow duration-200">
-                  <div className={`w-12 h-12 rounded-full ${iconBgs[idx % iconBgs.length]} flex items-center justify-center flex-shrink-0`}>
-                    <Utensils className="w-5 h-5" strokeWidth={2} />
+                {/* Mid-range Column */}
+                <div className="bg-white border-2 border-charcoal-900 rounded-[28px] shadow-[4px_4px_0px_0px_#2B2A27] flex flex-col overflow-hidden">
+                  <div className="bg-[#46B6E6] border-b-2 border-charcoal-900 p-5 text-center">
+                    <span className="text-[10px] font-bold tracking-[0.25em] text-white uppercase">MID-RANGE</span>
                   </div>
-                  <div>
-                    <h4 className="font-serif text-[17px] font-bold text-charcoal-900 mb-1 leading-tight">
-                      {dish.name}
-                    </h4>
-                    <p className="text-[13px] text-charcoal-600 leading-relaxed font-light">
-                      {dish.desc}
-                    </p>
+                  <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                    {details.stay.mid.map((hotel, idx) => (
+                      <div key={idx} className="flex flex-col">
+                        {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                        <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
+                        <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Photo Badge */}
-          <div className="flex justify-center mt-12 mb-16">
-            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
-              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
-              <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">WHAT TO EAT</span>
-            </div>
-          </div>
-
-          <div className="border-b border-charcoal-900/10 mb-12" />
-        </div>
-
-        {/* 5. Best Restaurants & Rooftops in City */}
-        <div id="restaurants" className="mb-20 scroll-mt-24">
-          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-2">
-            DINING RITUALS
-          </span>
-          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
-            Best restaurants & rooftops
-          </h2>
-          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
-            From down-to-earth traditional tascas or small counters to sky-high Michelin stars and rooftops.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* Budget */}
-            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
-              <div className="bg-[#8FC1A3] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
-                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Budget</span>
-                <span className="font-serif font-bold text-[24px]">£</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
-                {details.restaurants.budget.map((spot, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
-                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{spot.name}</span>
-                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{spot.desc}</span>
+                {/* Splurge Column */}
+                <div className="bg-white border-2 border-charcoal-900 rounded-[28px] shadow-[4px_4px_0px_0px_#2B2A27] flex flex-col overflow-hidden">
+                  <div className="bg-[#E76F51] border-b-2 border-charcoal-900 p-5 text-center">
+                    <span className="text-[10px] font-bold tracking-[0.25em] text-white uppercase">SPLURGE</span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Mid-range */}
-            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
-              <div className="bg-[#46B6E6] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
-                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Mid-range</span>
-                <span className="font-serif font-bold text-[24px]">££</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
-                {details.restaurants.mid.map((spot, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
-                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{spot.name}</span>
-                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{spot.desc}</span>
+                  <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                    {details.stay.splurge.map((hotel, idx) => (
+                      <div key={idx} className="flex flex-col">
+                        {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                        <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{hotel.name}</span>
+                        <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{hotel.desc}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Splurge */}
-            <div className="bg-white border border-charcoal-900/10 rounded-[20px] overflow-hidden shadow-sm flex flex-col min-h-[320px]">
-              <div className="bg-[#E9C46A] text-charcoal-900 px-6 py-4 flex justify-between items-center border-b border-charcoal-900/10">
-                <span className="text-[15px] font-bold tracking-wider uppercase font-sans">Splurge</span>
-                <span className="font-serif font-bold text-[24px]">£££</span>
-              </div>
-              <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
-                {details.restaurants.splurge.map((spot, idx) => (
-                  <div key={idx} className="flex flex-col">
-                    {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
-                    <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{spot.name}</span>
-                    <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{spot.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Dotted border Photo Badge */}
-          <div className="flex justify-center mt-12 mb-16">
-            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
-              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
-              <span className="text-[7px] font-bold tracking-widest text-charcoal-400 uppercase mt-1 leading-none">DINING RITUALS</span>
-            </div>
-          </div>
-
-          <div className="border-b border-charcoal-900/10 mb-12" />
-        </div>
-
-        {/* 6. Best Day Trips from City */}
-        <div id="day-trips" className="mb-24 scroll-mt-24">
-          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
-            FURTHER AFIELD
-          </span>
-          <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
-            Best day trips from {guide.title.split(" ")[0]}
-          </h2>
-          <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
-            Worth the early start — each is reachable as a single-day excursion.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {details.dayTrips.map((trip) => (
-              <div
-                key={trip.num}
-                className="flex rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 bg-white border border-charcoal-900/8"
-              >
-                {/* Solid colored left panel */}
-                <div className={`${trip.solidBg} flex items-center justify-center w-[72px] flex-shrink-0`}>
-                  <span className="text-[28px]">{trip.emoji}</span>
                 </div>
-                {/* White content area */}
-                <div className="flex-1 px-5 py-4">
-                  <span className="text-[9px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1.5">
-                    DAY TRIP {trip.num}
+              </div>
+
+              {/* Dotted border Photo Badge */}
+              <div className="flex justify-center mt-12 mb-16">
+                <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+                  <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+                  <span className="text-[7px] font-bold tracking-widest text-charcoal-400 uppercase mt-1 leading-none">WHERE TO STAY</span>
+                </div>
+              </div>
+
+              <div className="border-b border-charcoal-900/10 mb-12" />
+            </div>
+
+            {/* 3. Best Activities & Tours in City */}
+            <div id="activities" className="mb-20 scroll-mt-24">
+              <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-2 font-sans">
+                THINGS TO DO
+              </span>
+              <h2 className="font-serif text-[38px] md:text-[46px] font-bold text-charcoal-900 mb-4 tracking-tight leading-tight">
+                Best activities & tours
+              </h2>
+              <p className="text-charcoal-500/80 text-sm md:text-base leading-relaxed mb-10 max-w-xl font-normal font-sans">
+                Beyond the sights — the experiences worth booking ahead of time.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                {details.activities.map((act, idx) => {
+                  const pillColors = ["bg-[#E9C46A]", "bg-[#46B6E6]", "bg-[#8FC1A3]", "bg-[#E76F51]"];
+                  const colorClass = pillColors[idx % pillColors.length];
+                  const displayNum = act.num.startsWith("#") ? act.num : `#${parseInt(act.num, 10)}`;
+                  return (
+                    <div 
+                      key={act.num}
+                      className={`${colorClass} p-8 rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.06)] hover:scale-[1.01] transition-all duration-300 flex flex-col justify-between min-h-[160px] relative overflow-hidden group cursor-default`}
+                    >
+                      <div className="absolute top-6 right-6">
+                        <Sparkle size={28} className="text-charcoal-900/15 fill-charcoal-900/15 transition-transform duration-500 group-hover:rotate-45" />
+                      </div>
+                      <div>
+                        <span className="font-serif font-bold text-xl md:text-2xl text-charcoal-900/40 block mb-3">
+                          {displayNum}
+                        </span>
+                        <h3 className="font-serif font-bold text-lg md:text-[20px] text-charcoal-900 leading-snug max-w-[90%]">
+                          {act.text}
+                        </h3>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Dotted border Photo Badge for Activities */}
+              <div className="flex justify-center mt-12 mb-16">
+                <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+                  <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+                  <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">THINGS TO DO</span>
+                </div>
+              </div>
+
+              <div className="border-b border-charcoal-900/10 mb-12" />
+            </div>
+
+            {/* 4. What to Eat & Drink in City */}
+            <div id="eat-drink" className="mb-20 scroll-mt-24">
+              <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
+                FOOD
+              </span>
+              <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+                What to eat &amp; drink
+              </h2>
+              <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+                The flavours that define this place — order these without overthinking.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {details.eat.map((dish, idx) => {
+                  const iconBgs = [
+                    "bg-[#E9C46A] text-white",
+                    "bg-[#46B6E6] text-white",
+                    "bg-[#8FC1A3] text-white",
+                    "bg-[#E76F51] text-white",
+                    "bg-[#E9C46A] text-white"
+                  ];
+                  return (
+                    <div key={idx} className="bg-white rounded-[20px] border border-charcoal-900/8 p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+                      <div className={`w-12 h-12 rounded-full ${iconBgs[idx % iconBgs.length]} flex items-center justify-center flex-shrink-0`}>
+                        <Utensils className="w-5 h-5" strokeWidth={2} />
+                      </div>
+                      <div>
+                        <h4 className="font-serif text-[17px] font-bold text-charcoal-900 mb-1 leading-tight">
+                          {dish.name}
+                        </h4>
+                        <p className="text-[13px] text-charcoal-600 leading-relaxed font-light">
+                          {dish.desc}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Photo Badge */}
+              <div className="flex justify-center mt-12 mb-16">
+                <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+                  <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+                  <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">WHAT TO EAT</span>
+                </div>
+              </div>
+
+              <div className="border-b border-charcoal-900/10 mb-12" />
+            </div>
+
+            {/* 5. Best Restaurants in City */}
+            <div id="restaurants" className="mb-20 scroll-mt-24">
+              <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
+                WHERE TO EAT
+              </span>
+              <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+                Best restaurants
+              </h2>
+              <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+                From street side gems to refined dining rooms.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Budget Column */}
+                <div className="bg-white border-2 border-charcoal-900 rounded-[28px] shadow-[4px_4px_0px_0px_#2B2A27] flex flex-col overflow-hidden">
+                  <div className="bg-[#E9C46A] border-b-2 border-charcoal-900 p-5 text-center">
+                    <span className="text-[10px] font-bold tracking-[0.25em] text-charcoal-900 uppercase">LOCAL GEMS</span>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                    {details.restaurants.budget.map((rest, idx) => (
+                      <div key={idx} className="flex flex-col">
+                        {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                        <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{rest.name}</span>
+                        <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{rest.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mid-range Column */}
+                <div className="bg-white border-2 border-charcoal-900 rounded-[28px] shadow-[4px_4px_0px_0px_#2B2A27] flex flex-col overflow-hidden">
+                  <div className="bg-[#46B6E6] border-b-2 border-charcoal-900 p-5 text-center">
+                    <span className="text-[10px] font-bold tracking-[0.25em] text-white uppercase">MID-RANGE</span>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                    {details.restaurants.mid.map((rest, idx) => (
+                      <div key={idx} className="flex flex-col">
+                        {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                        <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{rest.name}</span>
+                        <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{rest.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Splurge Column */}
+                <div className="bg-white border-2 border-charcoal-900 rounded-[28px] shadow-[4px_4px_0px_0px_#2B2A27] flex flex-col overflow-hidden">
+                  <div className="bg-[#E76F51] border-b-2 border-charcoal-900 p-5 text-center">
+                    <span className="text-[10px] font-bold tracking-[0.25em] text-white uppercase">FINE DINING</span>
+                  </div>
+                  <div className="p-6 flex-1 flex flex-col justify-start space-y-6">
+                    {details.restaurants.splurge.map((rest, idx) => (
+                      <div key={idx} className="flex flex-col">
+                        {idx > 0 && <div className="border-t border-cream-200/60 my-4" />}
+                        <span className="text-[15px] font-bold text-charcoal-900 uppercase tracking-wide leading-tight">{rest.name}</span>
+                        <span className="text-xs text-charcoal-500/80 mt-1 font-light leading-relaxed">{rest.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Dotted border Photo Badge */}
+              <div className="flex justify-center mt-12 mb-16">
+                <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+                  <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+                  <span className="text-[7px] font-bold tracking-widest text-charcoal-400 uppercase mt-1 leading-none">DINING RITUALS</span>
+                </div>
+              </div>
+
+              <div className="border-b border-charcoal-900/10 mb-12" />
+            </div>
+
+            {/* 6. Best Day Trips from City */}
+            <div id="day-trips" className="mb-24 scroll-mt-24">
+              <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
+                FURTHER AFIELD
+              </span>
+              <h2 className="font-serif text-[36px] md:text-[42px] font-bold text-charcoal-900 mb-4 tracking-tight">
+                Best day trips from {guide.title.split(" ")[0]}
+              </h2>
+              <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-10 max-w-2xl font-light">
+                Worth the early start — each is reachable as a single-day excursion.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {details.dayTrips.map((trip) => (
+                  <div
+                    key={trip.num}
+                    className="flex rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 bg-white border border-charcoal-900/8"
+                  >
+                    {/* Solid colored left panel */}
+                    <div className={`${trip.solidBg} flex items-center justify-center w-[72px] flex-shrink-0`}>
+                      <span className="text-[28px]">{trip.emoji}</span>
+                    </div>
+                    {/* White content area */}
+                    <div className="flex-1 px-5 py-4">
+                      <span className="text-[9px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1.5">
+                        DAY TRIP {trip.num}
+                      </span>
+                      <span className="font-serif text-[16px] font-bold text-charcoal-900 leading-snug">
+                        {trip.name}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Photo Badge */}
+              <div className="flex justify-center mt-12 mb-16">
+                <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
+                  <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
+                  <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">DAY TRIPS</span>
+                </div>
+              </div>
+            </div>
+              </>
+            ) : (
+              <div className="space-y-16">
+                {/* Intro Overview Card */}
+                <div className="bg-white border-2 border-charcoal-900 rounded-[32px] p-8 md:p-10 shadow-[4px_4px_0px_0px_#2B2A27]">
+                  <span className="text-[10px] md:text-[11px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-3">
+                    THE OVERVIEW
                   </span>
-                  <span className="font-serif text-[16px] font-bold text-charcoal-900 leading-snug">
-                    {trip.name}
-                  </span>
+                  <h2 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 mb-6 leading-tight">
+                    {details.itineraryTitle}
+                  </h2>
+                  <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-6 font-light">
+                    {details.introText}
+                  </p>
+                  {details.introHtml && (
+                    <div 
+                      className="text-charcoal-600 text-xs md:text-sm leading-relaxed border-t border-dashed border-charcoal-900/10 pt-6 font-light"
+                      dangerouslySetInnerHTML={{ __html: details.introHtml }}
+                    />
+                  )}
+                  
+                  {/* Route Flow Bar */}
+                  {details.routeFlow && (
+                    <div className="mt-8 bg-cream-50/55 border border-charcoal-900/10 rounded-[20px] p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <span className="text-[9px] font-bold tracking-widest text-charcoal-500 uppercase block mb-1">
+                          {details.routeTitle || "THE ROUTE"}
+                        </span>
+                        <span className="font-serif text-lg font-bold text-charcoal-900">
+                          {details.routeFlow}
+                        </span>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <span className="bg-[#46B6E6] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
+                          🗺️ FULL ROUTE MAP
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Day-by-Day Timeline */}
+                <div className="relative border-l-2 border-charcoal-900/15 pl-6 md:pl-10 ml-4 md:ml-6 space-y-16 py-4">
+                  {details.days.map((day, idx) => {
+                    const colorMap = {
+                      yellow: {
+                        bulletBg: "bg-[#E9C46A] border-[#DCAE1D]",
+                        cardBg: "bg-white",
+                        headerBg: "bg-[#E9C46A]/10 text-charcoal-900 border-[#E9C46A]/20",
+                        badgeBg: "bg-[#E9C46A] text-charcoal-900"
+                      },
+                      blue: {
+                        bulletBg: "bg-[#46B6E6] border-[#3ca4cf]",
+                        cardBg: "bg-white",
+                        headerBg: "bg-[#46B6E6]/10 text-charcoal-900 border-[#46B6E6]/20",
+                        badgeBg: "bg-[#46B6E6] text-white"
+                      },
+                      green: {
+                        bulletBg: "bg-[#8FC1A3] border-[#7cb191]",
+                        cardBg: "bg-white",
+                        headerBg: "bg-[#8FC1A3]/10 text-charcoal-900 border-[#8FC1A3]/20",
+                        badgeBg: "bg-[#8FC1A3] text-white"
+                      },
+                      red: {
+                        bulletBg: "bg-[#E76F51] border-[#d85c3e]",
+                        cardBg: "bg-white",
+                        headerBg: "bg-[#E76F51]/10 text-charcoal-900 border-[#E76F51]/20",
+                        badgeBg: "bg-[#E76F51] text-white"
+                      }
+                    };
+
+                    const c = colorMap[day.color] || colorMap.yellow;
+                    const thingsToDo = day.whatToDo ? day.whatToDo.split('\n').filter(Boolean) : [];
+
+                    return (
+                      <div key={idx} className="relative group">
+                        {/* Timeline Bullet Dot */}
+                        <div className={`absolute -left-[35px] md:-left-[51px] top-1.5 w-6 h-6 rounded-full border-4 border-[#FBF7EE] ${c.bulletBg} shadow-sm z-10 flex items-center justify-center transition-transform group-hover:scale-110`} />
+
+                        {/* Day Title Block */}
+                        <div className="mb-4">
+                          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1">
+                            DAY {day.dayNum}
+                          </span>
+                          <h3 className="font-serif text-[28px] md:text-[34px] font-bold text-charcoal-900 tracking-tight leading-tight">
+                            {day.title}
+                          </h3>
+                        </div>
+
+                        {/* The Main Day Card */}
+                        <div className="bg-white border-2 border-charcoal-900 rounded-[28px] p-6 md:p-8 shadow-[4px_4px_0px_0px_#2B2A27] space-y-8">
+                          
+                          {/* Essence paragraph */}
+                          {day.essence && (
+                            <div className="text-charcoal-700 italic text-sm md:text-base leading-relaxed border-l-4 border-[#DCAE1D] pl-4 py-1 font-light bg-cream-50/20 rounded-r-xl">
+                              "{day.essence}"
+                            </div>
+                          )}
+
+                          {/* What to do list */}
+                          {thingsToDo.length > 0 && (
+                            <div>
+                              <span className="text-[9px] font-bold tracking-[0.2em] text-[#DCAE1D] uppercase block mb-4">
+                                TODAY'S MOMENTS &amp; EXPERIENCES
+                              </span>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {thingsToDo.map((todo, tIdx) => (
+                                  <div key={tIdx} className="flex gap-3 items-start bg-cream-50/20 border border-charcoal-900/5 rounded-xl p-4">
+                                    <span className="text-[#DCAE1D] mt-0.5 text-base flex-shrink-0">✨</span>
+                                    <span className="text-xs md:text-sm text-charcoal-700 leading-relaxed font-light">
+                                      {todo}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Accommodation & Dining Section */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-dashed border-charcoal-900/10">
+                            {/* Stay Card */}
+                            {day.stayName && (
+                              <div className="bg-cream-50/30 border border-charcoal-900/10 rounded-2xl p-5 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center justify-between gap-3 mb-3">
+                                    <span className="text-[9px] font-bold tracking-widest text-[#46B6E6] uppercase block">
+                                      🛌 WHERE TO STAY
+                                    </span>
+                                    {day.stayTier && (
+                                      <span className="bg-[#46B6E6]/10 text-[#46B6E6] border border-[#46B6E6]/25 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                        {day.stayTier}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 className="font-serif text-[16px] font-bold text-charcoal-900 mb-1 leading-snug">
+                                    {day.stayName}
+                                  </h4>
+                                  <p className="text-[12px] text-charcoal-600 font-light leading-relaxed">
+                                    {day.stayDesc}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Eat & Drink Card */}
+                            {day.eatDrinkName && (
+                              <div className="bg-cream-50/30 border border-charcoal-900/10 rounded-2xl p-5 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center justify-between gap-3 mb-3">
+                                    <span className="text-[9px] font-bold tracking-widest text-[#E76F51] uppercase block">
+                                      🍴 DRINK &amp; DINE
+                                    </span>
+                                  </div>
+                                  <h4 className="font-serif text-[16px] font-bold text-charcoal-900 mb-1 leading-snug">
+                                    {day.eatDrinkName}
+                                  </h4>
+                                  <p className="text-[12px] text-charcoal-600 font-light leading-relaxed">
+                                    {day.eatDrinkDesc}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Transit/Transition info */}
+                          {(day.transitionTo || day.transitionTime) && (
+                            <div className="bg-charcoal-900 text-white rounded-2xl px-5 py-3.5 flex items-center justify-between text-xs md:text-sm font-sans tracking-wide">
+                              <div className="flex items-center gap-2.5">
+                                <span className="text-base">🧳</span>
+                                <span className="font-light text-white/70">
+                                  Next destination: <span className="font-bold text-white">{day.transitionTo}</span>
+                                </span>
+                              </div>
+                              {day.transitionTime && (
+                                <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                                  ⏱️ {day.transitionTime}
+                                </span>
+                              )}
+                            </div>
+                          )}
+
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Photo Badge */}
-          <div className="flex justify-center mt-12 mb-16">
-            <div className="bg-white border-2 border-dashed border-charcoal-300 p-4 rounded-[20px] text-center w-[120px] shadow-sm flex flex-col justify-center items-center">
-              <span className="font-serif text-[18px] font-bold text-charcoal-400 leading-none">photo</span>
-              <span className="text-[7px] font-bold tracking-[0.2em] text-charcoal-400 uppercase mt-1 leading-none">DAY TRIPS</span>
-            </div>
-          </div>
-        </div>
+            )}
 
         {/* Bottom CTA Callout banner row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
