@@ -22,11 +22,11 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function run() {
   try {
-    const { data, error } = await supabase.from('blog_posts').select('*').limit(1);
+    const { data, error } = await supabase.from('mini_guides').select('*').limit(1);
     if (error) {
       console.error(error);
     } else {
-      console.log('Columns in blog_posts:', Object.keys(data[0] || {}));
+      console.log('Columns in mini_guides:', Object.keys(data[0] || {}));
       console.log('Full first row:', data[0]);
     }
   } catch (err) {

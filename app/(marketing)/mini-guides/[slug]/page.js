@@ -2,7 +2,58 @@ export const dynamic = "force-dynamic";
 
 import { fetchMiniGuides, fetchBlogs, fetchDestinations, fetchTours } from "@/lib/db";
 import Link from "next/link";
-import { ArrowLeft, Star, Sparkle, Utensils } from "lucide-react";
+import { ArrowLeft, Star, Sparkle, Utensils, Share2, Mail, Copy } from "lucide-react";
+
+// Local SVG implementations of social brand icons since this custom lucide-react lacks them
+const Twitter = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    stroke="currentColor"
+    strokeWidth="2"
+    fill="none"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+  </svg>
+);
+
+const Facebook = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    stroke="currentColor"
+    strokeWidth="2"
+    fill="none"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
+
+const Linkedin = ({ className }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    stroke="currentColor"
+    strokeWidth="2"
+    fill="none"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect x="2" y="9" width="4" height="12" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
 
 // Robust dynamic guide dataset mapping for cities mentioned in database
 const cityGuidesData = {
@@ -363,57 +414,133 @@ export default async function MiniGuideDetails({ params }) {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Breadcrumbs */}
-        <div className="mb-8">
+        <div className="mb-12">
           <div className="flex items-center gap-2 text-[10px] tracking-[0.2em] font-bold text-charcoal-700 uppercase">
-            <Link href="/mini-guides" className="hover:text-[#DCAE1D] transition-colors">MINI GUIDES</Link>
+            <Link href="/mini-guides" className="hover:text-[#DCAE1D] transition-colors">DESTINATIONS</Link>
             <span className="text-charcoal-300">/</span>
-            <Link href={`/destinations/${destination?.slug || guide.slug.split("-")[0]}`} className="hover:text-[#DCAE1D] transition-colors">{details.country.toUpperCase()}</Link>
+            <span className="text-charcoal-500">{guide.countryCode || "BE"} {details.country.toUpperCase()}</span>
             <span className="text-charcoal-300">/</span>
-            <span className="text-charcoal-900">{guide.title.split(" ")[0].toUpperCase()}</span>
+            <span className="text-charcoal-900">
+              {details.routeFlow ? details.routeFlow.toUpperCase().replace(/->/g, " • ").replace(/→/g, " • ") : guide.title.split(" ").slice(0, 3).join(" • ").toUpperCase()}
+            </span>
           </div>
         </div>
 
         {/* Title Block Header */}
-        <div className="max-w-4xl mb-12">
-          <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-3">
-            📍 PREMIUM POCKET GUIDE
-          </span>
-          <h1 className="text-[52px] md:text-[68px] font-serif font-bold text-charcoal-900 leading-[1.05] mb-6 tracking-tight">
-            {guide.title}
-          </h1>
-          <p className="text-charcoal-700 text-base md:text-lg leading-relaxed mb-8 max-w-2xl font-light">
-            {details.excerpt}
-          </p>
+        {guide.type === "itinerary" ? (
+          <div className="max-w-4xl mx-auto text-center mb-16 flex flex-col items-center">
+            <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-6">
+              HELLO FROM
+            </span>
 
-          {/* Styled Pill Badges */}
-          <div className="flex flex-wrap gap-2.5">
-            <span className="bg-[#E9C46A] text-charcoal-900 text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
-              Best Time to Visit: {details.bestTimeToVisit}
-            </span>
-            <span className="bg-[#46B6E6] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
-              Ideal Duration: {details.idealDuration}
-            </span>
-            <span className="bg-[#8FC1A3] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
-              Budget Level: {details.budgetLevel}
-            </span>
+            {/* Styled Pill Badges */}
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+              <span className="bg-transparent border border-charcoal-900/10 text-charcoal-800 text-[10px] font-bold tracking-widest uppercase px-5 py-2.5 rounded-full shadow-sm">
+                {guide.countryCode || "BE"} {details.country.toUpperCase()}
+              </span>
+              {details.routeFlow && (
+                <span className="bg-[#46B6E6] text-charcoal-900 text-[10px] font-bold tracking-widest uppercase px-5 py-2.5 rounded-full shadow-sm">
+                  {details.routeFlow.toUpperCase().replace(/->/g, " • ").replace(/→/g, " • ")}
+                </span>
+              )}
+              <span className="bg-[#8FC1A3] text-charcoal-900 text-[10px] font-bold tracking-widest uppercase px-5 py-2.5 rounded-full shadow-sm">
+                {details.bestTimeToVisit.toUpperCase()}
+              </span>
+            </div>
+
+            <h1 className="text-[44px] md:text-[56px] font-serif font-bold text-charcoal-900 leading-[1.1] mb-6 tracking-tight max-w-3xl">
+              {guide.title}
+            </h1>
+            
+            <p className="text-charcoal-700 text-base md:text-lg leading-relaxed mb-8 max-w-2xl font-light">
+              {details.excerpt}
+            </p>
+
+            <div className="flex items-center gap-2 text-[10px] tracking-[0.25em] font-bold text-charcoal-500 uppercase mb-8">
+              <span>📖 {Math.max(8, details.days.length * 3)} MIN READ</span>
+            </div>
+
+            {/* Premium Outline Share Bar */}
+            <div className="border-2 border-charcoal-900 rounded-full px-6 py-2 flex items-center gap-4 bg-white shadow-sm">
+              <span className="text-[9px] font-sans font-bold tracking-[0.2em] text-charcoal-600 uppercase pr-4 border-r border-charcoal-900/10">
+                SHARE
+              </span>
+              <div className="flex items-center gap-2.5">
+                <button className="w-8 h-8 rounded-full border border-charcoal-900/15 flex items-center justify-center text-charcoal-600 hover:bg-charcoal-900 hover:text-white transition-all shadow-sm">
+                  <Share2 className="w-3.5 h-3.5" />
+                </button>
+                <button className="w-8 h-8 rounded-full border border-charcoal-900/15 flex items-center justify-center text-charcoal-600 hover:bg-charcoal-900 hover:text-white transition-all shadow-sm">
+                  <Twitter className="w-3.5 h-3.5" />
+                </button>
+                <button className="w-8 h-8 rounded-full border border-charcoal-900/15 flex items-center justify-center text-charcoal-600 hover:bg-charcoal-900 hover:text-white transition-all shadow-sm">
+                  <Facebook className="w-3.5 h-3.5" />
+                </button>
+                <button className="w-8 h-8 rounded-full border border-charcoal-900/15 flex items-center justify-center text-charcoal-600 hover:bg-charcoal-900 hover:text-white transition-all shadow-sm">
+                  <Linkedin className="w-3.5 h-3.5" />
+                </button>
+                <button className="w-8 h-8 rounded-full border border-charcoal-900/15 flex items-center justify-center text-charcoal-600 hover:bg-charcoal-900 hover:text-white transition-all shadow-sm">
+                  <Mail className="w-3.5 h-3.5" />
+                </button>
+                <button className="w-8 h-8 rounded-full border border-charcoal-900/15 flex items-center justify-center text-charcoal-600 hover:bg-charcoal-900 hover:text-white transition-all shadow-sm">
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="max-w-4xl mb-12">
+            <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-3">
+              📍 PREMIUM POCKET GUIDE
+            </span>
+            <h1 className="text-[52px] md:text-[68px] font-serif font-bold text-charcoal-900 leading-[1.05] mb-6 tracking-tight">
+              {guide.title}
+            </h1>
+            <p className="text-charcoal-700 text-base md:text-lg leading-relaxed mb-8 max-w-2xl font-light">
+              {details.excerpt}
+            </p>
+
+            {/* Styled Pill Badges */}
+            <div className="flex flex-wrap gap-2.5">
+              <span className="bg-[#E9C46A] text-charcoal-900 text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
+                Best Time to Visit: {details.bestTimeToVisit}
+              </span>
+              <span className="bg-[#46B6E6] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
+                Ideal Duration: {details.idealDuration}
+              </span>
+              <span className="bg-[#8FC1A3] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
+                Budget Level: {details.budgetLevel}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Layout: Main content (70%) + Sticky Sidebar (30%) */}
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-16">
           {/* Left Column */}
           <div className="lg:col-span-7 w-full">
             {/* Main Visual Image */}
-            <div className="relative h-[360px] md:h-[480px] rounded-[24px] overflow-hidden shadow-md mb-16">
-              <img 
-                src={guide.heroImage} 
-                alt={guide.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase text-charcoal-900 shadow-sm border border-charcoal-900/5">
-                {currentFlag} {guide.destination.toUpperCase()}
+            {guide.type === "itinerary" ? (
+              <div className="border-[3px] border-charcoal-900 rounded-[32px] p-5 bg-[#FAF6EE] shadow-lg mb-16">
+                <div className="rounded-[20px] overflow-hidden border-[2px] border-charcoal-900/60 aspect-[16/10] relative">
+                  <img 
+                    src={guide.heroImage} 
+                    alt={guide.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="relative h-[360px] md:h-[480px] rounded-[24px] overflow-hidden shadow-md mb-16">
+                <img 
+                  src={guide.heroImage} 
+                  alt={guide.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase text-charcoal-900 shadow-sm border border-charcoal-900/5">
+                  {currentFlag} {guide.destination.toUpperCase()}
+                </div>
+              </div>
+            )}
             {guide.type !== "itinerary" ? (
               <>
                 {/* Section Index Anchor Jumps */}
@@ -797,71 +924,93 @@ export default async function MiniGuideDetails({ params }) {
               </>
             ) : (
               <div className="space-y-16">
-                {/* Intro Overview Card */}
-                <div className="bg-white border-2 border-charcoal-900 rounded-[32px] p-8 md:p-10 shadow-[4px_4px_0px_0px_#2B2A27]">
-                  <span className="text-[10px] md:text-[11px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-3">
-                    THE OVERVIEW
-                  </span>
-                  <h2 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 mb-6 leading-tight">
-                    {details.itineraryTitle}
-                  </h2>
-                  <p className="text-charcoal-700 text-sm md:text-base leading-relaxed mb-6 font-light">
-                    {details.introText}
-                  </p>
-                  {details.introHtml && (
-                    <div 
-                      className="text-charcoal-600 text-xs md:text-sm leading-relaxed border-t border-dashed border-charcoal-900/10 pt-6 font-light"
-                      dangerouslySetInnerHTML={{ __html: details.introHtml }}
-                    />
-                  )}
-                  
-                  {/* Route Flow Bar */}
-                  {details.routeFlow && (
-                    <div className="mt-8 bg-cream-50/55 border border-charcoal-900/10 rounded-[20px] p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div>
-                        <span className="text-[9px] font-bold tracking-widest text-charcoal-500 uppercase block mb-1">
-                          {details.routeTitle || "THE ROUTE"}
-                        </span>
-                        <span className="font-serif text-lg font-bold text-charcoal-900">
-                          {details.routeFlow}
-                        </span>
+                {/* Bold Blue Route Overview Card */}
+                <div className="bg-[#46B6E6] border-2 border-charcoal-900 rounded-[32px] p-8 md:p-10 shadow-[6px_6px_0px_0px_#2B2A27] text-white relative overflow-hidden group">
+                  <div className="relative z-10">
+                    <span className="text-[10px] md:text-[11px] font-bold tracking-[0.25em] text-white/95 uppercase block mb-3">
+                      🗺️ THE ROUTE FLOW
+                    </span>
+                    <h2 className="font-serif text-[36px] md:text-[44px] font-bold text-white mb-4 leading-none tracking-tight">
+                      {details.noOfDays || details.days.length}-day route
+                    </h2>
+                    <p className="text-white/90 text-sm md:text-base leading-relaxed mb-8 max-w-2xl font-light">
+                      {details.introText}
+                    </p>
+                    
+                    {/* Dynamic White Pills connected by arrows */}
+                    {details.routeFlow && (
+                      <div className="flex flex-wrap items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-[24px] p-6">
+                        {details.routeFlow.split(/[\s,]*[-=]>[\s,]*|[\s,]*[→]+[\s,]*|,\s*/).map((city, cIdx) => (
+                          <div key={cIdx} className="flex items-center gap-3">
+                            {cIdx > 0 && <span className="text-white font-bold text-lg select-none">→</span>}
+                            <span className="bg-white text-charcoal-900 px-5 py-2.5 rounded-full font-sans text-xs font-bold uppercase shadow-sm tracking-widest border border-charcoal-900/5 transition-transform duration-300 hover:scale-105">
+                              {city.trim()}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex-shrink-0">
-                        <span className="bg-[#46B6E6] text-white text-[9px] font-bold tracking-widest uppercase px-4 py-2 rounded-full shadow-sm">
-                          🗺️ FULL ROUTE MAP
-                        </span>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
-                {/* Day-by-Day Timeline */}
-                <div className="relative border-l-2 border-charcoal-900/15 pl-6 md:pl-10 ml-4 md:ml-6 space-y-16 py-4">
+                {/* Horizontal Day Navigation Bar */}
+                {details.days.length > 0 && (
+                  <div className="bg-white border-2 border-charcoal-900 rounded-2xl p-3 shadow-[3px_3px_0px_0px_#2B2A27] sticky top-28 z-40 overflow-x-auto flex items-center gap-4 scrollbar-none custom-horizontal-nav">
+                    <style>{`
+                      .custom-horizontal-nav::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+                    <span className="text-[9px] font-bold tracking-widest text-[#DCAE1D] uppercase pl-2 flex-shrink-0">
+                      🧭 JUMP TO:
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {details.days.map((day, idx) => {
+                        const colorMap = {
+                          yellow: "bg-[#E9C46A]",
+                          blue: "bg-[#46B6E6]",
+                          green: "bg-[#8FC1A3]",
+                          red: "bg-[#E76F51]"
+                        };
+                        const dotColor = colorMap[day.color] || colorMap.yellow;
+                        return (
+                          <a 
+                            key={idx}
+                            href={`#day-${day.dayNum}`} 
+                            className="flex items-center gap-2 px-3.5 py-1.5 hover:bg-cream-50 rounded-full border border-transparent hover:border-charcoal-900/10 transition-all font-sans text-[10px] font-bold uppercase text-charcoal-800 tracking-wider flex-shrink-0"
+                          >
+                            <span className={`w-2.5 h-2.5 rounded-full ${dotColor}`} />
+                            <span>Day {day.dayNum}</span>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Day-by-Day Premium Timeline Cards */}
+                <div className="space-y-16 py-4">
                   {details.days.map((day, idx) => {
                     const colorMap = {
                       yellow: {
-                        bulletBg: "bg-[#E9C46A] border-[#DCAE1D]",
-                        cardBg: "bg-white",
-                        headerBg: "bg-[#E9C46A]/10 text-charcoal-900 border-[#E9C46A]/20",
-                        badgeBg: "bg-[#E9C46A] text-charcoal-900"
+                        headerBg: "bg-[#E9C46A]",
+                        badgeBg: "bg-[#E9C46A] text-charcoal-900",
+                        dotBg: "bg-[#E9C46A] border-[#DCAE1D]"
                       },
                       blue: {
-                        bulletBg: "bg-[#46B6E6] border-[#3ca4cf]",
-                        cardBg: "bg-white",
-                        headerBg: "bg-[#46B6E6]/10 text-charcoal-900 border-[#46B6E6]/20",
-                        badgeBg: "bg-[#46B6E6] text-white"
+                        headerBg: "bg-[#46B6E6]",
+                        badgeBg: "bg-[#46B6E6] text-white",
+                        dotBg: "bg-[#46B6E6] border-[#3ca4cf]"
                       },
                       green: {
-                        bulletBg: "bg-[#8FC1A3] border-[#7cb191]",
-                        cardBg: "bg-white",
-                        headerBg: "bg-[#8FC1A3]/10 text-charcoal-900 border-[#8FC1A3]/20",
-                        badgeBg: "bg-[#8FC1A3] text-white"
+                        headerBg: "bg-[#8FC1A3]",
+                        badgeBg: "bg-[#8FC1A3] text-white",
+                        dotBg: "bg-[#8FC1A3] border-[#7cb191]"
                       },
                       red: {
-                        bulletBg: "bg-[#E76F51] border-[#d85c3e]",
-                        cardBg: "bg-white",
-                        headerBg: "bg-[#E76F51]/10 text-charcoal-900 border-[#E76F51]/20",
-                        badgeBg: "bg-[#E76F51] text-white"
+                        headerBg: "bg-[#E76F51]",
+                        badgeBg: "bg-[#E76F51] text-white",
+                        dotBg: "bg-[#E76F51] border-[#d85c3e]"
                       }
                     };
 
@@ -870,112 +1019,179 @@ export default async function MiniGuideDetails({ params }) {
 
                     return (
                       <div key={idx} className="relative group">
-                        {/* Timeline Bullet Dot */}
-                        <div className={`absolute -left-[35px] md:-left-[51px] top-1.5 w-6 h-6 rounded-full border-4 border-[#FBF7EE] ${c.bulletBg} shadow-sm z-10 flex items-center justify-center transition-transform group-hover:scale-110`} />
+                        
+                        {/* Day Card container */}
+                        <div 
+                          id={`day-${day.dayNum}`} 
+                          className="bg-white border-2 border-charcoal-900 rounded-[32px] overflow-hidden shadow-[6px_6px_0px_0px_#2B2A27] transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_0px_#2B2A27]"
+                        >
+                          {/* Full-width Colored Header */}
+                          <div className={`px-8 py-7 relative ${c.headerBg} flex items-center justify-between text-white border-b-2 border-charcoal-900`}>
+                            <div className="relative z-10 max-w-[70%]">
+                              <span className="text-[10px] md:text-[11px] font-bold tracking-[0.25em] text-white/90 uppercase block mb-1">
+                                DAY {day.dayNum} {day.city && `— ${day.city.toUpperCase()}`}
+                              </span>
+                              <h3 className="font-serif text-2xl md:text-3xl font-bold leading-tight">
+                                {day.title}
+                              </h3>
+                            </div>
+                            {/* Massive Faint Day Number on right */}
+                            <div className="absolute right-8 top-1/2 -translate-y-1/2 select-none pointer-events-none text-white/20 text-7xl md:text-9xl font-serif font-black italic tracking-tighter">
+                              {day.dayNum}
+                            </div>
+                          </div>
+                          
+                          {/* Card Inner Grid Content */}
+                          <div className="p-8 md:p-10">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-10">
+                              
+                              {/* Left Column (Experiences) */}
+                              <div className="lg:col-span-7 space-y-8">
+                                {/* Essence Sentence */}
+                                {day.essence && (
+                                  <div>
+                                    <span className="text-[9px] font-bold tracking-widest text-charcoal-400 uppercase block mb-2">
+                                      TODAY, IN A SENTENCE
+                                    </span>
+                                    <p className="font-serif italic text-lg md:text-xl text-[#E76F51] leading-relaxed font-bold">
+                                      "{day.essence}"
+                                    </p>
+                                  </div>
+                                )}
 
-                        {/* Day Title Block */}
-                        <div className="mb-4">
-                          <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-1">
-                            DAY {day.dayNum}
-                          </span>
-                          <h3 className="font-serif text-[28px] md:text-[34px] font-bold text-charcoal-900 tracking-tight leading-tight">
-                            {day.title}
-                          </h3>
+                                {/* Experiences and Moments */}
+                                {thingsToDo.length > 0 && (
+                                  <div className="space-y-6">
+                                    <span className="text-[9px] font-bold tracking-[0.2em] text-[#DCAE1D] uppercase block mb-4">
+                                      📌 EXPERIENCES &amp; MOMENTS
+                                    </span>
+                                    <div className="space-y-5">
+                                      {thingsToDo.map((todo, tIdx) => (
+                                        <div key={tIdx} className="flex gap-4 items-start group/item">
+                                          <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center font-serif font-bold text-xs shadow-sm border border-charcoal-900/10 ${c.badgeBg}`}>
+                                            {tIdx + 1}
+                                          </div>
+                                          <p className="text-sm md:text-base text-charcoal-700 leading-relaxed font-light mt-0.5">
+                                            {todo}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Right Column (Stay, Dine, Tips Box) */}
+                              <div className="lg:col-span-5">
+                                <div className="bg-cream-50/40 border border-charcoal-900/10 rounded-[24px] p-6 space-y-6">
+                                  
+                                  {/* Stay box */}
+                                  {day.stayName && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between gap-3 mb-1">
+                                        <span className="text-[9px] font-bold tracking-widest text-[#46B6E6] uppercase flex items-center gap-1.5">
+                                          🛌 WHERE TO STAY
+                                        </span>
+                                        {day.stayTier && (
+                                          <span className="bg-[#46B6E6]/10 text-[#46B6E6] border border-[#46B6E6]/25 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                                            {day.stayTier}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <h4 className="font-serif text-base font-bold text-charcoal-900 leading-snug">
+                                        {day.stayName}
+                                      </h4>
+                                      <p className="text-xs text-charcoal-600 font-light leading-relaxed">
+                                        {day.stayDesc}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* Eat Drink box */}
+                                  {day.eatDrinkName && (
+                                    <div className="space-y-2 pt-6 border-t border-charcoal-900/5">
+                                      <span className="text-[9px] font-bold tracking-widest text-[#E76F51] uppercase flex items-center gap-1.5 mb-1">
+                                        🍴 DRINK &amp; DINE
+                                      </span>
+                                      <h4 className="font-serif text-base font-bold text-charcoal-900 leading-snug">
+                                        {day.eatDrinkName}
+                                      </h4>
+                                      <p className="text-xs text-charcoal-600 font-light leading-relaxed">
+                                        {day.eatDrinkDesc}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* Tip box */}
+                                  {day.tip && (
+                                    <div className="space-y-2 pt-6 border-t border-charcoal-900/5 bg-[#E9C46A]/5 -mx-6 px-6 py-4 rounded-b-[24px]">
+                                      <span className="text-[9px] font-bold tracking-widest text-[#DCAE1D] uppercase flex items-center gap-1.5">
+                                        💡 PRO TRAVEL TIP
+                                      </span>
+                                      <p className="text-xs text-charcoal-700 italic font-light leading-relaxed">
+                                        {day.tip}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
                         </div>
 
-                        {/* The Main Day Card */}
-                        <div className="bg-white border-2 border-charcoal-900 rounded-[28px] p-6 md:p-8 shadow-[4px_4px_0px_0px_#2B2A27] space-y-8">
-                          
-                          {/* Essence paragraph */}
-                          {day.essence && (
-                            <div className="text-charcoal-700 italic text-sm md:text-base leading-relaxed border-l-4 border-[#DCAE1D] pl-4 py-1 font-light bg-cream-50/20 rounded-r-xl">
-                              "{day.essence}"
-                            </div>
-                          )}
-
-                          {/* What to do list */}
-                          {thingsToDo.length > 0 && (
-                            <div>
-                              <span className="text-[9px] font-bold tracking-[0.2em] text-[#DCAE1D] uppercase block mb-4">
-                                TODAY'S MOMENTS &amp; EXPERIENCES
-                              </span>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {thingsToDo.map((todo, tIdx) => (
-                                  <div key={tIdx} className="flex gap-3 items-start bg-cream-50/20 border border-charcoal-900/5 rounded-xl p-4">
-                                    <span className="text-[#DCAE1D] mt-0.5 text-base flex-shrink-0">✨</span>
-                                    <span className="text-xs md:text-sm text-charcoal-700 leading-relaxed font-light">
-                                      {todo}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Accommodation & Dining Section */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-dashed border-charcoal-900/10">
-                            {/* Stay Card */}
-                            {day.stayName && (
-                              <div className="bg-cream-50/30 border border-charcoal-900/10 rounded-2xl p-5 flex flex-col justify-between">
-                                <div>
-                                  <div className="flex items-center justify-between gap-3 mb-3">
-                                    <span className="text-[9px] font-bold tracking-widest text-[#46B6E6] uppercase block">
-                                      🛌 WHERE TO STAY
-                                    </span>
-                                    {day.stayTier && (
-                                      <span className="bg-[#46B6E6]/10 text-[#46B6E6] border border-[#46B6E6]/25 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
-                                        {day.stayTier}
-                                      </span>
-                                    )}
-                                  </div>
-                                  <h4 className="font-serif text-[16px] font-bold text-charcoal-900 mb-1 leading-snug">
-                                    {day.stayName}
-                                  </h4>
-                                  <p className="text-[12px] text-charcoal-600 font-light leading-relaxed">
-                                    {day.stayDesc}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Eat & Drink Card */}
-                            {day.eatDrinkName && (
-                              <div className="bg-cream-50/30 border border-charcoal-900/10 rounded-2xl p-5 flex flex-col justify-between">
-                                <div>
-                                  <div className="flex items-center justify-between gap-3 mb-3">
-                                    <span className="text-[9px] font-bold tracking-widest text-[#E76F51] uppercase block">
-                                      🍴 DRINK &amp; DINE
-                                    </span>
-                                  </div>
-                                  <h4 className="font-serif text-[16px] font-bold text-charcoal-900 mb-1 leading-snug">
-                                    {day.eatDrinkName}
-                                  </h4>
-                                  <p className="text-[12px] text-charcoal-600 font-light leading-relaxed">
-                                    {day.eatDrinkDesc}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Transit/Transition info */}
-                          {(day.transitionTo || day.transitionTime) && (
-                            <div className="bg-charcoal-900 text-white rounded-2xl px-5 py-3.5 flex items-center justify-between text-xs md:text-sm font-sans tracking-wide">
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-base">🧳</span>
-                                <span className="font-light text-white/70">
-                                  Next destination: <span className="font-bold text-white">{day.transitionTo}</span>
+                        {/* Transit Connector UI */}
+                        {day.transitionTo && (
+                          <div className="my-16 flex flex-col items-center">
+                            {/* Cities row with connecting line */}
+                            <div className="w-full flex items-center justify-between gap-6 relative">
+                              {/* Starting City Label */}
+                              <div className="text-right w-1/3">
+                                <span className="text-[11px] font-bold tracking-[0.2em] text-charcoal-400 uppercase block mb-1">
+                                  DEPART FROM
+                                </span>
+                                <span className="font-serif text-lg font-bold text-charcoal-900 block truncate">
+                                  {day.city || guide.title.split(" ")[0]}
                                 </span>
                               </div>
+
+                              {/* Connected Dashed Line with Center Icon */}
+                              <div className="flex-1 relative flex items-center justify-center">
+                                <div className="absolute inset-x-0 h-0.5 border-t-2 border-dashed border-charcoal-900/20" />
+                                <div className="relative z-10 w-10 h-10 rounded-full bg-white border-2 border-[#46B6E6] shadow-sm flex items-center justify-center text-[#46B6E6] text-lg font-bold">
+                                  🚂
+                                </div>
+                              </div>
+
+                              {/* Destination City Label */}
+                              <div className="text-left w-1/3">
+                                <span className="text-[11px] font-bold tracking-[0.2em] text-charcoal-400 uppercase block mb-1">
+                                  ARRIVE AT
+                                </span>
+                                <span className="font-serif text-lg font-bold text-charcoal-900 block truncate">
+                                  {day.transitionTo}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Transit details row */}
+                            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                              <span className="bg-[#E9C46A] border border-charcoal-900 text-charcoal-900 text-[9px] font-bold uppercase tracking-wider px-4 py-1.5 rounded-full shadow-sm">
+                                🎫 TRANSIT GUIDE
+                              </span>
                               {day.transitionTime && (
-                                <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                                  ⏱️ {day.transitionTime}
+                                <span className="text-xs text-charcoal-500 font-light">
+                                  Duration: <span className="font-bold text-charcoal-900">{day.transitionTime}</span>
                                 </span>
                               )}
+                              <span className="text-[11px] font-sans font-bold text-[#46B6E6] hover:underline cursor-pointer">
+                                (view route map)
+                              </span>
                             </div>
-                          )}
+                          </div>
+                        )}
 
-                        </div>
                       </div>
                     );
                   })}
@@ -1010,8 +1226,34 @@ export default async function MiniGuideDetails({ params }) {
 
       {/* Right Column / Sidebar */}
       <div className="lg:col-span-3 w-full">
-        <div className="sticky top-32">
-          <div className="border border-charcoal-900/10 bg-white rounded-[20px] p-6 shadow-sm">
+        <div className="sticky top-32 space-y-6">
+          {/* Dynamic Author Card */}
+          <div className="border-2 border-charcoal-900 bg-white rounded-[24px] p-6 shadow-[3px_3px_0px_0px_#2B2A27] relative overflow-hidden">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-[#E9C46A]/20 border border-charcoal-900/5 flex items-center justify-center text-xl">
+                ✍️
+              </div>
+              <div>
+                <span className="text-[8px] font-bold tracking-widest text-[#DCAE1D] uppercase block">
+                  CONTRIBUTOR
+                </span>
+                <h4 className="font-serif text-base font-bold text-charcoal-900">
+                  Alex Miller
+                </h4>
+                <p className="text-[10px] text-charcoal-400 font-light mt-0.5">
+                  Travel Writer &amp; Explorer
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-dashed border-charcoal-900/10 flex items-center justify-between text-[10px] text-charcoal-500 font-light">
+              <span>Published: Oct 2025</span>
+              <span>Updated: May 2026</span>
+            </div>
+            {/* Yellow accent line at bottom */}
+            <div className="absolute bottom-0 inset-x-0 h-1.5 bg-[#E9C46A]" />
+          </div>
+
+          <div className="border-2 border-charcoal-900 bg-white rounded-[24px] p-6 shadow-[3px_3px_0px_0px_#2B2A27]">
             <span className="text-[10px] font-bold tracking-[0.25em] text-[#DCAE1D] uppercase block mb-6">
               📖 RELATED DISPATCHES
             </span>
@@ -1033,6 +1275,7 @@ export default async function MiniGuideDetails({ params }) {
                 }
                 .custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
                   background: rgba(220, 174, 29, 0.6);
+                  border-radius: 10px;
                 }
               `}</style>
               

@@ -2,26 +2,47 @@
 
 import { useState, useEffect } from "react";
 import { fetchMiniGuides, saveMiniGuide, deleteMiniGuide, fetchDestinations, uploadImage } from "@/lib/db";
-import { Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { 
+  Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon,
+  Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,
+  ChevronDown, Calendar, Clock, Compass, MapPin, Sparkle, ArrowRight, Info
+} from "lucide-react";
+
+// Initial state for day structures matching DB seeds exactly
+const defaultDay = (num = "01") => ({
+  dayNum: num,
+  city: "",
+  title: "",
+  color: "yellow",
+  essence: "",
+  whatToDo: "",
+  stayName: "",
+  stayTier: "Mid-range",
+  stayDesc: "",
+  eatDrinkName: "",
+  eatDrinkDesc: "",
+  transitionTo: "",
+  transitionTime: "",
+  tip: ""
+});
 
 const defaultDetails = {
   pocketTitle: "",
   itineraryTitle: "",
   blogCountText: "",
-  sights: [{ num: "01", text: "" }],
-  stay: {
-    budget: [{ name: "", desc: "" }],
-    mid: [{ name: "", desc: "" }],
-    splurge: [{ name: "", desc: "" }]
-  },
-  activities: [{ num: "01", text: "" }],
-  eat: [{ name: "", desc: "" }],
-  restaurants: {
-    budget: [{ name: "", desc: "" }],
-    mid: [{ name: "", desc: "" }],
-    splurge: [{ name: "", desc: "" }]
-  },
-  dayTrips: [{ num: "01", name: "" }]
+  introText: "",
+  introHtml: "",
+  routeTitle: "",
+  routeFlow: "",
+  bestTimeToVisit: "March to May & Oct to Nov",
+  idealDuration: "4-5 Days",
+  budgetLevel: "Mid-range",
+  readTime: "10 Min",
+  noOfDays: "7",
+  featured: "no",
+  seoTitle: "",
+  metaDescription: "",
+  days: [defaultDay("01")]
 };
 
 const mergeWithDefaults = (details) => {
@@ -30,20 +51,36 @@ const mergeWithDefaults = (details) => {
     pocketTitle: d.pocketTitle || "",
     itineraryTitle: d.itineraryTitle || "",
     blogCountText: d.blogCountText || "",
-    sights: d.sights && d.sights.length > 0 ? d.sights : [{ num: "01", text: "" }],
-    stay: {
-      budget: d.stay?.budget && d.stay.budget.length > 0 ? d.stay.budget : [{ name: "", desc: "" }],
-      mid: d.stay?.mid && d.stay.mid.length > 0 ? d.stay.mid : [{ name: "", desc: "" }],
-      splurge: d.stay?.splurge && d.stay.splurge.length > 0 ? d.stay.splurge : [{ name: "", desc: "" }],
-    },
-    activities: d.activities && d.activities.length > 0 ? d.activities : [{ num: "01", text: "" }],
-    eat: d.eat && d.eat.length > 0 ? d.eat : [{ name: "", desc: "" }],
-    restaurants: {
-      budget: d.restaurants?.budget && d.restaurants.budget.length > 0 ? d.restaurants.budget : [{ name: "", desc: "" }],
-      mid: d.restaurants?.mid && d.restaurants.mid.length > 0 ? d.restaurants.mid : [{ name: "", desc: "" }],
-      splurge: d.restaurants?.splurge && d.restaurants.splurge.length > 0 ? d.restaurants.splurge : [{ name: "", desc: "" }],
-    },
-    dayTrips: d.dayTrips && d.dayTrips.length > 0 ? d.dayTrips : [{ num: "01", name: "" }]
+    introText: d.introText || "",
+    introHtml: d.introHtml || "",
+    routeTitle: d.routeTitle || "",
+    routeFlow: d.routeFlow || "",
+    bestTimeToVisit: d.bestTimeToVisit || "March to May & Oct to Nov",
+    idealDuration: d.idealDuration || "4-5 Days",
+    budgetLevel: d.budgetLevel || "Mid-range",
+    readTime: d.readTime || "10 Min",
+    noOfDays: d.noOfDays || "7",
+    featured: d.featured || "no",
+    seoTitle: d.seoTitle || "",
+    metaDescription: d.metaDescription || "",
+    days: Array.isArray(d.days) && d.days.length > 0
+      ? d.days.map((day, idx) => ({
+          dayNum: day.dayNum || String(idx + 1).padStart(2, "0"),
+          city: day.city || "",
+          title: day.title || "",
+          color: day.color || "yellow",
+          essence: day.essence || "",
+          whatToDo: day.whatToDo || "",
+          stayName: day.stayName || "",
+          stayTier: day.stayTier || "Mid-range",
+          stayDesc: day.stayDesc || "",
+          eatDrinkName: day.eatDrinkName || "",
+          eatDrinkDesc: day.eatDrinkDesc || "",
+          transitionTo: day.transitionTo || "",
+          transitionTime: day.transitionTime || "",
+          tip: day.tip || ""
+        }))
+      : [defaultDay("01")]
   };
 };
 
@@ -53,9 +90,8 @@ export default function ItineraryGuidesCMS() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
-  const [activeDetailsTab, setActiveDetailsTab] = useState("sights");
   
   // Form State
   const [formData, setFormData] = useState({
@@ -66,6 +102,7 @@ export default function ItineraryGuidesCMS() {
     title: "",
     excerpt: "",
     heroImage: "",
+    status: "draft",
     details: defaultDetails
   });
 
@@ -95,34 +132,45 @@ export default function ItineraryGuidesCMS() {
 
   const handleOpenAdd = () => {
     setModalMode("add");
+    const defaultDest = destinations[0]?.country || "";
+    const defaultCode = destinations[0]?.code || destinations[0]?.country_code || "";
+    
     setFormData({
       id: "",
       slug: "",
-      destination: destinations[0]?.country || "",
-      countryCode: destinations[0]?.code || "",
+      destination: defaultDest,
+      countryCode: defaultCode.toUpperCase(),
       title: "",
       excerpt: "",
       heroImage: "",
-      details: defaultDetails
+      status: "draft",
+      details: {
+        ...defaultDetails,
+        bestTimeToVisit: "March to May & Oct to Nov",
+        idealDuration: "4-5 Days",
+        budgetLevel: "Mid-range",
+        readTime: "10 Min",
+        noOfDays: "7"
+      }
     });
-    setActiveDetailsTab("sights");
-    setIsModalOpen(true);
+    setIsFormOpen(true);
   };
 
   const handleOpenEdit = (guide) => {
     setModalMode("edit");
+    const mergedDetails = mergeWithDefaults(guide.details);
     setFormData({
       id: guide.id,
       slug: guide.slug || "",
       destination: guide.destination || "",
-      countryCode: guide.countryCode || "",
+      countryCode: (guide.countryCode || guide.country_code || "").toUpperCase(),
       title: guide.title || "",
       excerpt: guide.excerpt || "",
       heroImage: guide.heroImage || "",
-      details: mergeWithDefaults(guide.details)
+      status: guide.status || "draft",
+      details: mergedDetails
     });
-    setActiveDetailsTab("sights");
-    setIsModalOpen(true);
+    setIsFormOpen(true);
   };
 
   const handleDelete = async (id, title) => {
@@ -139,10 +187,11 @@ export default function ItineraryGuidesCMS() {
   const handleDestinationChange = (e) => {
     const destName = e.target.value;
     const destObj = destinations.find(d => d.country === destName);
+    const countryCode = destObj ? (destObj.code || destObj.country_code || "") : "";
     setFormData(prev => ({
       ...prev,
       destination: destName,
-      countryCode: destObj ? destObj.code : ""
+      countryCode: countryCode.toUpperCase()
     }));
   };
 
@@ -174,6 +223,26 @@ export default function ItineraryGuidesCMS() {
     }
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    try {
+      setUploadingImage(true);
+      const publicUrl = await uploadImage(file);
+      setFormData(prev => ({ ...prev, heroImage: publicUrl }));
+    } catch (error) {
+      alert("Failed to drop and upload image: " + error.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   // Details State Helpers
   const updateDetailField = (key, value) => {
     setFormData(prev => ({
@@ -185,116 +254,49 @@ export default function ItineraryGuidesCMS() {
     }));
   };
 
-  const updateStayField = (tier, idx, field, val) => {
+  // Day Dynamic Helpers
+  const updateDayField = (idx, field, val) => {
     setFormData(prev => {
-      const stay = { ...prev.details.stay };
-      const list = [...(stay[tier] || [])];
-      list[idx] = { ...list[idx], [field]: val };
-      stay[tier] = list;
+      const days = [...prev.details.days];
+      days[idx] = { ...days[idx], [field]: val };
       return {
         ...prev,
-        details: { ...prev.details, stay }
+        details: { ...prev.details, days }
       };
     });
   };
 
-  const addStayItem = (tier) => {
+  const addDayItem = () => {
     setFormData(prev => {
-      const stay = { ...prev.details.stay };
-      stay[tier] = [...(stay[tier] || []), { name: "", desc: "" }];
+      const days = [...prev.details.days];
+      const nextNum = String(days.length + 1).padStart(2, "0");
+      days.push(defaultDay(nextNum));
       return {
         ...prev,
-        details: { ...prev.details, stay }
+        details: { ...prev.details, days }
       };
     });
   };
 
-  const removeStayItem = (tier, idx) => {
+  const removeDayItem = (idx) => {
     setFormData(prev => {
-      const stay = { ...prev.details.stay };
-      stay[tier] = (stay[tier] || []).filter((_, i) => i !== idx);
+      let days = prev.details.days.filter((_, i) => i !== idx);
+      // Re-index day numbers sequentially
+      days = days.map((day, i) => ({
+        ...day,
+        dayNum: String(i + 1).padStart(2, "0")
+      }));
       return {
         ...prev,
-        details: { ...prev.details, stay }
+        details: { ...prev.details, days }
       };
     });
   };
 
-  const updateRestaurantField = (tier, idx, field, val) => {
-    setFormData(prev => {
-      const restaurants = { ...prev.details.restaurants };
-      const list = [...(restaurants[tier] || [])];
-      list[idx] = { ...list[idx], [field]: val };
-      restaurants[tier] = list;
-      return {
-        ...prev,
-        details: { ...prev.details, restaurants }
-      };
-    });
-  };
 
-  const addRestaurantItem = (tier) => {
-    setFormData(prev => {
-      const restaurants = { ...prev.details.restaurants };
-      restaurants[tier] = [...(restaurants[tier] || []), { name: "", desc: "" }];
-      return {
-        ...prev,
-        details: { ...prev.details, restaurants }
-      };
-    });
-  };
-
-  const removeRestaurantItem = (tier, idx) => {
-    setFormData(prev => {
-      const restaurants = { ...prev.details.restaurants };
-      restaurants[tier] = (restaurants[tier] || []).filter((_, i) => i !== idx);
-      return {
-        ...prev,
-        details: { ...prev.details, restaurants }
-      };
-    });
-  };
-
-  const updateListField = (field, idx, key, val) => {
-    setFormData(prev => {
-      const list = [...(prev.details[field] || [])];
-      list[idx] = { ...list[idx], [key]: val };
-      return {
-        ...prev,
-        details: { ...prev.details, [field]: list }
-      };
-    });
-  };
-
-  const addListItem = (field, defaultObj) => {
-    setFormData(prev => {
-      const list = [...(prev.details[field] || [])];
-      const num = String(list.length + 1).padStart(2, "0");
-      list.push(defaultObj.num !== undefined ? { ...defaultObj, num } : defaultObj);
-      return {
-        ...prev,
-        details: { ...prev.details, [field]: list }
-      };
-    });
-  };
-
-  const removeListItem = (field, idx) => {
-    setFormData(prev => {
-      const list = (prev.details[field] || []).filter((_, i) => i !== idx).map((item, i) => {
-        if (item.num !== undefined) {
-          return { ...item, num: String(i + 1).padStart(2, "0") };
-        }
-        return item;
-      });
-      return {
-        ...prev,
-        details: { ...prev.details, [field]: list }
-      };
-    });
-  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!formData.title || !formData.slug || !formData.destination) {
       alert("Title, slug, and destination are required.");
       return;
@@ -303,15 +305,28 @@ export default function ItineraryGuidesCMS() {
     try {
       setSaving(true);
 
+      const computedCountry = formData.details.country || formData.destination || "";
+      const computedDays = formData.details.days?.length || parseInt(formData.details.noOfDays) || 7;
+
       const payload = {
         type: "itinerary",
-        slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
+        slug: formData.slug.toLowerCase().trim().replace(/\s+/g, "-"),
         destination: formData.destination,
         countryCode: formData.countryCode.toUpperCase(),
         title: formData.title,
         excerpt: formData.excerpt,
+        status: formData.status || "draft",
         heroImage: formData.heroImage || "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop",
-        details: formData.details
+        details: {
+          ...formData.details,
+          // Automate structural fields matching details.js template exactly
+          pocketTitle: formData.details.pocketTitle || `${computedCountry.toUpperCase()} MINI GUIDE • POCKET VERSION`,
+          itineraryTitle: formData.details.itineraryTitle || `${computedDays} DAYS IN ${computedCountry.toUpperCase()} • FULL ITINERARY`,
+          blogCountText: formData.details.blogCountText || `3 POSTS FROM ${computedCountry.toUpperCase()}`,
+          introText: formData.excerpt || "",
+          routeTitle: formData.details.routeTitle || `${computedDays}-day route`,
+          routeFlow: formData.details.routeFlow || formData.details.days?.map(d => d.city).filter(Boolean).join(", ") || ""
+        }
       };
 
       if (formData.id) {
@@ -320,7 +335,7 @@ export default function ItineraryGuidesCMS() {
 
       await saveMiniGuide(payload);
       await loadData();
-      setIsModalOpen(false);
+      setIsFormOpen(false);
     } catch (err) {
       alert("Failed to save itinerary guide: " + err.message);
     } finally {
@@ -334,579 +349,869 @@ export default function ItineraryGuidesCMS() {
   });
 
   return (
-    <div>
-      <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
-        <div>
-          <h1 className="text-3xl font-serif text-charcoal-900 mb-2">Itinerary Guides</h1>
-          <p className="text-charcoal-800/70 text-sm">Manage the premium, high-read curated itineraries for slow travel.</p>
-        </div>
-        <button
-          onClick={handleOpenAdd}
-          className="bg-charcoal-900 text-white px-4 py-2.5 rounded-md text-sm hover:bg-gold-600 transition-all flex items-center justify-center gap-2 font-medium"
-        >
-          <Plus size={16} /> Add Itinerary Guide
-        </button>
-      </div>
+    <div className="space-y-10 min-h-screen">
+      {!isFormOpen ? (
+        <>
+          {/* Main Dashboard Archival View */}
+          <div className="flex flex-col md:flex-row justify-between md:items-end gap-6 pb-6 border-b border-brand-border animate-in fade-in slide-in-from-top-4 duration-300">
+            <div>
+              <span className="text-[10px] font-bold tracking-[0.3em] text-brand-mustard uppercase block mb-2 font-sans">
+                ITINERARY ARCHIVE
+              </span>
+              <h1 className="text-4xl md:text-5xl font-serif text-brand-ink leading-tight tracking-tight">
+                Itinerary Guides
+              </h1>
+              <p className="text-brand-muted text-sm mt-2 max-w-xl font-light">
+                Manage the premium, high-read curated itineraries for slow travel. These itinerary guides contain slow travel routing summaries, sights, hotel selections, and activities.
+              </p>
+            </div>
+            <button
+              onClick={handleOpenAdd}
+              className="bg-brand-ink text-white px-6 py-3 rounded-full text-xs font-bold tracking-[0.2em] uppercase hover:bg-brand-mustard transition-all flex items-center justify-center gap-2 self-start md:self-auto cursor-pointer shadow-sm duration-300 transform hover:-translate-y-0.5 active:translate-y-0 font-sans"
+            >
+              <Plus size={14} className="stroke-[3]" /> Add Itinerary Guide
+            </button>
+          </div>
 
-      {/* Main List Box */}
-      <div className="bg-white rounded-xl shadow-sm border border-cream-200 overflow-hidden">
-        <div className="p-4 border-b border-cream-200 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-cream-100/30">
-          <div className="relative w-full max-w-sm">
-            <input 
-              type="text" 
-              placeholder="Search itinerary guides..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border border-cream-200 rounded-md py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-gold-500 bg-white"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-charcoal-400" size={16} />
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="p-20 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="animate-spin text-gold-600" size={36} />
-            <p className="text-charcoal-800/60 text-sm font-medium">Loading itinerary guides...</p>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="p-20 text-center">
-            <p className="text-charcoal-800/60 mb-2 font-medium">No itinerary guides found.</p>
-            <p className="text-xs text-charcoal-800/40">Create an itinerary guide to list it here.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-cream-100/50 text-xs uppercase tracking-widest text-charcoal-800/60 border-b border-cream-200">
-                  <th className="p-4 font-medium">Guide Title</th>
-                  <th className="p-4 font-medium">Destination</th>
-                  <th className="p-4 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-cream-200">
-                {filtered.map((guide) => (
-                  <tr key={guide.id} className="hover:bg-cream-100/30 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-14 h-10 rounded overflow-hidden bg-cream-200 flex-shrink-0 border border-cream-200">
-                          <img src={guide.heroImage} alt={guide.title} className="w-full h-full object-cover" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-charcoal-900">{guide.title}</div>
-                          <div className="text-xs text-charcoal-800/50">/{guide.slug}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-charcoal-800">
-                      <span className="flex items-center gap-1 font-medium">
-                        <span className="text-[10px] bg-cream-200 text-charcoal-900 px-1.5 py-0.5 rounded font-bold">{guide.countryCode}</span>
-                        {guide.destination}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <button 
-                          onClick={() => handleOpenEdit(guide)}
-                          className="p-2 text-charcoal-400 hover:text-gold-600 hover:bg-cream-100 rounded-md transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(guide.id, guide.title)}
-                          className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        
-        <div className="p-4 border-t border-cream-200 flex items-center justify-between text-sm text-charcoal-800/60">
-          <div>Showing {filtered.length} itinerary guides</div>
-        </div>
-      </div>
-
-      {/* Upsert Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-charcoal-900/65 flex items-center justify-center z-50 p-4 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-xl border border-cream-200 w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
-            <div className="p-6 border-b border-cream-200 flex justify-between items-center bg-cream-100/30">
-              <h2 className="font-serif text-xl text-charcoal-900 font-bold">
-                {modalMode === "add" ? "Create Itinerary Guide" : `Edit ${formData.title}`}
-              </h2>
-              <button 
-                onClick={() => setIsModalOpen(false)}
-                className="p-1.5 text-charcoal-400 hover:text-charcoal-900 hover:bg-cream-100 rounded-full transition-all"
-              >
-                <X size={20} />
-              </button>
+          <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)]">
+            {/* Search Bar */}
+            <div className="p-5 border-b border-brand-border flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-[#fcfbf9]">
+              <div className="relative w-full max-w-md">
+                <input 
+                  type="text" 
+                  placeholder="Search itinerary guides by title, destination or keywords..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full border border-brand-border rounded-xl py-3 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white transition-all text-brand-ink font-sans placeholder:text-brand-muted/70"
+                />
+                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted/80" size={15} />
+              </div>
+              <div className="text-xs text-brand-muted font-sans font-medium flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-brand-mustard animate-pulse"></span>
+                Total: {guides.length} guides
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1">
-              <div>
-                <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Guide Title *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.title}
-                  onChange={handleTitleChange}
-                  className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                  placeholder="e.g. Rome & Amalfi Coast Itinerary"
-                />
+            {loading ? (
+              <div className="py-24 flex flex-col items-center justify-center gap-4">
+                <Loader2 className="animate-spin text-brand-mustard" size={32} />
+                <p className="text-brand-muted text-xs font-bold tracking-widest uppercase animate-pulse">Gathering itineraries...</p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Destination *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.destination}
-                    onChange={(e) => setFormData(prev => ({ ...prev, destination: e.target.value }))}
-                    className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                    placeholder="e.g. Italy"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Country Code *</label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={5}
-                    value={formData.countryCode}
-                    onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value.toUpperCase() }))}
-                    className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900 font-mono"
-                    placeholder="e.g. IT"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">URL Slug *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.slug}
-                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                    placeholder="e.g. rome-amalfi"
-                  />
-                </div>
+            ) : filtered.length === 0 ? (
+              <div className="py-24 text-center max-w-sm mx-auto">
+                <BookOpen className="text-brand-border mx-auto mb-4" size={40} />
+                <p className="text-brand-ink font-serif text-lg mb-1">No guides found</p>
+                <p className="text-xs text-brand-muted leading-relaxed">
+                  {searchQuery ? "Try refining your search terms or view standard directory." : "Create a fresh itinerary guide to populate the database index."}
+                </p>
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Hero Image URL</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={formData.heroImage}
-                    onChange={(e) => setFormData(prev => ({ ...prev, heroImage: e.target.value }))}
-                    className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                    placeholder="https://..."
-                  />
-                  <label className="bg-cream-200 hover:bg-cream-300 border border-cream-300 rounded-md px-4 flex items-center justify-center cursor-pointer transition-colors text-charcoal-900" title="Upload local image">
-                    {uploadingImage ? <Loader2 className="animate-spin text-charcoal-600" size={18} /> : <ImageIcon size={18} />}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      disabled={uploadingImage}
-                    />
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Sub-headers / Route Summary (e.g., ROME • FLORENCE • TUSCANY)</label>
-                <textarea
-                  rows={4}
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
-                  className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                  placeholder="e.g. ROME • FLORENCE • TUSCANY • CINQUE TERRE • AMALFI • MAY 2025"
-                />
-              </div>
-
-              {formData.heroImage && (
-                <div className="border border-cream-200 rounded-xl p-4 flex flex-col items-center gap-2 bg-cream-100/10">
-                  <span className="text-xs font-semibold text-charcoal-800/50 uppercase">Preview Hero Image</span>
-                  <img src={formData.heroImage} alt="Hero Preview" className="h-40 w-full object-cover rounded-lg border border-cream-200" />
-                </div>
-              )}
-
-              {/* Itinerary Guide Details Editor Section */}
-              <div className="border border-cream-200 rounded-xl p-6 bg-cream-50/20 space-y-6">
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center pb-4 border-b border-cream-200 gap-4">
-                  <div>
-                    <h3 className="font-serif text-lg text-charcoal-900 font-bold">Guide Detail Content</h3>
-                    <p className="text-xs text-charcoal-800/50 mt-0.5">Customize sights, hotels, activities, food & tours.</p>
-                  </div>
-                  
-                  {/* Tabs Nav */}
-                  <div className="flex overflow-x-auto gap-1 bg-cream-100/60 p-1 rounded-lg self-start">
-                    {[
-                      { id: "titles", label: "Page Headers" },
-                      { id: "sights", label: "Top Sights" },
-                      { id: "stay", label: "Where to Stay" },
-                      { id: "activities", label: "Activities" },
-                      { id: "eat", label: "Eat & Drink" },
-                      { id: "restaurants", label: "Restaurants" },
-                      { id: "dayTrips", label: "Day Trips" }
-                    ].map(tab => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setActiveDetailsTab(tab.id)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
-                          activeDetailsTab === tab.id
-                            ? "bg-white text-gold-600 shadow-xs"
-                            : "text-charcoal-800/60 hover:text-charcoal-950"
-                        }`}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Sub Tab: Page Headers */}
-                {activeDetailsTab === "titles" && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Pocket Guide Detail Title (Override)</label>
-                        <input
-                          type="text"
-                          value={formData.details.pocketTitle || ""}
-                          onChange={(e) => updateDetailField("pocketTitle", e.target.value)}
-                          className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                          placeholder="e.g. The Marrakech Pocket Guide"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Itinerary Guide Title (Override)</label>
-                        <input
-                          type="text"
-                          value={formData.details.itineraryTitle || ""}
-                          onChange={(e) => updateDetailField("itineraryTitle", e.target.value)}
-                          className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                          placeholder="e.g. Marrakech In 5 Days"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Blog Count/Duration Text</label>
-                      <input
-                        type="text"
-                        value={formData.details.blogCountText || ""}
-                        onChange={(e) => updateDetailField("blogCountText", e.target.value)}
-                        className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                        placeholder="e.g. 5 STORIES / 4 MIN READ"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Sub Tab: Top Sights */}
-                {activeDetailsTab === "sights" && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-charcoal-800/60 uppercase">Top Sights List</span>
-                      <button
-                        type="button"
-                        onClick={() => addListItem("sights", { num: "", text: "" })}
-                        className="text-xs text-gold-600 hover:text-gold-700 font-semibold flex items-center gap-1 border border-gold-600/25 bg-gold-600/5 px-2.5 py-1 rounded-md transition-colors"
-                      >
-                        <Plus size={12} /> Add Sight
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {(formData.details.sights || []).map((sight, idx) => (
-                        <div key={idx} className="flex gap-2 items-start bg-white p-3 rounded-lg border border-cream-200">
-                          <span className="bg-cream-100 text-charcoal-700 font-mono text-xs px-2 py-1.5 rounded font-bold self-center border border-cream-200">
-                            {sight.num || String(idx + 1).padStart(2, "0")}
-                          </span>
-                          <textarea
-                            rows={2}
-                            value={sight.text || ""}
-                            onChange={(e) => updateListField("sights", idx, "text", e.target.value)}
-                            className="flex-1 border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                            placeholder="Describe the top sight..."
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeListItem("sights", idx)}
-                            className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors self-center"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sub Tab: Where to Stay */}
-                {activeDetailsTab === "stay" && (
-                  <div className="space-y-6">
-                    {["budget", "mid", "splurge"].map(tier => {
-                      const label = tier === "budget" ? "Budget (£)" : tier === "mid" ? "Mid-range (££)" : "Splurge (£££)";
-                      const list = formData.details.stay?.[tier] || [];
+            ) : (
+              <div className="overflow-x-auto font-sans">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-brand-bg/40 text-[9px] uppercase tracking-[0.25em] text-brand-muted font-bold border-b border-brand-border">
+                      <th className="p-5 font-bold">Guide Details</th>
+                      <th className="p-5 font-bold">Destination</th>
+                      <th className="p-5 font-bold">Days Count</th>
+                      <th className="p-5 font-bold">Excerpt Summary</th>
+                      <th className="p-5 font-bold text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-brand-border">
+                    {filtered.map((guide) => {
+                      const daysCount = guide.details?.days?.length || 0;
                       return (
-                        <div key={tier} className="space-y-3 border-b border-cream-200/50 pb-5 last:border-b-0 last:pb-0">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider">{label}</span>
-                            <button
-                              type="button"
-                              onClick={() => addStayItem(tier)}
-                              className="text-xs text-gold-600 hover:text-gold-700 font-semibold flex items-center gap-1 border border-gold-600/25 bg-gold-600/5 px-2.5 py-1 rounded-md transition-colors"
-                            >
-                              <Plus size={12} /> Add Hotel
-                            </button>
-                          </div>
-                          
-                          <div className="space-y-3">
-                            {list.map((hotel, idx) => (
-                              <div key={idx} className="bg-white p-3 rounded-lg border border-cream-200 space-y-2 relative">
-                                <div className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    value={hotel.name || ""}
-                                    onChange={(e) => updateStayField(tier, idx, "name", e.target.value)}
-                                    className="flex-1 border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900 font-semibold"
-                                    placeholder="Hotel Name"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeStayItem(tier, idx)}
-                                    className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                </div>
-                                <textarea
-                                  rows={2}
-                                  value={hotel.desc || ""}
-                                  onChange={(e) => updateStayField(tier, idx, "desc", e.target.value)}
-                                  className="w-full border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                                  placeholder="Describe the hotel details, location, and why it is great..."
+                        <tr key={guide.id} className="hover:bg-[#fcfbf9]/40 transition-colors duration-200">
+                          <td className="p-5">
+                            <div className="flex items-center gap-4">
+                              <div className="w-20 h-14 rounded-lg overflow-hidden bg-brand-bg flex-shrink-0 border border-brand-border shadow-2xs group relative">
+                                <img 
+                                  src={guide.heroImage || "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop"} 
+                                  alt={guide.title} 
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                                 />
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Sub Tab: Best Activities */}
-                {activeDetailsTab === "activities" && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-charcoal-800/60 uppercase">Activities List</span>
-                      <button
-                        type="button"
-                        onClick={() => addListItem("activities", { num: "", text: "" })}
-                        className="text-xs text-gold-600 hover:text-gold-700 font-semibold flex items-center gap-1 border border-gold-600/25 bg-gold-600/5 px-2.5 py-1 rounded-md transition-colors"
-                      >
-                        <Plus size={12} /> Add Activity
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {(formData.details.activities || []).map((activity, idx) => (
-                        <div key={idx} className="flex gap-2 items-start bg-white p-3 rounded-lg border border-cream-200">
-                          <span className="bg-cream-100 text-charcoal-700 font-mono text-xs px-2 py-1.5 rounded font-bold self-center border border-cream-200">
-                            {activity.num || String(idx + 1).padStart(2, "0")}
-                          </span>
-                          <textarea
-                            rows={2}
-                            value={activity.text || ""}
-                            onChange={(e) => updateListField("activities", idx, "text", e.target.value)}
-                            className="flex-1 border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                            placeholder="Describe the activity or tour..."
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeListItem("activities", idx)}
-                            className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors self-center"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sub Tab: What to Eat & Drink */}
-                {activeDetailsTab === "eat" && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-charcoal-800/60 uppercase">Eat & Drink Items</span>
-                      <button
-                        type="button"
-                        onClick={() => addListItem("eat", { name: "", desc: "" })}
-                        className="text-xs text-gold-600 hover:text-gold-700 font-semibold flex items-center gap-1 border border-gold-600/25 bg-gold-600/5 px-2.5 py-1 rounded-md transition-colors"
-                      >
-                        <Plus size={12} /> Add Culinary Item
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {(formData.details.eat || []).map((item, idx) => (
-                        <div key={idx} className="bg-white p-3 rounded-lg border border-cream-200 space-y-2 relative">
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              value={item.name || ""}
-                              onChange={(e) => updateListField("eat", idx, "name", e.target.value)}
-                              className="flex-1 border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900 font-semibold"
-                              placeholder="e.g. Tajine, Mint Tea"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeListItem("eat", idx)}
-                              className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                          <textarea
-                            rows={2}
-                            value={item.desc || ""}
-                            onChange={(e) => updateListField("eat", idx, "desc", e.target.value)}
-                            className="w-full border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                            placeholder="Describe what makes this dish or drink special..."
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sub Tab: Best Restaurants */}
-                {activeDetailsTab === "restaurants" && (
-                  <div className="space-y-6">
-                    {["budget", "mid", "splurge"].map(tier => {
-                      const label = tier === "budget" ? "Budget (£)" : tier === "mid" ? "Mid-range (££)" : "Splurge (£££)";
-                      const list = formData.details.restaurants?.[tier] || [];
-                      return (
-                        <div key={tier} className="space-y-3 border-b border-cream-200/50 pb-5 last:border-b-0 last:pb-0">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider">{label}</span>
-                            <button
-                              type="button"
-                              onClick={() => addRestaurantItem(tier)}
-                              className="text-xs text-gold-600 hover:text-gold-700 font-semibold flex items-center gap-1 border border-gold-600/25 bg-gold-600/5 px-2.5 py-1 rounded-md transition-colors"
-                            >
-                              <Plus size={12} /> Add Restaurant
-                            </button>
-                          </div>
-                          
-                          <div className="space-y-3">
-                            {list.map((rest, idx) => (
-                              <div key={idx} className="bg-white p-3 rounded-lg border border-cream-200 space-y-2 relative">
-                                <div className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    value={rest.name || ""}
-                                    onChange={(e) => updateRestaurantField(tier, idx, "name", e.target.value)}
-                                    className="flex-1 border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900 font-semibold"
-                                    placeholder="Restaurant Name"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => removeRestaurantItem(tier, idx)}
-                                    className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                </div>
-                                <textarea
-                                  rows={2}
-                                  value={rest.desc || ""}
-                                  onChange={(e) => updateRestaurantField(tier, idx, "desc", e.target.value)}
-                                  className="w-full border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                                  placeholder="Describe the dining experience, signature dishes, and location..."
-                                />
+                              <div className="max-w-md">
+                                <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1">{guide.title}</h3>
+                                <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide">/mini-guides/{guide.slug}</div>
                               </div>
-                            ))}
-                          </div>
-                        </div>
+                            </div>
+                          </td>
+                          <td className="p-5 text-sm text-brand-ink">
+                            <span className="inline-flex items-center gap-2 font-medium bg-brand-bg border border-brand-border rounded-full py-1.5 px-3">
+                              <span className="text-[8px] bg-brand-mustard text-white px-1.5 py-0.5 rounded font-black tracking-widest font-mono">{guide.countryCode || "TR"}</span>
+                              <span className="text-xs text-brand-ink">{guide.destination}</span>
+                            </span>
+                          </td>
+                          <td className="p-5">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-mustard-soft text-brand-mustard text-[9px] font-bold rounded-full uppercase tracking-wider border border-brand-mustard/20">
+                              {daysCount} Days curations
+                            </span>
+                          </td>
+                          <td className="p-5 text-xs text-brand-muted font-sans tracking-wide max-w-xs truncate">
+                            {guide.excerpt}
+                          </td>
+                          <td className="p-5 text-right">
+                            <div className="flex justify-end gap-1.5">
+                              <button 
+                                onClick={() => handleOpenEdit(guide)}
+                                className="p-2 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
+                                title="Edit Guide"
+                              >
+                                <Edit2 size={15} />
+                              </button>
+                              <button 
+                                onClick={() => handleDelete(guide.id, guide.title)}
+                                className="p-2 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
+                                title="Delete Guide"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       );
                     })}
-                  </div>
-                )}
-
-                {/* Sub Tab: Best Day Trips */}
-                {activeDetailsTab === "dayTrips" && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-semibold text-charcoal-800/60 uppercase">Day Trips List</span>
-                      <button
-                        type="button"
-                        onClick={() => addListItem("dayTrips", { num: "", name: "" })}
-                        className="text-xs text-gold-600 hover:text-gold-700 font-semibold flex items-center gap-1 border border-gold-600/25 bg-gold-600/5 px-2.5 py-1 rounded-md transition-colors"
-                      >
-                        <Plus size={12} /> Add Day Trip
-                      </button>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {(formData.details.dayTrips || []).map((trip, idx) => (
-                        <div key={idx} className="flex gap-2 items-start bg-white p-3 rounded-lg border border-cream-200">
-                          <span className="bg-cream-100 text-charcoal-700 font-mono text-xs px-2 py-1.5 rounded font-bold self-center border border-cream-200">
-                            {trip.num || String(idx + 1).padStart(2, "0")}
-                          </span>
-                          <input
-                            type="text"
-                            value={trip.name || ""}
-                            onChange={(e) => updateListField("dayTrips", idx, "name", e.target.value)}
-                            className="flex-1 border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
-                            placeholder="e.g. Essaouira Coast, Atlas Mountains"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeListItem("dayTrips", idx)}
-                            className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors self-center"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  </tbody>
+                </table>
               </div>
+            )}
+            
+            <div className="p-5 border-t border-brand-border bg-[#fcfbf9]/40 flex justify-between items-center text-xs text-brand-muted">
+              <span>Displaying {filtered.length} of {guides.length} guides</span>
+            </div>
+          </div>
+        </>
+      ) : (
+        /* ==================== FORM VIEW (ADD / EDIT) ==================== */
+        <div className="bg-[#FAF8F5] -mx-6 -my-10 p-8 min-h-screen text-brand-ink font-sans">
+          
+          {/* Breadcrumbs Header */}
+          <header className="flex flex-col sm:flex-row items-center justify-between border-b border-brand-border bg-white px-8 py-4 mb-8 -mx-8 -mt-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsFormOpen(false)}
+                className="p-2 hover:bg-brand-bg rounded-lg transition-colors flex items-center justify-center cursor-pointer text-brand-muted hover:text-brand-ink"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div className="flex items-center gap-2 text-xs font-semibold text-brand-muted font-sans">
+                <span className="uppercase tracking-widest text-[10px] text-brand-muted">Primary Guides</span>
+                <span className="text-brand-border">&gt;</span>
+                <span className="text-brand-ink uppercase tracking-widest text-[10px] font-bold">
+                  {modalMode === "add" ? "ADD ITINERARY GUIDE" : "EDIT ITINERARY GUIDE"}
+                </span>
+              </div>
+            </div>
+            
+            <div className="relative w-full max-w-xs my-2 sm:my-0">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-brand-muted" size={14} />
+              <input 
+                type="text" 
+                placeholder="Search itinerary guides..." 
+                className="w-full border border-brand-border rounded-lg py-1.5 pl-9 pr-3 text-xs bg-[#fcfbf9] placeholder:text-brand-muted/70 focus:outline-none focus:border-brand-mustard focus:bg-white transition-all text-brand-ink"
+              />
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button className="relative p-2 text-brand-muted hover:text-brand-ink hover:bg-brand-bg rounded-full transition-all">
+                <Bell size={18} />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-brand-mustard rounded-full"></span>
+              </button>
+              
+              <div className="flex items-center gap-3 pl-2 border-l border-brand-border">
+                <div className="w-9 h-9 rounded-full bg-brand-mustard-soft text-brand-mustard font-sans font-bold text-xs flex items-center justify-center border border-brand-mustard/15">
+                  AW
+                </div>
+                <div className="hidden sm:block text-left font-sans">
+                  <div className="text-xs font-bold text-brand-ink leading-tight">Ana Wright</div>
+                  <div className="text-[9px] text-brand-muted uppercase font-semibold tracking-wider">Administrator</div>
+                </div>
+              </div>
+            </div>
+          </header>
 
-              <div className="p-6 border-t border-cream-200 flex justify-end gap-3 bg-cream-100/30 -mx-6 -mb-6 rounded-b-2xl">
+          <form onSubmit={handleSubmit} className="space-y-8 max-w-7xl mx-auto">
+            {/* Top Bar Actions */}
+            <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 pb-6">
+              <div>
+                <h1 className="text-4xl font-serif text-brand-ink tracking-tight font-bold">
+                  {modalMode === "add" ? "Add Itinerary Guide" : "Edit Itinerary Guide"}
+                </h1>
+                <p className="text-brand-muted text-xs mt-2 max-w-2xl font-light leading-relaxed">
+                  Build a beautiful, detailed itinerary. Only fields filled out will show on the main page. Fields left blank won't display. Use markdown for text areas.
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 border border-cream-200 rounded-md text-sm hover:bg-cream-100 text-charcoal-800 font-medium transition-colors"
+                  onClick={() => setIsFormOpen(false)}
+                  className="px-5 py-2.5 bg-white border border-brand-border rounded-xl text-xs font-bold text-brand-ink hover:bg-[#fcfbf9] transition-all cursor-pointer shadow-2xs"
                 >
-                  Cancel
+                  Discard
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, status: "draft" }));
+                    handleSubmit();
+                  }}
+                  disabled={saving}
+                  className="px-5 py-2.5 bg-white border border-brand-border rounded-xl text-xs font-bold text-brand-ink hover:bg-[#fcfbf9] transition-all cursor-pointer shadow-2xs"
+                >
+                  Save Draft
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-4 py-2 bg-charcoal-900 text-white rounded-md text-sm hover:bg-gold-600 transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                  className="px-5 py-2.5 bg-brand-mustard text-white rounded-xl text-xs font-bold hover:bg-brand-ink transition-all flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  {saving && <Loader2 className="animate-spin" size={16} />}
-                  {modalMode === "add" ? "Create Guide" : "Save Changes"}
+                  {saving && <Loader2 className="animate-spin" size={12} />}
+                  Publish Itinerary
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+
+            {/* Main 2-Column Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left Column: Form Cards */}
+              <div className="lg:col-span-8 space-y-6">
+                
+                {/* CARD 1: ITINERARY OVERVIEW */}
+                <div className="bg-white rounded-[32px] border border-brand-border p-8 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-brand-ink font-serif">Itinerary Overview</h2>
+                    <p className="text-brand-muted text-xs font-light mt-1">Basic details for the itinerary card on the main page and details page hero section.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Destination Selector */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Destination *</label>
+                        <select
+                          required
+                          value={formData.destination}
+                          onChange={handleDestinationChange}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink cursor-pointer"
+                        >
+                          <option value="">Select destination</option>
+                          {destinations.map((dest) => (
+                            <option key={dest.id} value={dest.country}>
+                              {dest.country}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Country Input */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Country</label>
+                        <input
+                          type="text"
+                          value={formData.details.country || ""}
+                          onChange={(e) => updateDetailField("country", e.target.value)}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                          placeholder="e.g. Spain, Portugal, Italy"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Route Summary */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Route</label>
+                        <input
+                          type="text"
+                          value={formData.details.routeFlow || ""}
+                          onChange={(e) => updateDetailField("routeFlow", e.target.value)}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                          placeholder="e.g. Lisbon, Sintra, Porto, Douro Valley"
+                        />
+                      </div>
+
+                      {/* Title */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Title *</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.title}
+                          onChange={handleTitleChange}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                          placeholder="e.g. Seven Days in Portugal: A Road Trip Itinerary"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Read Time */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Read Time</label>
+                        <input
+                          type="text"
+                          value={formData.details.readTime || ""}
+                          onChange={(e) => updateDetailField("readTime", e.target.value)}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                          placeholder="e.g. 10 Min"
+                        />
+                      </div>
+
+                      {/* No. of Days */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">No. of Days</label>
+                        <input
+                          type="text"
+                          value={formData.details.noOfDays || ""}
+                          onChange={(e) => updateDetailField("noOfDays", e.target.value)}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                          placeholder="e.g. 7"
+                        />
+                      </div>
+
+                      {/* Status */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Status</label>
+                        <select
+                          value={formData.status}
+                          onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink cursor-pointer"
+                        >
+                          <option value="draft">Draft</option>
+                          <option value="published">Published</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* DYNAMIC HERO SECTION METADATA TAGS */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-[#fcfbf9] rounded-2xl border border-brand-border/60">
+                      <div>
+                        <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-[0.15em] mb-1.5">Best Time to Visit</label>
+                        <input
+                          type="text"
+                          value={formData.details.bestTimeToVisit || ""}
+                          onChange={(e) => updateDetailField("bestTimeToVisit", e.target.value)}
+                          className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                          placeholder="e.g. March to May"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-[0.15em] mb-1.5">Ideal Duration</label>
+                        <input
+                          type="text"
+                          value={formData.details.idealDuration || ""}
+                          onChange={(e) => updateDetailField("idealDuration", e.target.value)}
+                          className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                          placeholder="e.g. 4-5 Days"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-[0.15em] mb-1.5">Budget Level</label>
+                        <input
+                          type="text"
+                          value={formData.details.budgetLevel || ""}
+                          onChange={(e) => updateDetailField("budgetLevel", e.target.value)}
+                          className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                          placeholder="e.g. Mid-range"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Excerpt */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Excerpt</label>
+                      <textarea
+                        rows={3}
+                        value={formData.excerpt}
+                        onChange={(e) => setFormData(prev => ({ ...prev, excerpt: e.target.value }))}
+                        className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all resize-none"
+                        placeholder="Write a short summary for the itinerary card and listing page."
+                      />
+                    </div>
+
+                    {/* Route Description / HTML overview */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Route Description</label>
+                      <textarea
+                        rows={4}
+                        value={formData.details.introHtml || ""}
+                        onChange={(e) => updateDetailField("introHtml", e.target.value)}
+                        className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                        placeholder="Describe the route, who it's for, and the best way to travel."
+                      />
+                    </div>
+
+                    {/* Cover Photo Upload Area */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Hero Image</label>
+                      <div 
+                        onDragOver={handleDragOver}
+                        onDrop={handleDrop}
+                        onClick={() => document.getElementById("file-input").click()}
+                        className="border-2 border-dashed border-brand-mustard/20 bg-[#FCFBF8] rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-mustard hover:bg-[#FAF6EC] transition-all group select-none relative h-40 overflow-hidden"
+                      >
+                        {uploadingImage ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="animate-spin text-brand-mustard" size={24} />
+                            <span className="text-xs font-bold text-brand-mustard tracking-wider uppercase animate-pulse">Uploading cover...</span>
+                          </div>
+                        ) : formData.heroImage ? (
+                          <>
+                            <img 
+                              src={formData.heroImage} 
+                              alt="Guide Cover Preview" 
+                              className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-10 transition-opacity" 
+                            />
+                            <div className="relative z-10 flex flex-col items-center justify-center">
+                              <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-2" size={24} />
+                              <span className="text-xs font-bold text-brand-ink font-serif block mb-1">Change Featured Image</span>
+                              <span className="text-[9px] text-brand-muted block max-w-xs leading-normal">
+                                Drag and drop or click to browse files
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-2" size={24} />
+                            <span className="text-xs font-bold text-brand-mustard block mb-1 underline">Upload itinerary hero image</span>
+                            <span className="text-[9px] text-brand-muted block max-w-xs leading-normal">
+                              Recommended size: 1800 x 1000px. Used on cards and full itinerary page.
+                            </span>
+                          </>
+                        )}
+                        <input 
+                          id="file-input"
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={uploadingImage}
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={formData.heroImage}
+                        onChange={(e) => setFormData(prev => ({ ...prev, heroImage: e.target.value }))}
+                        className="mt-2 w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                        placeholder="Or paste direct image cover URL..."
+                      />
+                    </div>
+
+                    {/* Optional Title Overrides */}
+                    <details className="group border border-brand-border/60 rounded-2xl p-4 bg-brand-bg/5">
+                      <summary className="list-none flex items-center justify-between font-bold text-[10px] uppercase tracking-wider text-brand-muted cursor-pointer select-none">
+                        <span>Custom Text Overrides (Optional)</span>
+                        <ChevronDown size={14} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Pocket Guide Title</label>
+                            <input
+                              type="text"
+                              value={formData.details.pocketTitle || ""}
+                              onChange={(e) => updateDetailField("pocketTitle", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink"
+                              placeholder="e.g. PORTUGAL MINI GUIDE • POCKET VERSION"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Itinerary Title</label>
+                            <input
+                              type="text"
+                              value={formData.details.itineraryTitle || ""}
+                              onChange={(e) => updateDetailField("itineraryTitle", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink"
+                              placeholder="e.g. 7 DAYS IN PORTUGAL • FULL ITINERARY"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Blog Count/Duration Text</label>
+                            <input
+                              type="text"
+                              value={formData.details.blogCountText || ""}
+                              onChange={(e) => updateDetailField("blogCountText", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink"
+                              placeholder="e.g. 3 POSTS FROM PORTUGAL"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+
+                {/* CARD 2: DAY-BY-DAY ITINERARY */}
+                <div className="bg-white rounded-[32px] border border-brand-border p-8 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-brand-ink font-serif">Day-by-Day Itinerary</h2>
+                    <p className="text-brand-muted text-xs font-light mt-1">Describe, step-by-step, the itinerary activities, places to sleep, places to eat, and tips.</p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {formData.details.days?.map((day, idx) => (
+                      <div key={idx} className="bg-[#FAF8F5]/80 p-6 rounded-2xl border border-brand-border relative space-y-4 animate-in fade-in duration-300">
+                        {/* Header day count */}
+                        <div className="flex justify-between items-center border-b border-brand-border/60 pb-3">
+                          <span className="font-serif font-bold text-base text-brand-ink">
+                            Day {idx + 1}
+                          </span>
+                          {formData.details.days.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeDayItem(idx)}
+                              className="text-xs font-bold text-brand-coral hover:underline cursor-pointer"
+                            >
+                              Remove Day
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Grid row 1: City & Title */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">City</label>
+                            <input
+                              type="text"
+                              value={day.city || ""}
+                              onChange={(e) => updateDayField(idx, "city", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                              placeholder="e.g. Lisbon"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Title</label>
+                            <input
+                              type="text"
+                              value={day.title || ""}
+                              onChange={(e) => updateDayField(idx, "title", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                              placeholder="e.g. Arrival, Alfama, & Fado"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Grid row 2: Today in a sentence */}
+                        <div>
+                          <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Today in a Sentence</label>
+                          <input
+                            type="text"
+                            value={day.essence || ""}
+                            onChange={(e) => updateDayField(idx, "essence", e.target.value)}
+                            className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                            placeholder="e.g. Explore historic Alfama with its winding streets and a view from the castle."
+                          />
+                        </div>
+
+                        {/* Grid row 3: Color selection */}
+                        <div>
+                          <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Color Accent</label>
+                          <select
+                            value={day.color || "yellow"}
+                            onChange={(e) => updateDayField(idx, "color", e.target.value)}
+                            className="border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white cursor-pointer"
+                          >
+                            <option value="yellow">Yellow Accent</option>
+                            <option value="blue">Blue Accent</option>
+                            <option value="green">Green Accent</option>
+                            <option value="red">Red Accent</option>
+                          </select>
+                        </div>
+
+                        {/* Grid row 4: What to do */}
+                        <div>
+                          <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">What to Do</label>
+                          <textarea
+                            rows={3}
+                            value={day.whatToDo || ""}
+                            onChange={(e) => updateDayField(idx, "whatToDo", e.target.value)}
+                            className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                            placeholder="List the major sights & activities for today. Use markdown for lists."
+                          />
+                        </div>
+
+                        {/* Grid row 5: Where to stay & Sleep Details */}
+                        <div className="p-4 bg-white/60 rounded-xl border border-brand-border/40 space-y-3">
+                          <span className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider">Accommodation</span>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div className="md:col-span-2">
+                              <label className="block text-[8px] font-semibold text-brand-muted mb-1">Where to Sleep</label>
+                              <input
+                                type="text"
+                                value={day.stayName || ""}
+                                onChange={(e) => updateDayField(idx, "stayName", e.target.value)}
+                                className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                                placeholder="e.g. Stay in Chiado or Alfama"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[8px] font-semibold text-brand-muted mb-1">Hotel Tier</label>
+                              <select
+                                value={day.stayTier || "Mid-range"}
+                                onChange={(e) => updateDayField(idx, "stayTier", e.target.value)}
+                                className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white cursor-pointer"
+                              >
+                                <option value="Budget">Budget</option>
+                                <option value="Mid-range">Mid-range</option>
+                                <option value="Splurge">Splurge</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-[8px] font-semibold text-brand-muted mb-1">Hotel Description</label>
+                            <textarea
+                              rows={2}
+                              value={day.stayDesc || ""}
+                              onChange={(e) => updateDayField(idx, "stayDesc", e.target.value)}
+                              className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                              placeholder="Hotel description..."
+                            />
+                          </div>
+                        </div>
+
+                        {/* Grid row 6: Where to eat & Drink details */}
+                        <div className="p-4 bg-white/60 rounded-xl border border-brand-border/40 space-y-3">
+                          <span className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider">Culinary Recommendations</span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-[8px] font-semibold text-brand-muted mb-1">Where to Eat</label>
+                              <input
+                                type="text"
+                                value={day.eatDrinkName || ""}
+                                onChange={(e) => updateDayField(idx, "eatDrinkName", e.target.value)}
+                                className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                                placeholder="e.g. Ramiro, Time Out Market, or local tavernas"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[8px] font-semibold text-brand-muted mb-1">Dining Description</label>
+                              <textarea
+                                rows={2}
+                                value={day.eatDrinkDesc || ""}
+                                onChange={(e) => updateDayField(idx, "eatDrinkDesc", e.target.value)}
+                                className="w-full border border-brand-border rounded-lg p-2 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                                placeholder="Dining description..."
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Grid row 7: Transition parameters */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Next Destination (Transition To)</label>
+                            <input
+                              type="text"
+                              value={day.transitionTo || ""}
+                              onChange={(e) => updateDayField(idx, "transitionTo", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                              placeholder="e.g. Sintra"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Travel Time (Transition Time)</label>
+                            <input
+                              type="text"
+                              value={day.transitionTime || ""}
+                              onChange={(e) => updateDayField(idx, "transitionTime", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                              placeholder="e.g. 40 mins travel"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Grid row 8: Practical Tip */}
+                        <div>
+                          <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Tip</label>
+                          <textarea
+                            rows={2}
+                            value={day.tip || ""}
+                            onChange={(e) => updateDayField(idx, "tip", e.target.value)}
+                            className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                            placeholder="Add any practical tips for this day."
+                          />
+                        </div>
+
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={addDayItem}
+                      className="w-full py-4 border border-dashed border-brand-mustard/30 text-brand-mustard bg-[#FAF8F5] rounded-xl text-xs font-bold uppercase tracking-wider hover:border-brand-mustard hover:bg-[#FAF7EF] transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans"
+                    >
+                      <Plus size={14} className="stroke-[3]" /> Add Day
+                    </button>
+                  </div>
+                </div>
+
+
+
+                {/* CARD 4: PUBLISHING & SEO */}
+                <div className="bg-white rounded-[32px] border border-brand-border p-8 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-brand-ink font-serif">Publishing & SEO</h2>
+                    <p className="text-brand-muted text-xs font-light mt-1">Configure visibility settings and optimize search engine metadata.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Featured on Homepage */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Featured on Homepage</label>
+                        <select
+                          value={formData.details.featured || "no"}
+                          onChange={(e) => updateDetailField("featured", e.target.value)}
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink cursor-pointer"
+                        >
+                          <option value="no">No</option>
+                          <option value="yes">Yes</option>
+                        </select>
+                      </div>
+
+                      {/* URL Slug */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">URL Slug</label>
+                        <div className="relative flex items-center">
+                          <span className="absolute left-3 text-xs text-brand-muted font-mono select-none">/mini-guides/</span>
+                          <input
+                            type="text"
+                            required
+                            value={formData.slug}
+                            onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "").replace(/\s+/g, "-") }))}
+                            className="w-full border border-brand-border rounded-xl p-3 pl-28 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-mono"
+                            placeholder="e.g. 7-days-in-portugal-itinerary-guide"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* SEO Title */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">SEO Title</label>
+                      <input
+                        type="text"
+                        value={formData.details.seoTitle || ""}
+                        onChange={(e) => updateDetailField("seoTitle", e.target.value)}
+                        className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                        placeholder="e.g. Seven Days in Portugal — The Long Way Home"
+                      />
+                    </div>
+
+                    {/* Meta Description */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Meta Description</label>
+                      <textarea
+                        rows={3}
+                        value={formData.details.metaDescription || ""}
+                        onChange={(e) => updateDetailField("metaDescription", e.target.value)}
+                        className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all resize-none"
+                        placeholder="Write a short search description for this itinerary guide."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Mobile-Style Live Sticky Sidebar */}
+              <div className="lg:col-span-4 sticky top-8 space-y-6">
+                <div className="bg-white rounded-[32px] border border-brand-border overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.03)] bg-gradient-to-b from-white to-[#FAF8F5]">
+                  
+                  {/* Photo Container */}
+                  <div className="relative h-64 w-full bg-brand-bg overflow-hidden">
+                    <img 
+                      src={formData.heroImage || "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop"} 
+                      alt="Guide Cover Preview" 
+                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-6">
+                      <h3 className="text-2xl font-serif text-white font-bold leading-tight tracking-tight">
+                        {formData.title || "Seven Days in Portugal"}
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    {/* Badge & Meta info */}
+                    <div className="space-y-2">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FAF6EC] text-brand-mustard text-[10px] font-bold rounded-full uppercase tracking-wider border border-brand-mustard/15">
+                        ITINERARY GUIDE
+                      </span>
+                      <p className="text-xs text-brand-muted font-medium">
+                        {formData.destination || "Portugal"} / {formData.details.routeFlow || "Lisbon • Sintra • Porto • Douro Valley"}
+                      </p>
+                    </div>
+
+                    <p className="text-[11px] text-brand-muted italic flex items-start gap-1.5 leading-relaxed bg-[#fcfbf9] p-3 rounded-xl border border-brand-border/40">
+                      <Info size={14} className="text-brand-mustard flex-shrink-0 mt-0.5" />
+                      <span>Auto-saves details as you write. Only dynamic segments will show on live.</span>
+                    </p>
+
+                    {/* Horizontal Destination Pills */}
+                    {formData.details.days?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 py-1">
+                        {Array.from(new Set(formData.details.days.map(d => d.city).filter(Boolean))).map((city, i) => (
+                          <span key={i} className="text-[10px] font-semibold bg-[#F5F2EB] text-[#6E5D3C] px-2.5 py-1 rounded-full uppercase tracking-wide border border-brand-border/60">
+                            {city}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Aligned Key Value Dot grid */}
+                    <div className="pt-4 border-t border-brand-border space-y-3 font-sans text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="text-brand-muted">No. of Days</span>
+                        <span className="font-semibold text-brand-ink">{formData.details.days?.length || formData.details.noOfDays || "7"} days</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-brand-muted">Read Time</span>
+                        <span className="text-brand-ink">{formData.details.readTime || "10 min"}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-brand-muted">Travel Type</span>
+                        <span className="text-brand-ink">
+                          {Array.from(new Set(formData.details.travelSegments?.map(s => s.type).filter(Boolean))).join(" / ") || "Train / Car"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-brand-muted">Status</span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-brand-ink capitalize">
+                          <span className={`w-2 h-2 rounded-full ${formData.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
+                          {formData.status || "Draft"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action buttons mirroring live page preview links */}
+                    <div className="pt-2 space-y-2.5">
+                      <button 
+                        type="submit"
+                        disabled={saving}
+                        className="w-full py-3 bg-brand-mustard text-white text-[10px] font-bold tracking-widest uppercase rounded-full hover:bg-brand-ink transition-all duration-300 shadow-sm cursor-pointer border-0 flex items-center justify-center gap-2"
+                      >
+                        {saving && <Loader2 className="animate-spin" size={12} />}
+                        Preview Itinerary
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setIsFormOpen(false)}
+                        className="w-full py-3 border border-brand-border bg-white text-brand-ink text-[10px] font-bold tracking-widest uppercase rounded-full hover:bg-brand-bg transition-all duration-200 cursor-pointer flex items-center justify-center"
+                      >
+                        Back to Itinerary Guides
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </form>
+
         </div>
       )}
     </div>
