@@ -18,6 +18,7 @@ const defaultDetails = {
   idealDuration: "4-5 Days",
   budgetLevel: "Mid-range",
   featuredInDestination: "Yes",
+  featured: "no",
   seoTitle: "",
   metaDescription: "",
   sights: [{ num: "01", text: "" }],
@@ -63,6 +64,7 @@ const mergeWithDefaults = (details) => {
     idealDuration: d.idealDuration || "4-5 Days",
     budgetLevel: d.budgetLevel || "Mid-range",
     featuredInDestination: d.featuredInDestination || "Yes",
+    featured: d.featured || "no",
     seoTitle: d.seoTitle || "",
     metaDescription: d.metaDescription || "",
     sights: d.sights && d.sights.length > 0 ? d.sights : [{ num: "01", text: "" }],
@@ -168,6 +170,7 @@ export default function PocketGuidesCMS() {
         idealDuration: guide.details?.idealDuration || "4-5 Days",
         budgetLevel: guide.details?.budgetLevel || "Mid-range",
         featuredInDestination: guide.details?.featuredInDestination || "Yes",
+        featured: guide.details?.featured || "no",
         seoTitle: guide.details?.seoTitle || "",
         metaDescription: guide.details?.metaDescription || ""
       }
@@ -961,7 +964,7 @@ export default function PocketGuidesCMS() {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Status</label>
                         <div className="relative">
@@ -987,6 +990,21 @@ export default function PocketGuidesCMS() {
                           >
                             <option value="No">No</option>
                             <option value="Yes">Yes</option>
+                          </select>
+                          <ChevronDown size={14} className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Feature on Homepage</label>
+                        <div className="relative">
+                          <select
+                            value={formData.details?.featured || "no"}
+                            onChange={(e) => updateDetailField("featured", e.target.value)}
+                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink appearance-none transition-all cursor-pointer font-sans pr-10"
+                          >
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
                           </select>
                           <ChevronDown size={14} className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted pointer-events-none" />
                         </div>

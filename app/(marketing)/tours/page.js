@@ -41,7 +41,7 @@ export default async function ToursPage() {
           </div>
           <h1 className="text-5xl md:text-6xl font-serif text-charcoal-900 mb-6">Tours & activities</h1>
           <p className="text-charcoal-900/90 text-lg font-light max-w-2xl mb-2 leading-relaxed">
-            Every guided experience I've actually done and would recommend — sorted by country so you can skip straight to the one you're planning. No accommodation here, just things to do. ✨
+            Every guided experience I&apos;ve actually done and would recommend — sorted by country so you can skip straight to the one you&apos;re planning. No accommodation here, just things to do. ✨
           </p>
           <p className="text-charcoal-900/50 text-[11px]">
             To read more long-form — check out the Blog or Destinations page.
@@ -96,7 +96,7 @@ export default async function ToursPage() {
 
                     <div className="flex justify-between items-end mt-auto">
                       <span className="text-[11px] text-charcoal-900/60 font-light">
-                        {tour.details}
+                        {tour.duration}
                       </span>
                       <Link href={`/tours/${tour.slug || tour.id}`} className="text-coral-500 text-[11px] font-bold uppercase tracking-widest hover:text-coral-600 transition-colors">
                         Book it &rarr;

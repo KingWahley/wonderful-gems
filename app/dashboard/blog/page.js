@@ -636,7 +636,7 @@ export default function BlogCMS() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Read Time</label>
                         <input
@@ -658,6 +658,21 @@ export default function BlogCMS() {
                           <option value="Draft">Draft</option>
                           <option value="Published">Published</option>
                         </select>
+                      </div>
+
+                      <div className="flex flex-col justify-end">
+                        <label className="flex items-center gap-3 p-3.5 border border-brand-border rounded-xl hover:bg-brand-bg/25 transition-all cursor-pointer bg-white">
+                          <input
+                            type="checkbox"
+                            checked={formData.isFresh}
+                            onChange={(e) => setFormData(prev => ({ ...prev, isFresh: e.target.checked }))}
+                            className="w-4 h-4 rounded border-brand-border text-brand-mustard focus:ring-brand-mustard focus:ring-offset-0 focus:ring-0 cursor-pointer accent-brand-mustard"
+                          />
+                          <div className="text-left">
+                            <span className="block text-xs font-bold text-brand-ink leading-none">Feature on Homepage</span>
+                            <span className="block text-[9px] text-brand-muted mt-1 leading-none">Show in popular posts</span>
+                          </div>
+                        </label>
                       </div>
                     </div>
 
