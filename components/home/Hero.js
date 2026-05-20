@@ -1,7 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function Hero() {
+export default function Hero({ settings }) {
+  const badge = settings?.badge || "A TRAVEL JOURNAL";
+  const title = settings?.title || "The Long Way";
+  const subtitle1 = settings?.subtitle1 || "Bringing you slow, considered travel guides and itineraries to help you plan your next holiday — long essays from places worth going slowly.";
+  const subtitle2 = settings?.subtitle2 || "Based in Lisbon, you can expect stories from across Europe and a few corners further afield.";
+  const coverImage = settings?.coverImage || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2000&auto=format&fit=crop";
+
   return (
     <div className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 bg-mustard-500 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
@@ -10,21 +16,20 @@ export default function Hero() {
           {/* Left Content */}
           <div className="flex flex-col items-start z-10 max-w-xl">
             <span className="text-white uppercase tracking-[0.15em] text-[11px] font-bold mb-5 animate-fade-in-up">
-              A TRAVEL JOURNAL
+              {badge}
             </span>
             <h1 className="text-6xl md:text-7xl lg:text-[85px] font-serif text-white mb-8 leading-[1.1] tracking-tight animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
-              The Long Way
+              {title}
             </h1>
             <div className="space-y-6 text-[15px] md:text-base text-white/95 font-light leading-relaxed animate-fade-in-up" style={{ animationDelay: "0.2s" }}>
               <p>
-                Bringing you slow, considered travel guides and itineraries to 
-                help you plan your next holiday — long essays from places 
-                worth going slowly.
+                {subtitle1}
               </p>
-              <p>
-                Based in Lisbon, you can expect stories from across Europe 
-                and a few corners further afield.
-              </p>
+              {subtitle2 && (
+                <p>
+                  {subtitle2}
+                </p>
+              )}
             </div>
             
             <div className="flex flex-wrap items-center gap-6 mt-10 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
@@ -40,7 +45,7 @@ export default function Hero() {
           {/* Right Image */}
           <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[540px] rounded-[32px] overflow-hidden shadow-2xl animate-fade-in-up mt-10 lg:mt-0" style={{ animationDelay: "0.4s" }}>
             <Image
-              src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2000&auto=format&fit=crop"
+              src={coverImage}
               alt="Person standing on a cliff at sunset"
               fill
               className="object-cover"

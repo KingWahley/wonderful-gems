@@ -999,3 +999,24 @@ VALUES (
 )
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name, text = EXCLUDED.text, destination = EXCLUDED.destination, destination_id = EXCLUDED.destination_id, image = EXCLUDED.image;
+
+-- Create Site Settings Table
+CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+
+-- Create Permissive Policies for Public select, insert, update, and delete
+CREATE POLICY "Allow public select on site_settings" ON site_settings FOR SELECT USING (TRUE);
+CREATE POLICY "Allow public insert on site_settings" ON site_settings FOR INSERT WITH CHECK (TRUE);
+CREATE POLICY "Allow public update on site_settings" ON site_settings FOR UPDATE USING (TRUE);
+CREATE POLICY "Allow public delete on site_settings" ON site_settings FOR DELETE USING (TRUE);
+
+-- Grant privileges to standard roles
+GRANT ALL PRIVILEGES ON TABLE site_settings TO postgres, anon, authenticated, service_role;
+

@@ -4,7 +4,7 @@ import FeaturedDestinations from "@/components/home/FeaturedDestinations";
 import FreshOffTheRoad from "@/components/home/FreshOffTheRoad";
 import WhyTravelWithMe from "@/components/home/WhyTravelWithMe";
 import Testimonials from "@/components/home/Testimonials";
-import { fetchDestinations, fetchBlogs, fetchMiniGuides } from "@/lib/db";
+import { fetchDestinations, fetchBlogs, fetchMiniGuides, fetchSettings } from "@/lib/db";
 
 export const revalidate = 0;
 
@@ -12,16 +12,28 @@ export default async function Home() {
   let destinations = [];
   let blogs = [];
   let miniGuides = [];
+  let homeHero = null;
+  let homeCta = null;
 
   try {
-    const [fetchedDestinations, fetchedBlogs, fetchedMiniGuides] = await Promise.all([
+    const [
+      fetchedDestinations,
+      fetchedBlogs,
+      fetchedMiniGuides,
+      fetchedHero,
+      fetchedCta
+    ] = await Promise.all([
       fetchDestinations(),
       fetchBlogs(),
       fetchMiniGuides(),
+      fetchSettings("home_hero"),
+      fetchSettings("home_cta"),
     ]);
     destinations = fetchedDestinations || [];
     blogs = fetchedBlogs || [];
     miniGuides = fetchedMiniGuides || [];
+    homeHero = fetchedHero;
+    homeCta = fetchedCta;
   } catch (error) {
     console.error("Error fetching homepage data from Supabase:", error);
   }
@@ -31,11 +43,11 @@ export default async function Home() {
 
   return (
     <>
-      <Hero />
+      <Hero settings={homeHero} />
       <FeaturedBlogs blogs={popularBlogs} />
       <FeaturedDestinations destinations={destinations} />
       <FreshOffTheRoad miniGuides={miniGuides} />
-      <WhyTravelWithMe />
+      <WhyTravelWithMe settings={homeCta} />
       <Testimonials miniGuides={miniGuides} />
     </>
   );
