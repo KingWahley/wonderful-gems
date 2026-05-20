@@ -61,13 +61,28 @@ export default function MediaLibraryPage() {
     }
   };
 
-  const handleDelete = async (fileName) => {
-    if (!confirm(`Are you sure you want to delete ${fileName}? This may break pages where it is used.`)) return;
+  const handleDelete = async (asset) => {
+    let message = `Are you sure you want to delete ${asset.name}?`;
+    if (asset.usage === "ASSIGNED") {
+      message += `\n\n⚠️ IMPORTANT: This image is currently referenced in:`;
+      if (asset.usageDetails && asset.usageDetails.length > 0) {
+        asset.usageDetails.forEach(detail => {
+          message += `\n- ${detail}`;
+        });
+      } else {
+        message += `\n- Unknown page/content`;
+      }
+      message += `\n\nDeleting it will remove it from these areas. Do you want to proceed?`;
+    } else {
+      message += ` This action cannot be undone.`;
+    }
+
+    if (!confirm(message)) return;
     
     try {
-      setDeletingId(fileName);
-      await deleteMediaAsset(fileName);
-      setMediaAssets(prev => prev.filter(m => m.name !== fileName));
+      setDeletingId(asset.id);
+      await deleteMediaAsset(asset.name, asset.url);
+      setMediaAssets(prev => prev.filter(m => m.id !== asset.id));
       showToast("success", "Image deleted successfully.");
     } catch (error) {
       console.error("Delete failed:", error);
@@ -262,12 +277,12 @@ export default function MediaLibraryPage() {
                         {copiedUrl === asset.url ? <Check size={16} /> : <Copy size={16} />}
                       </button>
                       <button
-                        onClick={() => handleDelete(asset.name)}
-                        disabled={deletingId === asset.name}
+                        onClick={() => handleDelete(asset)}
+                        disabled={deletingId === asset.id}
                         className="w-9 h-9 bg-white text-brand-ink rounded-full flex items-center justify-center hover:bg-brand-coral hover:text-white transition-colors cursor-pointer shadow-lg disabled:opacity-50"
                         title="Delete"
                       >
-                        {deletingId === asset.name ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                        {deletingId === asset.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                       </button>
                     </div>
                   </div>
