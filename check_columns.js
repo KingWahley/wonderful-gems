@@ -20,18 +20,27 @@ const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUP
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-async function run() {
+async function checkTable(tableName) {
   try {
-    const { data, error } = await supabase.from('tours').select('*').limit(1);
+    const { data, error } = await supabase.from(tableName).select('*').limit(1);
     if (error) {
-      console.error(error);
+      console.error(`Error querying ${tableName}:`, error.message);
     } else {
-      console.log('Columns in tours:', Object.keys(data[0] || {}));
-      console.log('Full first row in tours:', data[0]);
+      console.log(`Columns in ${tableName}:`, Object.keys(data[0] || {}));
+      console.log(`Sample row in ${tableName}:`, data[0]);
     }
   } catch (err) {
-    console.error(err);
+    console.error(`Exception querying ${tableName}:`, err);
   }
 }
 
+async function run() {
+  await checkTable('blog_posts');
+  await checkTable('mini_guides');
+  await checkTable('tours');
+  await checkTable('packages');
+  await checkTable('destinations');
+}
+
 run();
+

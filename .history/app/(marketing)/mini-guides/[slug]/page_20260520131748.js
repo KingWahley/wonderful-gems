@@ -445,7 +445,7 @@ export default async function MiniGuideDetails({ params }) {
                   ACCOMMODATION
                 </span>
                 <h2 className="font-serif text-[38px] md:text-[46px] font-bold text-charcoal-900 mb-4 tracking-tight leading-tight">
-                  Where to stay in {guide.title.split(" ")[0]}
+                  Where to stay in []
                 </h2>
                 <p className="text-charcoal-500/80 text-sm md:text-base leading-relaxed mb-10 max-w-xl font-normal font-sans">
                 Picks across three price tiers. All hand-chosen — none of these are generic chains.

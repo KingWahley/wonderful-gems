@@ -246,35 +246,32 @@ export default async function BlogPost({ params }) {
                   );
                 }
                 
-                // Show callouts occasionally
-                const showCallout = idx === 2;
-                
                 return (
                   <div key={idx}>
                     {idx === 0 ? renderParagraphWithDropcap(para, idx) : <p className="mb-8 text-[16px] md:text-[18px] leading-relaxed text-[#161616] font-sans font-normal">{para}</p>}
-                    
-                    {showCallout && companionGuide && (
-                      <div className="border border-charcoal-900/10 bg-[#FDFBF7] rounded-[20px] p-8 mb-12 mt-12 shadow-xs transition-all hover:border-[#c7962d]/30 hover:shadow-sm duration-300">
-                        <span className="text-[10px] font-bold tracking-widest text-[#c7962d] uppercase block mb-2">⚡ COMPANION GUIDE ATTACHED</span>
-                        <h4 className="font-serif text-2xl font-bold text-[#161616] mb-2">
-                          Ready to explore {resolvedCity}?
-                        </h4>
-                        <p className="text-sm md:text-base text-[#6f6b63] leading-relaxed mb-6 font-sans">
-                          Get immediate access to curated hotel recommendations, offline neighborhood maps, walking route itineraries, and booking advice.
-                        </p>
-                        <Link 
-                          href={`/mini-guides/${companionGuide.slug}`}
-                          className="inline-flex items-center gap-2 bg-[#c7962d] text-charcoal-900 hover:bg-[#c7962d]/90 font-bold text-xs uppercase px-6 py-3 rounded-full transition-colors tracking-widest shadow-xs"
-                        >
-                          {miniGuideCta.toUpperCase()} <span className="text-sm">→</span>
-                        </Link>
-                      </div>
-                    )}
                   </div>
                 );
               })
             ) : (
               <p className="text-[#6f6b63] font-medium">No content provided for this blog post.</p>
+            )}
+
+            {companionGuide && (
+              <div className="border border-charcoal-900/10 bg-[#FDFBF7] rounded-[20px] p-8 mb-12 mt-12 shadow-xs transition-all hover:border-[#c7962d]/30 hover:shadow-sm duration-300">
+                <span className="text-[10px] font-bold tracking-widest text-[#c7962d] uppercase block mb-2">⚡ COMPANION GUIDE ATTACHED</span>
+                <h4 className="font-serif text-2xl font-bold text-[#161616] mb-2">
+                  Ready to explore {resolvedCity}?
+                </h4>
+                <p className="text-sm md:text-base text-[#6f6b63] leading-relaxed mb-6 font-sans">
+                  Get immediate access to curated hotel recommendations, offline neighborhood maps, walking route itineraries, and booking advice.
+                </p>
+                <Link 
+                  href={`/mini-guides/${companionGuide.slug}`}
+                  className="inline-flex items-center gap-2 bg-[#c7962d] text-charcoal-900 hover:bg-[#c7962d]/90 font-bold text-xs uppercase px-6 py-3 rounded-full transition-colors tracking-widest shadow-xs"
+                >
+                  {miniGuideCta.toUpperCase()} <span className="text-sm">→</span>
+                </Link>
+              </div>
             )}
 
             {/* Bottom Social Icons */}
