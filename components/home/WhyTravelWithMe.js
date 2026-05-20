@@ -1,10 +1,9 @@
 import Link from "next/link";
 
 export default function PlanYourTripCTA({ settings }) {
-  const badge = settings?.badge || "A LITTLE EXTRA";
-  const title = settings?.title || "Want me to plan your trip?";
-  const description = settings?.description || "Custom itineraries, 1:1 consults, and full concierge bookings — from the writer behind these essays.";
-  const buttonText = settings?.buttonText || "See packages";
+  if (!settings) return null;
+
+  const { badge, title, description, buttonText } = settings;
 
   return (
     <section className="py-20 lg:py-24 bg-cream-100">
@@ -19,20 +18,26 @@ export default function PlanYourTripCTA({ settings }) {
           </div>
 
           <div className="text-left max-w-2xl relative z-10 pt-8 lg:pt-0">
-            <span className="text-white/90 uppercase tracking-[0.15em] text-[11px] font-bold mb-4 block">
-              {badge}
-            </span>
-            <h2 className="text-4xl md:text-[52px] font-serif font-bold text-white mb-4 leading-tight">
-              {title}
-            </h2>
-            <p className="text-white/95 text-[15px] md:text-base font-medium whitespace-pre-line">
-              {description}
-            </p>
+            {badge && (
+              <span className="text-white/90 uppercase tracking-[0.15em] text-[11px] font-bold mb-4 block">
+                {badge}
+              </span>
+            )}
+            {title && (
+              <h2 className="text-4xl md:text-[52px] font-serif font-bold text-white mb-4 leading-tight">
+                {title}
+              </h2>
+            )}
+            {description && (
+              <p className="text-white/95 text-[15px] md:text-base font-medium whitespace-pre-line">
+                {description}
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 shrink-0 relative z-10 mt-2 lg:mt-0 lg:pt-16">
             <Link href="/plan-with-me" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-white text-charcoal-900 font-bold text-[14px] hover:bg-gray-50 transition-colors animate-all duration-200">
-              {buttonText} <span className="ml-2 font-serif text-lg leading-none font-normal">&rarr;</span>
+              {buttonText || "See packages"} <span className="ml-2 font-serif text-lg leading-none font-normal">&rarr;</span>
             </Link>
             <Link href="/plan-with-me#inquiry" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-transparent border border-white text-white font-bold text-[14px] hover:bg-white/10 transition-colors">
               Send an inquiry

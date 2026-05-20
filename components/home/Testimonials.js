@@ -5,6 +5,8 @@ export default function MiniTravelGuides({ miniGuides = [] }) {
   // Filter to show ONLY pocket guides (type === 'pocket') and slice to exactly 3
   const pocketGuides = miniGuides.filter((guide) => guide.type === "pocket").slice(0, 3);
 
+  if (pocketGuides.length === 0) return null;
+
   return (
     <section className="py-20 lg:py-28 bg-cream-100">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">

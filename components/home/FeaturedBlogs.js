@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function FeaturedBlogs({ blogs = [] }) {
+  if (!blogs || blogs.length === 0) return null;
   // Helper to format category/date exactly like mockup (e.g. CULTURE • KYOTO • APR 2025 -> KYOTO • APRIL 2025)
   const formatCategory = (category, fallback) => {
     if (!category) return fallback || "";

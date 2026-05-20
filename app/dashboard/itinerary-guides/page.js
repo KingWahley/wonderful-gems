@@ -42,7 +42,21 @@ const defaultDetails = {
   featured: "no",
   seoTitle: "",
   metaDescription: "",
-  days: [defaultDay("01")]
+  days: [defaultDay("01")],
+  sights: [{ num: "01", text: "" }],
+  stay: {
+    budget: [{ name: "", desc: "" }],
+    mid: [{ name: "", desc: "" }],
+    splurge: [{ name: "", desc: "" }]
+  },
+  activities: [{ num: "01", text: "" }],
+  eat: [{ name: "", desc: "" }],
+  restaurants: {
+    budget: [{ name: "", desc: "" }],
+    mid: [{ name: "", desc: "" }],
+    splurge: [{ name: "", desc: "" }]
+  },
+  dayTrips: [{ num: "01", name: "" }]
 };
 
 const mergeWithDefaults = (details) => {
@@ -80,7 +94,21 @@ const mergeWithDefaults = (details) => {
           transitionTime: day.transitionTime || "",
           tip: day.tip || ""
         }))
-      : [defaultDay("01")]
+      : [defaultDay("01")],
+    sights: d.sights && d.sights.length > 0 ? d.sights : [{ num: "01", text: "" }],
+    stay: {
+      budget: d.stay?.budget && d.stay.budget.length > 0 ? d.stay.budget : [{ name: "", desc: "" }],
+      mid: d.stay?.mid && d.stay.mid.length > 0 ? d.stay.mid : [{ name: "", desc: "" }],
+      splurge: d.stay?.splurge && d.stay.splurge.length > 0 ? d.stay.splurge : [{ name: "", desc: "" }],
+    },
+    activities: d.activities && d.activities.length > 0 ? d.activities : [{ num: "01", text: "" }],
+    eat: d.eat && d.eat.length > 0 ? d.eat : [{ name: "", desc: "" }],
+    restaurants: {
+      budget: d.restaurants?.budget && d.restaurants.budget.length > 0 ? d.restaurants.budget : [{ name: "", desc: "" }],
+      mid: d.restaurants?.mid && d.restaurants.mid.length > 0 ? d.restaurants.mid : [{ name: "", desc: "" }],
+      splurge: d.restaurants?.splurge && d.restaurants.splurge.length > 0 ? d.restaurants.splurge : [{ name: "", desc: "" }],
+    },
+    dayTrips: d.dayTrips && d.dayTrips.length > 0 ? d.dayTrips : [{ num: "01", name: "" }]
   };
 };
 
@@ -293,7 +321,181 @@ export default function ItineraryGuidesCMS() {
     });
   };
 
+  const updateStayField = (tier, idx, field, val) => {
+    setFormData(prev => {
+      const stay = { ...prev.details.stay };
+      const list = [...(stay[tier] || [])];
+      list[idx] = { ...list[idx], [field]: val };
+      stay[tier] = list;
+      return {
+        ...prev,
+        details: { ...prev.details, stay }
+      };
+    });
+  };
 
+  const addStayItem = (tier) => {
+    setFormData(prev => {
+      const stay = { ...prev.details.stay };
+      stay[tier] = [...(stay[tier] || []), { name: "", desc: "" }];
+      return {
+        ...prev,
+        details: { ...prev.details, stay }
+      };
+    });
+  };
+
+  const removeStayItem = (tier, idx) => {
+    setFormData(prev => {
+      const stay = { ...prev.details.stay };
+      stay[tier] = (stay[tier] || []).filter((_, i) => i !== idx);
+      return {
+        ...prev,
+        details: { ...prev.details, stay }
+      };
+    });
+  };
+
+  const updateRestaurantField = (tier, idx, field, val) => {
+    setFormData(prev => {
+      const restaurants = { ...prev.details.restaurants };
+      const list = [...(restaurants[tier] || [])];
+      list[idx] = { ...list[idx], [field]: val };
+      restaurants[tier] = list;
+      return {
+        ...prev,
+        details: { ...prev.details, restaurants }
+      };
+    });
+  };
+
+  const addRestaurantItem = (tier) => {
+    setFormData(prev => {
+      const restaurants = { ...prev.details.restaurants };
+      restaurants[tier] = [...(restaurants[tier] || []), { name: "", desc: "" }];
+      return {
+        ...prev,
+        details: { ...prev.details, restaurants }
+      };
+    });
+  };
+
+  const removeRestaurantItem = (tier, idx) => {
+    setFormData(prev => {
+      const restaurants = { ...prev.details.restaurants };
+      restaurants[tier] = (restaurants[tier] || []).filter((_, i) => i !== idx);
+      return {
+        ...prev,
+        details: { ...prev.details, restaurants }
+      };
+    });
+  };
+
+  const updateListField = (field, idx, key, val) => {
+    setFormData(prev => {
+      const list = [...(prev.details[field] || [])];
+      list[idx] = { ...list[idx], [key]: val };
+      return {
+        ...prev,
+        details: { ...prev.details, [field]: list }
+      };
+    });
+  };
+
+  const addListItem = (field, defaultObj) => {
+    setFormData(prev => {
+      const list = [...(prev.details[field] || [])];
+      const num = String(list.length + 1).padStart(2, "0");
+      list.push(defaultObj.num !== undefined ? { ...defaultObj, num } : defaultObj);
+      return {
+        ...prev,
+        details: { ...prev.details, [field]: list }
+      };
+    });
+  };
+
+  const removeListItem = (field, idx) => {
+    setFormData(prev => {
+      const list = (prev.details[field] || []).filter((_, i) => i !== idx).map((item, i) => {
+        if (item.num !== undefined) {
+          return { ...item, num: String(i + 1).padStart(2, "0") };
+        }
+        return item;
+      });
+      return {
+        ...prev,
+        details: { ...prev.details, [field]: list }
+      };
+    });
+  };
+
+  // Stay Unified Item List Computed
+  const stayItems = [];
+  ["budget", "mid", "splurge"].forEach(tier => {
+    (formData.details.stay?.[tier] || []).forEach((hotel, idx) => {
+      stayItems.push({ tier, idx, name: hotel.name, desc: hotel.desc });
+    });
+  });
+
+  const handleStayItemChange = (tier, idx, field, value) => {
+    updateStayField(tier, idx, field, value);
+  };
+
+  const handleStayTierChange = (oldTier, idx, newTier) => {
+    setFormData(prev => {
+      const stay = { ...prev.details.stay };
+      const oldList = [...(stay[oldTier] || [])];
+      const [removed] = oldList.splice(idx, 1);
+      stay[oldTier] = oldList;
+      stay[newTier] = [...(stay[newTier] || []), removed || { name: "", desc: "" }];
+      return {
+        ...prev,
+        details: { ...prev.details, stay }
+      };
+    });
+  };
+
+  const handleStayDelete = (tier, idx) => {
+    removeStayItem(tier, idx);
+  };
+
+  const handleStayAdd = () => {
+    addStayItem("mid"); // Default to mid-range
+  };
+
+  // Restaurant Unified Item List Computed
+  const restaurantItems = [];
+  ["budget", "mid", "splurge"].forEach(tier => {
+    (formData.details.restaurants?.[tier] || []).forEach((rest, idx) => {
+      restaurantItems.push({ tier, idx, name: rest.name, desc: rest.desc });
+    });
+  });
+
+  const handleRestaurantItemChange = (tier, idx, field, value) => {
+    updateRestaurantField(tier, idx, field, value);
+  };
+
+  const handleRestaurantTierChange = (oldTier, idx, newTier) => {
+    setFormData(prev => {
+      const restaurants = { ...prev.details.restaurants };
+      const oldList = [...(restaurants[oldTier] || [])];
+      const [removed] = oldList.splice(idx, 1);
+      restaurants[oldTier] = oldList;
+      restaurants[newTier] = [...(restaurants[newTier] || []), removed || { name: "", desc: "" }];
+      return {
+        ...prev,
+        details: { ...prev.details, restaurants }
+      };
+    });
+  };
+
+  const handleRestaurantDelete = (tier, idx) => {
+    removeRestaurantItem(tier, idx);
+  };
+
+  const handleRestaurantAdd = () => {
+    addRestaurantItem("mid"); // Default to mid-range
+  };
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
@@ -323,7 +525,7 @@ export default function ItineraryGuidesCMS() {
           pocketTitle: formData.details.pocketTitle || `${computedCountry.toUpperCase()} MINI GUIDE • POCKET VERSION`,
           itineraryTitle: formData.details.itineraryTitle || `${computedDays} DAYS IN ${computedCountry.toUpperCase()} • FULL ITINERARY`,
           blogCountText: formData.details.blogCountText || `3 POSTS FROM ${computedCountry.toUpperCase()}`,
-          introText: formData.excerpt || "",
+          introText: formData.details.introText || "",
           routeTitle: formData.details.routeTitle || `${computedDays}-day route`,
           routeFlow: formData.details.routeFlow || formData.details.days?.map(d => d.city).filter(Boolean).join(", ") || ""
         }
@@ -731,6 +933,18 @@ export default function ItineraryGuidesCMS() {
                       />
                     </div>
 
+                    {/* Intro Text */}
+                    <div>
+                      <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Intro Text (Overview Paragraph)</label>
+                      <textarea
+                        rows={3}
+                        value={formData.details.introText || ""}
+                        onChange={(e) => updateDetailField("introText", e.target.value)}
+                        className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                        placeholder="Write the introduction/overview paragraph displayed in the hero section."
+                      />
+                    </div>
+
                     {/* Route Description / HTML overview */}
                     <div>
                       <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Route Description</label>
@@ -806,7 +1020,7 @@ export default function ItineraryGuidesCMS() {
                         <ChevronDown size={14} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
                       </summary>
                       <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Pocket Guide Title</label>
                             <input
@@ -835,6 +1049,16 @@ export default function ItineraryGuidesCMS() {
                               onChange={(e) => updateDetailField("blogCountText", e.target.value)}
                               className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink"
                               placeholder="e.g. 3 POSTS FROM PORTUGAL"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">Route Title Override</label>
+                            <input
+                              type="text"
+                              value={formData.details.routeTitle || ""}
+                              onChange={(e) => updateDetailField("routeTitle", e.target.value)}
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink"
+                              placeholder="e.g. 7-day route"
                             />
                           </div>
                         </div>
@@ -1044,6 +1268,407 @@ export default function ItineraryGuidesCMS() {
                     >
                       <Plus size={14} className="stroke-[3]" /> Add Day
                     </button>
+                  </div>
+                </div>
+
+                {/* CARD 3: OPTIONAL ITINERARY CONTENT BLOCKS */}
+                <div className="bg-white rounded-[32px] border border-brand-border p-8 shadow-[0_4px_25px_rgba(0,0,0,0.02)] space-y-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-brand-ink font-serif">Optional Itinerary Content Blocks</h2>
+                    <p className="text-brand-muted text-xs font-light mt-1">Provide extra details to help travelers get the best out of their trip.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Subsection 1: Must-See Sights */}
+                    <details className="group border border-brand-border/60 rounded-2xl p-5 bg-[#FAF8F5]/30">
+                      <summary className="list-none flex items-center justify-between font-bold text-xs uppercase tracking-wider text-brand-ink cursor-pointer select-none">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-brand-mustard"></span>
+                          <span>Must-See Sights</span>
+                        </div>
+                        <ChevronDown size={16} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
+                        <p className="text-[11px] text-brand-muted font-light">List essential landmarks and sights.</p>
+                        
+                        <div className="space-y-3">
+                          {(formData.details.sights || []).map((sight, idx) => (
+                            <div key={idx} className="flex gap-3 items-start bg-[#FCFBF9] p-3 rounded-xl border border-brand-border animate-in fade-in duration-200">
+                              <span className="bg-white text-brand-mustard font-mono text-xs px-2.5 py-1.5 rounded-lg font-bold border border-brand-border shadow-2xs self-center">
+                                {sight.num || String(idx + 1).padStart(2, "0")}
+                              </span>
+                              <input
+                                type="text"
+                                value={sight.text || ""}
+                                onChange={(e) => updateListField("sights", idx, "text", e.target.value)}
+                                className="flex-1 border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans"
+                                placeholder="e.g. Fushimi Inari shrine path gates..."
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeListItem("sights", idx)}
+                                className="p-1.5 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all cursor-pointer self-center"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+
+                          {(formData.details.sights || []).length === 0 && (
+                            <div className="text-center py-6 border border-dashed border-brand-border rounded-2xl bg-brand-bg/5 text-xs text-brand-muted">
+                              No sights added yet. Click "+ Add Top Sight" to add one.
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => addListItem("sights", { num: "", text: "" })}
+                          className="w-full py-3 border border-dashed border-brand-mustard/30 text-brand-mustard rounded-xl text-xs font-bold uppercase tracking-wider hover:border-brand-mustard hover:bg-[#FAF7EF] transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans bg-white"
+                        >
+                          <Plus size={14} className="stroke-[3]" /> Add Top Sight
+                        </button>
+                      </div>
+                    </details>
+
+                    {/* Subsection 2: Stay & Boutique Hotels */}
+                    <details className="group border border-brand-border/60 rounded-2xl p-5 bg-[#FAF8F5]/30">
+                      <summary className="list-none flex items-center justify-between font-bold text-xs uppercase tracking-wider text-brand-ink cursor-pointer select-none">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-brand-mustard"></span>
+                          <span>Stay & Boutique Hotels</span>
+                        </div>
+                        <ChevronDown size={16} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
+                        <p className="text-[11px] text-brand-muted font-light">List hotels for different budget tiers.</p>
+                        
+                        <div className="space-y-3">
+                          {stayItems.length > 0 && (
+                            <div className="grid grid-cols-12 gap-3 px-2 text-[9px] font-bold uppercase tracking-wider text-brand-muted">
+                              <div className="col-span-3">Hotel Star / Tier</div>
+                              <div className="col-span-4">Accommodation Name</div>
+                              <div className="col-span-4">Hotel Description</div>
+                              <div className="col-span-1"></div>
+                            </div>
+                          )}
+
+                          {stayItems.map((item, index) => (
+                            <div key={`${item.tier}-${item.idx}`} className="grid grid-cols-12 gap-3 items-start bg-[#FCFBF9] p-3 rounded-xl border border-brand-border/80 animate-in fade-in duration-200">
+                              <div className="col-span-3">
+                                <select
+                                  value={item.tier}
+                                  onChange={(e) => handleStayTierChange(item.tier, item.idx, e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink cursor-pointer font-sans"
+                                >
+                                  <option value="budget">Budget</option>
+                                  <option value="mid">Mid-range</option>
+                                  <option value="splurge">Splurge</option>
+                                </select>
+                              </div>
+                              <div className="col-span-4">
+                                <input
+                                  type="text"
+                                  value={item.name || ""}
+                                  onChange={(e) => handleStayItemChange(item.tier, item.idx, "name", e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans font-medium"
+                                  placeholder="Accommodation Name"
+                                />
+                              </div>
+                              <div className="col-span-4">
+                                <textarea
+                                  rows={1}
+                                  value={item.desc || ""}
+                                  onChange={(e) => handleStayItemChange(item.tier, item.idx, "desc", e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans resize-y"
+                                  placeholder="Hotel Description"
+                                />
+                              </div>
+                              <div className="col-span-1 flex justify-center pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStayDelete(item.tier, item.idx)}
+                                  className="p-1.5 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all cursor-pointer"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {stayItems.length === 0 && (
+                            <div className="text-center py-6 border border-dashed border-brand-border rounded-2xl bg-brand-bg/5 text-xs text-brand-muted">
+                              No hotels added yet. Click "+ Add Recommendations" to add one.
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleStayAdd}
+                          className="w-full py-3 border border-dashed border-brand-mustard/30 text-brand-mustard rounded-xl text-xs font-bold uppercase tracking-wider hover:border-brand-mustard hover:bg-[#FAF7EF] transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans bg-white"
+                        >
+                          <Plus size={14} className="stroke-[3]" /> Add Recommendations
+                        </button>
+                      </div>
+                    </details>
+
+                    {/* Subsection 3: Curated Experiences */}
+                    <details className="group border border-brand-border/60 rounded-2xl p-5 bg-[#FAF8F5]/30">
+                      <summary className="list-none flex items-center justify-between font-bold text-xs uppercase tracking-wider text-brand-ink cursor-pointer select-none">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-brand-mustard"></span>
+                          <span>Curated Experiences</span>
+                        </div>
+                        <ChevronDown size={16} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
+                        <p className="text-[11px] text-brand-muted font-light">List notable activities or custom tours.</p>
+                        
+                        <div className="space-y-3">
+                          {(formData.details.activities || []).map((activity, idx) => (
+                            <div key={idx} className="flex gap-3 items-start bg-[#FCFBF9] p-3 rounded-xl border border-brand-border animate-in fade-in duration-200">
+                              <span className="bg-white text-brand-mustard font-mono text-xs px-2.5 py-1.5 rounded-lg font-bold border border-brand-border shadow-2xs self-center">
+                                {activity.num || String(idx + 1).padStart(2, "0")}
+                              </span>
+                              <input
+                                type="text"
+                                value={activity.text || ""}
+                                onChange={(e) => updateListField("activities", idx, "text", e.target.value)}
+                                className="flex-1 border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans"
+                                placeholder="e.g. Private tea ceremony with a master..."
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeListItem("activities", idx)}
+                                className="p-1.5 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all cursor-pointer self-center"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+
+                          {(formData.details.activities || []).length === 0 && (
+                            <div className="text-center py-6 border border-dashed border-brand-border rounded-2xl bg-brand-bg/5 text-xs text-brand-muted">
+                              No activities added yet. Click "+ Add Activity or Tour" to add one.
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => addListItem("activities", { num: "", text: "" })}
+                          className="w-full py-3 border border-dashed border-brand-mustard/30 text-brand-mustard rounded-xl text-xs font-bold uppercase tracking-wider hover:border-brand-mustard hover:bg-[#FAF7EF] transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans bg-white"
+                        >
+                          <Plus size={14} className="stroke-[3]" /> Add Activity or Tour
+                        </button>
+                      </div>
+                    </details>
+
+                    {/* Subsection 4: What to Eat & Drink */}
+                    <details className="group border border-brand-border/60 rounded-2xl p-5 bg-[#FAF8F5]/30">
+                      <summary className="list-none flex items-center justify-between font-bold text-xs uppercase tracking-wider text-brand-ink cursor-pointer select-none">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-brand-mustard"></span>
+                          <span>What to Eat & Drink</span>
+                        </div>
+                        <ChevronDown size={16} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
+                        <p className="text-[11px] text-brand-muted font-light">List local foods and culinary specialties.</p>
+                        
+                        <div className="space-y-3">
+                          {formData.details.eat && formData.details.eat.length > 0 && (
+                            <div className="grid grid-cols-12 gap-3 px-2 text-[9px] font-bold uppercase tracking-wider text-brand-muted">
+                              <div className="col-span-4">Food Name</div>
+                              <div className="col-span-7">Food Description</div>
+                              <div className="col-span-1"></div>
+                            </div>
+                          )}
+
+                          {(formData.details.eat || []).map((item, idx) => (
+                            <div key={idx} className="grid grid-cols-12 gap-3 items-start bg-[#FCFBF9] p-3 rounded-xl border border-brand-border/80 animate-in fade-in duration-200">
+                              <div className="col-span-4">
+                                <input
+                                  type="text"
+                                  value={item.name || ""}
+                                  onChange={(e) => updateListField("eat", idx, "name", e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans font-medium"
+                                  placeholder="e.g. Tajine, Matcha Latte"
+                                />
+                              </div>
+                              <div className="col-span-7">
+                                <textarea
+                                  rows={1}
+                                  value={item.desc || ""}
+                                  onChange={(e) => updateListField("eat", idx, "desc", e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans resize-y"
+                                  placeholder="Food Description"
+                                />
+                              </div>
+                              <div className="col-span-1 flex justify-center pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => removeListItem("eat", idx)}
+                                  className="p-1.5 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all cursor-pointer"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {(formData.details.eat || []).length === 0 && (
+                            <div className="text-center py-6 border border-dashed border-brand-border rounded-2xl bg-brand-bg/5 text-xs text-brand-muted">
+                              No food entries added yet. Click "+ Add Food Entry" to add one.
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => addListItem("eat", { name: "", desc: "" })}
+                          className="w-full py-3 border border-dashed border-brand-mustard/30 text-brand-mustard rounded-xl text-xs font-bold uppercase tracking-wider hover:border-brand-mustard hover:bg-[#FAF7EF] transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans bg-white"
+                        >
+                          <Plus size={14} className="stroke-[3]" /> Add Food Entry
+                        </button>
+                      </div>
+                    </details>
+
+                    {/* Subsection 5: Dining & Restaurants */}
+                    <details className="group border border-brand-border/60 rounded-2xl p-5 bg-[#FAF8F5]/30">
+                      <summary className="list-none flex items-center justify-between font-bold text-xs uppercase tracking-wider text-brand-ink cursor-pointer select-none">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-brand-mustard"></span>
+                          <span>Dining & Restaurants</span>
+                        </div>
+                        <ChevronDown size={16} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
+                        <p className="text-[11px] text-brand-muted font-light">List recommended restaurants and local eateries.</p>
+                        
+                        <div className="space-y-3">
+                          {restaurantItems.length > 0 && (
+                            <div className="grid grid-cols-12 gap-3 px-2 text-[9px] font-bold uppercase tracking-wider text-brand-muted">
+                              <div className="col-span-3">Price Tier</div>
+                              <div className="col-span-4">Restaurant Name</div>
+                              <div className="col-span-4">Description</div>
+                              <div className="col-span-1"></div>
+                            </div>
+                          )}
+
+                          {restaurantItems.map((item, index) => (
+                            <div key={`${item.tier}-${item.idx}`} className="grid grid-cols-12 gap-3 items-start bg-[#FCFBF9] p-3 rounded-xl border border-brand-border/80 animate-in fade-in duration-200">
+                              <div className="col-span-3">
+                                <select
+                                  value={item.tier}
+                                  onChange={(e) => handleRestaurantTierChange(item.tier, item.idx, e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink cursor-pointer font-sans"
+                                >
+                                  <option value="budget">Local Gems</option>
+                                  <option value="mid">Mid-range</option>
+                                  <option value="splurge">Fine Dining</option>
+                                </select>
+                              </div>
+                              <div className="col-span-4">
+                                <input
+                                  type="text"
+                                  value={item.name || ""}
+                                  onChange={(e) => handleRestaurantItemChange(item.tier, item.idx, "name", e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans font-medium"
+                                  placeholder="Restaurant Name"
+                                />
+                              </div>
+                              <div className="col-span-4">
+                                <textarea
+                                  rows={1}
+                                  value={item.desc || ""}
+                                  onChange={(e) => handleRestaurantItemChange(item.tier, item.idx, "desc", e.target.value)}
+                                  className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans resize-y"
+                                  placeholder="Restaurant Description"
+                                />
+                              </div>
+                              <div className="col-span-1 flex justify-center pt-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRestaurantDelete(item.tier, item.idx)}
+                                  className="p-1.5 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all cursor-pointer"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {restaurantItems.length === 0 && (
+                            <div className="text-center py-6 border border-dashed border-brand-border rounded-2xl bg-brand-bg/5 text-xs text-brand-muted">
+                              No restaurants added yet. Click "+ Add Restaurant" to add one.
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleRestaurantAdd}
+                          className="w-full py-3 border border-dashed border-brand-mustard/30 text-brand-mustard rounded-xl text-xs font-bold uppercase tracking-wider hover:border-brand-mustard hover:bg-[#FAF7EF] transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans bg-white"
+                        >
+                          <Plus size={14} className="stroke-[3]" /> Add Restaurant
+                        </button>
+                      </div>
+                    </details>
+
+                    {/* Subsection 6: Day Trips */}
+                    <details className="group border border-brand-border/60 rounded-2xl p-5 bg-[#FAF8F5]/30">
+                      <summary className="list-none flex items-center justify-between font-bold text-xs uppercase tracking-wider text-brand-ink cursor-pointer select-none">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-brand-mustard"></span>
+                          <span>Day Trips</span>
+                        </div>
+                        <ChevronDown size={16} className="text-brand-muted transform group-open:rotate-180 transition-transform" />
+                      </summary>
+                      <div className="space-y-4 mt-4 pt-4 border-t border-brand-border/40 animate-in fade-in duration-300">
+                        <p className="text-[11px] text-brand-muted font-light">List recommended day trips from this city.</p>
+                        
+                        <div className="space-y-3">
+                          {(formData.details.dayTrips || []).map((trip, idx) => (
+                            <div key={idx} className="flex gap-3 items-start bg-[#FCFBF9] p-3 rounded-xl border border-brand-border animate-in fade-in duration-200">
+                              <span className="bg-white text-brand-mustard font-mono text-xs px-2.5 py-1.5 rounded-lg font-bold border border-brand-border shadow-2xs self-center">
+                                {trip.num || String(idx + 1).padStart(2, "0")}
+                              </span>
+                              <input
+                                type="text"
+                                value={trip.name || ""}
+                                onChange={(e) => updateListField("dayTrips", idx, "name", e.target.value)}
+                                className="flex-1 border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans"
+                                placeholder="e.g. Nara Deer Park & giant Todai-ji temple..."
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeListItem("dayTrips", idx)}
+                                className="p-1.5 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all cursor-pointer self-center"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+
+                          {(formData.details.dayTrips || []).length === 0 && (
+                            <div className="text-center py-6 border border-dashed border-brand-border rounded-2xl bg-brand-bg/5 text-xs text-brand-muted">
+                              No day trips added yet. Click "+ Add Day Trip" to add one.
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => addListItem("dayTrips", { num: "", name: "" })}
+                          className="w-full py-3 border border-dashed border-brand-mustard/30 text-brand-mustard rounded-xl text-xs font-bold uppercase tracking-wider hover:border-brand-mustard hover:bg-[#FAF7EF] transition-all flex items-center justify-center gap-1.5 cursor-pointer font-sans bg-white"
+                        >
+                          <Plus size={14} className="stroke-[3]" /> Add Day Trip
+                        </button>
+                      </div>
+                    </details>
+
                   </div>
                 </div>
 

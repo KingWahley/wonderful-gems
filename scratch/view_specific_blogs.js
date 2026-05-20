@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const envPath = path.join(__dirname, '.env.local');
+const envPath = path.join(__dirname, '..', '.env.local');
 const envContent = fs.readFileSync(envPath, 'utf8');
 
 const env = {};
@@ -21,17 +21,13 @@ const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUP
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function run() {
-  try {
-    const { data, error } = await supabase.from('tours').select('*').limit(1);
-    if (error) {
-      console.error(error);
-    } else {
-      console.log('Columns in tours:', Object.keys(data[0] || {}));
-      console.log('Full first row in tours:', data[0]);
-    }
-  } catch (err) {
-    console.error(err);
+  const ids = ["b1111111-1111-4111-b111-111111111111", "3b9b87fe-5f0f-454b-b894-4c2035e8a432"];
+  const { data, error } = await supabase.from('blog_posts').select('*').in('id', ids);
+  if (error) {
+    console.error('Error fetching blogs:', error);
+    return;
   }
+  console.log(JSON.stringify(data, null, 2));
 }
 
 run();

@@ -22,7 +22,14 @@ export default function ToursCMS() {
     category: "CULTURE",
     description: "",
     details: "",
-    badge: "TOUR"
+    badge: "TOUR",
+    slug: "",
+    heroImage: "",
+    shortDescription: "",
+    price: "",
+    availability: "",
+    included: [],
+    gallery: []
   });
 
   useEffect(() => {
@@ -45,6 +52,30 @@ export default function ToursCMS() {
     }
   }
 
+  // List Manipulation Helpers
+  const updateListField = (field, idx, val) => {
+    setFormData(prev => {
+      const arr = [...(prev[field] || [])];
+      arr[idx] = val;
+      return { ...prev, [field]: arr };
+    });
+  };
+
+  const addListItem = (field, defaultVal = "") => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...(prev[field] || []), defaultVal]
+    }));
+  };
+
+  const removeListItem = (field, idx) => {
+    setFormData(prev => {
+      const arr = [...(prev[field] || [])];
+      arr.splice(idx, 1);
+      return { ...prev, [field]: arr };
+    });
+  };
+
   const handleOpenAdd = () => {
     setModalMode("add");
     setFormData({
@@ -54,8 +85,19 @@ export default function ToursCMS() {
       countryCode: destinations[0]?.code || "",
       category: "CULTURE",
       description: "",
-      details: "",
-      badge: "TOUR"
+      details: "Duration: 3 hours",
+      badge: "TOUR",
+      slug: "",
+      heroImage: "",
+      shortDescription: "",
+      price: "$85 per person",
+      availability: "Flexible departures daily",
+      included: [
+        "Certified bilingual professional guide",
+        "Priority entry tickets (Skip-the-line)",
+        "Bottled spring water and traditional snacks"
+      ],
+      gallery: []
     });
     setIsModalOpen(true);
   };
@@ -70,7 +112,14 @@ export default function ToursCMS() {
       category: tour.category || "",
       description: tour.description || "",
       details: tour.details || "",
-      badge: tour.badge || "TOUR"
+      badge: tour.badge || "TOUR",
+      slug: tour.slug || "",
+      heroImage: tour.heroImage || "",
+      shortDescription: tour.shortDescription || "",
+      price: tour.price || "",
+      availability: tour.availability || "",
+      included: Array.isArray(tour.included) ? tour.included : [],
+      gallery: Array.isArray(tour.gallery) ? tour.gallery : []
     });
     setIsModalOpen(true);
   };
@@ -106,6 +155,8 @@ export default function ToursCMS() {
     try {
       setSaving(true);
 
+      const generatedSlug = formData.slug || formData.title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
       const payload = {
         title: formData.title,
         destination: formData.destination,
@@ -113,7 +164,14 @@ export default function ToursCMS() {
         category: formData.category,
         description: formData.description,
         details: formData.details,
-        badge: formData.badge
+        badge: formData.badge,
+        slug: generatedSlug,
+        heroImage: formData.heroImage,
+        shortDescription: formData.shortDescription,
+        price: formData.price,
+        availability: formData.availability,
+        included: formData.included.filter(Boolean),
+        gallery: formData.gallery.filter(Boolean)
       };
 
       if (formData.id) {
@@ -345,6 +403,153 @@ export default function ToursCMS() {
                   className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
                   placeholder="Enter details about this experience..."
                 />
+              </div>
+
+              {/* Advanced Public Detail Settings */}
+              <div className="pt-6 border-t border-cream-200 space-y-6">
+                <h3 className="font-serif text-base text-charcoal-900 font-bold">
+                  ✨ Public Detail Page Details
+                </h3>
+                <p className="text-xs text-charcoal-500 font-light -mt-2">
+                  These premium settings are serialized inside the `details` field and render directly on the public tour page.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Tour URL Slug</label>
+                    <input
+                      type="text"
+                      value={formData.slug}
+                      onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") }))}
+                      className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900 font-mono"
+                      placeholder="e.g. scenic-boat-tour"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Hero Image URL</label>
+                    <input
+                      type="text"
+                      value={formData.heroImage}
+                      onChange={(e) => setFormData(prev => ({ ...prev, heroImage: e.target.value }))}
+                      className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
+                      placeholder="e.g. https://images.unsplash.com/photo-..."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Price (Display Text)</label>
+                    <input
+                      type="text"
+                      value={formData.price}
+                      onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                      className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
+                      placeholder="e.g. $85 per person"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Availability Status</label>
+                    <input
+                      type="text"
+                      value={formData.availability}
+                      onChange={(e) => setFormData(prev => ({ ...prev, availability: e.target.value }))}
+                      className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
+                      placeholder="e.g. Flexible departures daily"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Short Description (Sub-heading Overview)</label>
+                  <textarea
+                    rows={2}
+                    value={formData.shortDescription}
+                    onChange={(e) => setFormData(prev => ({ ...prev, shortDescription: e.target.value }))}
+                    className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
+                    placeholder="Enter short punchy overview paragraph..."
+                  />
+                </div>
+
+                {/* Included List */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider">What's Included</label>
+                    <button
+                      type="button"
+                      onClick={() => addListItem("included", "")}
+                      className="text-xs text-gold-600 hover:text-gold-700 font-bold flex items-center gap-1"
+                    >
+                      <Plus size={14} /> Add Inclusion
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {(formData.included || []).map((item, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={item || ""}
+                          onChange={(e) => updateListField("included", idx, e.target.value)}
+                          className="flex-1 border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
+                          placeholder="e.g. Certified bilingual guide"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeListItem("included", idx)}
+                          className="p-1.5 text-charcoal-400 hover:text-red-500 rounded-md transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    {(formData.included || []).length === 0 && (
+                      <div className="text-center py-4 border border-dashed border-cream-200 rounded-lg text-xs text-charcoal-400 bg-cream-50/50">
+                        No inclusions added. Public fallbacks will be used.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Gallery List */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider">Gallery Images (URLs)</label>
+                    <button
+                      type="button"
+                      onClick={() => addListItem("gallery", "")}
+                      className="text-xs text-gold-600 hover:text-gold-700 font-bold flex items-center gap-1"
+                    >
+                      <Plus size={14} /> Add Image URL
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {(formData.gallery || []).map((imgUrl, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          value={imgUrl || ""}
+                          onChange={(e) => updateListField("gallery", idx, e.target.value)}
+                          className="flex-1 border border-cream-200 rounded-md p-2 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900 font-mono text-xs"
+                          placeholder="e.g. https://images.unsplash.com/photo-..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeListItem("gallery", idx)}
+                          className="p-1.5 text-charcoal-400 hover:text-red-500 rounded-md transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    {(formData.gallery || []).length === 0 && (
+                      <div className="text-center py-4 border border-dashed border-cream-200 rounded-lg text-xs text-charcoal-400 bg-cream-50/50">
+                        No gallery images added. Public fallbacks will be used.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="p-6 border-t border-cream-200 flex justify-end gap-3 bg-cream-100/30 -mx-6 -mb-6 rounded-b-2xl">

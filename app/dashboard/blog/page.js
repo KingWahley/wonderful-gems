@@ -619,7 +619,7 @@ export default function BlogCMS() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Date</label>
                         <input
@@ -631,6 +631,19 @@ export default function BlogCMS() {
                         />
                       </div>
 
+                      <div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Category / Subtitle</label>
+                        <input
+                          type="text"
+                          value={formData.category}
+                          onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                          className="w-full border border-brand-border rounded-xl p-3.5 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                          placeholder="e.g. CULTURE • KYOTO • APR 2025"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Read Time</label>
                         <input

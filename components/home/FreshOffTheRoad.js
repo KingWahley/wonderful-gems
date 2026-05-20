@@ -18,6 +18,8 @@ export default function FreshOffTheRoad({ miniGuides = [] }) {
   // Filter to show ONLY itineraries (type === 'itinerary')
   const itineraries = miniGuides.filter((guide) => guide.type === "itinerary");
 
+  if (itineraries.length === 0) return null;
+
   return (
     <section className="py-20 lg:py-28 bg-cream-100">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">

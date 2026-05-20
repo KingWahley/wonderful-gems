@@ -32,10 +32,6 @@ export default async function DestinationDetails({ params }) {
     ]);
 
     destination = destData.find(d => d.slug === slug);
-    if (!destination) {
-      // Fallback if not found
-      destination = destData[0];
-    }
 
     if (destination) {
       relatedBlogs = blogData.filter(
@@ -60,6 +56,8 @@ export default async function DestinationDetails({ params }) {
   }
 
   const currentFlag = flagMap[destination.slug] || "📍";
+  const hasWhyILoveIt = !!destination.whyILoveIt;
+  const hasMoments = !!(destination.moments && destination.moments.length > 0);
 
   return (
     <div className="pt-32 pb-24 bg-[#FBF7EE] min-h-screen">
@@ -108,63 +106,52 @@ export default async function DestinationDetails({ params }) {
         <div className="h-px bg-charcoal-900/10 w-full mb-16"></div>
 
         {/* Highlight Grid Blocks */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-          
-          {/* Why I Love It Card */}
-          <div className="bg-[#46B6E6] text-white rounded-[24px] p-8 md:p-12 shadow-sm flex flex-col justify-between min-h-[340px]">
-            <div>
-              <span className="text-[10px] font-bold tracking-[0.2em] text-white/80 uppercase block mb-4">
-                WHY I LOVE IT 🧡
-              </span>
-              <h2 className="font-serif text-[28px] md:text-[34px] font-bold leading-tight mb-4 tracking-tight">
-                What keeps pulling me back to {destination.country}
-              </h2>
-            </div>
-            <p className="text-white/90 text-sm md:text-[15px] leading-relaxed font-medium">
-              {destination.whyILoveIt || `${destination.country} rearranges your nervous system in the best way. It's a country built on tiny, deliberate gestures — the way a tea is poured, a door is slid, a meal is plated — and once you tune into it, the rest of the world feels a little louder than it needs to be.`}
-            </p>
-          </div>
+        {(hasWhyILoveIt || hasMoments) && (
+          <div className={`grid grid-cols-1 ${hasWhyILoveIt && hasMoments ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-6 mb-16`}>
+            
+            {/* Why I Love It Card */}
+            {hasWhyILoveIt && (
+              <div className="bg-[#46B6E6] text-white rounded-[24px] p-8 md:p-12 shadow-sm flex flex-col justify-between min-h-[340px]">
+                <div>
+                  <span className="text-[10px] font-bold tracking-[0.2em] text-white/80 uppercase block mb-4">
+                    WHY I LOVE IT 🧡
+                  </span>
+                  <h2 className="font-serif text-[28px] md:text-[34px] font-bold leading-tight mb-4 tracking-tight">
+                    What keeps pulling me back to {destination.country}
+                  </h2>
+                </div>
+                <p className="text-white/90 text-sm md:text-[15px] leading-relaxed font-medium">
+                  {destination.whyILoveIt}
+                </p>
+              </div>
+            )}
 
-          {/* The moments I'd repeat tomorrow Card */}
-          <div className="bg-[#E9C46A] text-charcoal-900 rounded-[24px] p-8 md:p-12 shadow-sm min-h-[340px]">
-            <span className="text-[10px] font-bold tracking-[0.2em] text-charcoal-800/60 uppercase block mb-4">
-              📍 FAVORITES
-            </span>
-            <h2 className="font-serif text-[28px] md:text-[34px] font-bold leading-tight mb-6 tracking-tight">
-              The moments I'd repeat tomorrow
-            </h2>
-            <div className="space-y-4">
-              {destination.moments && destination.moments.length > 0 ? (
-                destination.moments.map((moment, idx) => (
-                  <div key={idx} className="flex items-start gap-4">
-                    <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5 shadow-sm">
-                      {idx + 1}
+            {/* The moments I'd repeat tomorrow Card */}
+            {hasMoments && (
+              <div className="bg-[#E9C46A] text-charcoal-900 rounded-[24px] p-8 md:p-12 shadow-sm min-h-[340px]">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-charcoal-800/60 uppercase block mb-4">
+                  📍 FAVORITES
+                </span>
+                <h2 className="font-serif text-[28px] md:text-[34px] font-bold leading-tight mb-6 tracking-tight">
+                  The moments I'd repeat tomorrow
+                </h2>
+                <div className="space-y-4">
+                  {destination.moments.map((moment, idx) => (
+                    <div key={idx} className="flex items-start gap-4">
+                      <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5 shadow-sm">
+                        {idx + 1}
+                      </div>
+                      <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">
+                        {moment}
+                      </p>
                     </div>
-                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">
-                      {moment}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <>
-                  <div className="flex items-start gap-4">
-                    <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">1</div>
-                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Exploring local neighborhoods off the beaten path.</p>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">2</div>
-                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Savoring traditional culinary offerings.</p>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <div className="w-6 h-6 rounded-full border border-charcoal-900/80 bg-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">3</div>
-                    <p className="text-xs md:text-sm font-bold text-charcoal-900/90 leading-snug">Watching the sunrise over historic landmarks.</p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        </div>
+          </div>
+        )}
 
         {/* Jump To block */}
         <div className="flex items-center gap-3 mb-20 bg-white/40 border border-charcoal-900/5 px-6 py-3 rounded-full w-fit">

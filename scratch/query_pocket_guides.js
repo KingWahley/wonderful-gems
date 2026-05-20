@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const envPath = path.join(__dirname, '.env.local');
+const envPath = path.join(__dirname, '..', '.env.local');
 const envContent = fs.readFileSync(envPath, 'utf8');
 
 const env = {};
@@ -21,17 +21,14 @@ const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUP
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function run() {
-  try {
-    const { data, error } = await supabase.from('tours').select('*').limit(1);
-    if (error) {
-      console.error(error);
-    } else {
-      console.log('Columns in tours:', Object.keys(data[0] || {}));
-      console.log('Full first row in tours:', data[0]);
-    }
-  } catch (err) {
-    console.error(err);
-  }
+  const { data } = await supabase.from('mini_guides').select('*').eq('type', 'pocket');
+  data.forEach(g => {
+    console.log("=== GUIDE ===");
+    console.log("ID:", g.id);
+    console.log("SLUG:", g.slug);
+    console.log("TITLE:", g.title);
+    console.log("DETAILS:", JSON.stringify(g.details, null, 2));
+  });
 }
 
 run();

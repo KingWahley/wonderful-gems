@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchBlogs, fetchDestinations } from "@/lib/db";
+import { fetchBlogs, fetchDestinations, fetchMiniGuides } from "@/lib/db";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -26,17 +26,21 @@ export default async function BlogPost({ params }) {
   let relatedPosts = [];
   let latestPosts = [];
   let uniqueDestinations = [];
+  let guides = [];
 
   try {
-    const [blogData, destData] = await Promise.all([
+    const [blogData, destData, guidesData] = await Promise.all([
       fetchBlogs(),
-      fetchDestinations()
+      fetchDestinations(),
+      fetchMiniGuides()
     ]);
 
     post = blogData.find((p) => p.slug === slug);
     if (!post) {
       notFound();
     }
+
+    guides = guidesData || [];
 
     // Find other posts from same destination
     relatedPosts = blogData.filter(
@@ -94,6 +98,11 @@ export default async function BlogPost({ params }) {
         contentText = post.content;
       }
     }
+  }
+
+  let companionGuide = null;
+  if (miniGuideId && guides.length > 0) {
+    companionGuide = guides.find(g => String(g.id) === String(miniGuideId) || g.slug === miniGuideId);
   }
 
   // Fallbacks and formatted tags
@@ -172,9 +181,9 @@ export default async function BlogPost({ params }) {
             <span className="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-[#161616] uppercase">
               📖 {readTimeText}
             </span>
-            {miniGuideId && (
+            {companionGuide && (
               <Link 
-                href={`/mini-guides/${miniGuideId}`} 
+                href={`/mini-guides/${companionGuide.slug}`} 
                 className="flex items-center gap-1.5 bg-transparent border border-charcoal-900/80 px-6 py-2 rounded-full text-[10px] font-bold tracking-widest text-[#161616] uppercase hover:bg-[#161616] hover:text-white transition-colors"
               >
                 <span className="text-orange-500 font-sans">⚡</span> {miniGuideCta.toUpperCase()}
@@ -244,7 +253,7 @@ export default async function BlogPost({ params }) {
                   <div key={idx}>
                     {idx === 0 ? renderParagraphWithDropcap(para, idx) : <p className="mb-8 text-[16px] md:text-[18px] leading-relaxed text-[#161616] font-sans font-normal">{para}</p>}
                     
-                    {showCallout && miniGuideId && (
+                    {showCallout && companionGuide && (
                       <div className="border border-charcoal-900/10 bg-[#FDFBF7] rounded-[20px] p-8 mb-12 mt-12 shadow-xs transition-all hover:border-[#c7962d]/30 hover:shadow-sm duration-300">
                         <span className="text-[10px] font-bold tracking-widest text-[#c7962d] uppercase block mb-2">⚡ COMPANION GUIDE ATTACHED</span>
                         <h4 className="font-serif text-2xl font-bold text-[#161616] mb-2">
@@ -254,7 +263,7 @@ export default async function BlogPost({ params }) {
                           Get immediate access to curated hotel recommendations, offline neighborhood maps, walking route itineraries, and booking advice.
                         </p>
                         <Link 
-                          href={`/mini-guides/${miniGuideId}`}
+                          href={`/mini-guides/${companionGuide.slug}`}
                           className="inline-flex items-center gap-2 bg-[#c7962d] text-charcoal-900 hover:bg-[#c7962d]/90 font-bold text-xs uppercase px-6 py-3 rounded-full transition-colors tracking-widest shadow-xs"
                         >
                           {miniGuideCta.toUpperCase()} <span className="text-sm">→</span>

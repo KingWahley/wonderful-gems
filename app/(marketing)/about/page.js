@@ -5,6 +5,26 @@ export const dynamic = "force-dynamic";
 export default async function AboutPage() {
   const about = await fetchSettings("about_page");
 
+  if (!about) {
+    return (
+      <div className="pt-32 pb-24 bg-cream-100 min-h-screen flex items-center justify-center">
+        <p className="text-charcoal-500 italic">About page details are not configured yet in settings.</p>
+      </div>
+    );
+  }
+
+  const {
+    coverImage,
+    floatingPill,
+    badge,
+    title,
+    introText,
+    middleText,
+    footerText,
+    contactTitle,
+    contactEmail
+  } = about;
+
   return (
     <div className="pt-32 pb-24 bg-cream-100 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 lg:mt-10">
@@ -12,49 +32,53 @@ export default async function AboutPage() {
           
           {/* Left Column - Image */}
           <div className="relative w-full max-w-[440px] mx-auto lg:mr-auto lg:ml-0">
-            <div className="relative aspect-[4/5] w-full rounded-[24px] overflow-hidden shadow-sm">
-              <div 
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url('${about?.coverImage || "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1000&auto=format&fit=crop"}')` }}
-              ></div>
-            </div>
+            {coverImage && (
+              <div className="relative aspect-[4/5] w-full rounded-[24px] overflow-hidden shadow-sm">
+                <div 
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: `url('${coverImage}')` }}
+                ></div>
+              </div>
+            )}
             {/* Floating Pill */}
-            <div className="absolute top-12 -right-8 bg-coral-500 text-white text-[10px] tracking-[0.15em] font-bold uppercase py-2.5 px-5 rounded-full shadow-sm flex items-center gap-2 z-10 whitespace-nowrap">
-              <span className="text-sm leading-none">👋</span> {about?.floatingPill || "HI, THAT'S ME"}
-            </div>
+            {floatingPill && (
+              <div className="absolute top-12 -right-8 bg-coral-500 text-white text-[10px] tracking-[0.15em] font-bold uppercase py-2.5 px-5 rounded-full shadow-sm flex items-center gap-2 z-10 whitespace-nowrap">
+                <span className="text-sm leading-none">👋</span> {floatingPill}
+              </div>
+            )}
           </div>
           
           {/* Right Column - Content */}
           <div className="lg:pr-8">
-            <span className="text-[11px] tracking-[0.2em] font-bold text-mustard-500 uppercase block mb-5">
-              {about?.badge || "About"}
-            </span>
-            <h1 
-              className="text-[44px] md:text-[56px] font-serif font-bold text-charcoal-900 leading-[1.05] mb-8"
-              dangerouslySetInnerHTML={{ __html: about?.title?.replace(/\n/g, "<br/>") || "I write about places<br/>like I'd text a friend." }}
-            />
+            {badge && (
+              <span className="text-[11px] tracking-[0.2em] font-bold text-mustard-500 uppercase block mb-5">
+                {badge}
+              </span>
+            )}
+            {title && (
+              <h1 
+                className="text-[44px] md:text-[56px] font-serif font-bold text-charcoal-900 leading-[1.05] mb-8"
+                dangerouslySetInnerHTML={{ __html: title.replace(/\n/g, "<br/>") }}
+              />
+            )}
             
             <div className="space-y-6 text-[15px] font-medium text-charcoal-800/80 leading-[1.8] mb-12">
-              <p>
-                {about?.introText || "The Long Way is a journal of slow travel — long essays for when you want to be transported, and short field guides for when you have a flight already booked. ✈️"}
-              </p>
-              <p>
-                {about?.middleText || "I started writing it because the travel internet got loud, and I missed the kind of writing that took its time. The kind you read with a coffee on a Sunday morning and put down feeling like you've been somewhere."}
-              </p>
-              <p>
-                {about?.footerText || "When I recommend a tour, a hotel, or a piece of gear, it's something I've actually used and would tell a friend to use. Some are affiliate links — they cost you nothing and help keep this journal going. 🥂"}
-              </p>
+              {introText && <p>{introText}</p>}
+              {middleText && <p>{middleText}</p>}
+              {footerText && <p>{footerText}</p>}
             </div>
             
             {/* Contact Card */}
-            <div className="bg-[#96CBA8] border-2 border-charcoal-900 rounded-[20px] px-8 py-6 inline-block w-full sm:w-auto min-w-[320px]">
-              <div className="font-serif font-bold text-[24px] text-charcoal-900 mb-1 flex items-center gap-2">
-                {about?.contactTitle || "say hi 👋"}
+            {contactEmail && (
+              <div className="bg-[#96CBA8] border-2 border-charcoal-900 rounded-[20px] px-8 py-6 inline-block w-full sm:w-auto min-w-[320px]">
+                <div className="font-serif font-bold text-[24px] text-charcoal-900 mb-1 flex items-center gap-2">
+                  {contactTitle || "say hi 👋"}
+                </div>
+                <a href={`mailto:${contactEmail}`} className="font-serif font-bold text-[18px] text-charcoal-900 hover:opacity-80 transition-opacity">
+                  {contactEmail}
+                </a>
               </div>
-              <a href={`mailto:${about?.contactEmail || "hello@thelongway.travel"}`} className="font-serif font-bold text-[18px] text-charcoal-900 hover:opacity-80 transition-opacity">
-                {about?.contactEmail || "hello@thelongway.travel"}
-              </a>
-            </div>
+            )}
           </div>
 
         </div>

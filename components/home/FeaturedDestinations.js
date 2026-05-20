@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function FeaturedDestinations({ destinations = [] }) {
+  if (!destinations || destinations.length === 0) return null;
   return (
     <section className="py-20 lg:py-28 bg-mustard-500 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
