@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchBlogs, saveBlog, deleteBlog, fetchDestinations, uploadImage, fetchMiniGuides } from "@/lib/db";
+import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 import { 
   Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon, 
   Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle 
@@ -17,6 +18,7 @@ export default function BlogCMS() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -717,35 +719,54 @@ export default function BlogCMS() {
                   </div>
 
                   {/* Drag-and-drop Area */}
-                  <div 
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                    onClick={() => document.getElementById("file-input").click()}
-                    className="border-2 border-dashed border-brand-mustard/20 bg-[#FCFBF8] rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-mustard hover:bg-[#FAF6EC] transition-all group select-none relative h-48"
-                  >
-                    {uploadingImage ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="animate-spin text-brand-mustard" size={24} />
-                        <span className="text-xs font-bold text-brand-mustard tracking-wider uppercase animate-pulse">Uploading cover...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-3" size={28} />
-                        <span className="text-xs font-bold text-brand-ink font-serif block mb-1">Upload blog cover image</span>
-                        <span className="text-[10px] text-brand-muted block max-w-xs leading-normal">
-                          Recommended size: 1600 x 1000px. Used on cards and full article page.
-                        </span>
-                      </>
-                    )}
-                    <input 
-                      id="file-input"
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      disabled={uploadingImage}
-                    />
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div 
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                      onClick={() => document.getElementById("file-input").click()}
+                      className="flex-1 border-2 border-dashed border-brand-mustard/20 bg-[#FCFBF8] rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-mustard hover:bg-[#FAF6EC] transition-all group select-none relative h-48"
+                    >
+                      {uploadingImage ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <Loader2 className="animate-spin text-brand-mustard" size={24} />
+                          <span className="text-xs font-bold text-brand-mustard tracking-wider uppercase animate-pulse">Uploading cover...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-3" size={28} />
+                          <span className="text-xs font-bold text-brand-ink font-serif block mb-1">Upload blog cover image</span>
+                          <span className="text-[10px] text-brand-muted block max-w-xs leading-normal">
+                            Recommended size: 1600 x 1000px. Used on cards and full article page.
+                          </span>
+                        </>
+                      )}
+                      <input 
+                        id="file-input"
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={uploadingImage}
+                      />
+                    </div>
+                    <div className="flex flex-col justify-center shrink-0">
+                      <div className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 text-center">OR</div>
+                      <button
+                        type="button"
+                        onClick={() => setIsMediaSelectorOpen(true)}
+                        className="px-5 py-3 border border-brand-border bg-white rounded-xl text-xs font-bold text-brand-ink hover:border-brand-mustard hover:text-brand-mustard transition-all flex items-center justify-center gap-2 shadow-sm"
+                      >
+                        <ImageIcon size={16} />
+                        Select from Library
+                      </button>
+                    </div>
                   </div>
+                  {formData.coverImage && (
+                    <div className="mt-4 border border-brand-border rounded-xl p-2 bg-brand-bg flex items-center gap-4">
+                      <img src={formData.coverImage} alt="Cover preview" className="w-16 h-12 object-cover rounded-lg border border-brand-border" />
+                      <div className="text-xs text-brand-ink font-medium truncate flex-1">{formData.coverImage}</div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Image Alt Text</label>
@@ -955,6 +976,12 @@ export default function BlogCMS() {
             </div>
           </form>
 
+          {/* Media Selector Modal */}
+          <MediaSelectorModal 
+            isOpen={isMediaSelectorOpen}
+            onClose={() => setIsMediaSelectorOpen(false)}
+            onSelect={(url) => setFormData(prev => ({ ...prev, coverImage: url }))}
+          />
         </div>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchDestinations, saveDestination, deleteDestination, uploadImage } from "@/lib/db";
+import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 import { Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon } from "lucide-react";
 
 export default function DestinationsCMS() {
@@ -28,6 +29,7 @@ export default function DestinationsCMS() {
   });
 
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
 
   useEffect(() => {
     loadDestinations();
@@ -333,8 +335,16 @@ export default function DestinationsCMS() {
                       className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
                       placeholder="https://..."
                     />
-                    <label className="bg-cream-200 hover:bg-cream-300 border border-cream-300 rounded-md px-4 flex items-center justify-center cursor-pointer transition-colors text-charcoal-900" title="Upload local image">
-                      {uploadingImage ? <Loader2 className="animate-spin text-charcoal-600" size={18} /> : <ImageIcon size={18} />}
+                    <button
+                      type="button"
+                      onClick={() => setIsMediaSelectorOpen(true)}
+                      className="bg-cream-200 hover:bg-cream-300 border border-cream-300 rounded-md px-3 flex items-center justify-center transition-colors text-charcoal-900 whitespace-nowrap text-xs font-medium gap-1"
+                      title="Select from Media Library"
+                    >
+                      <ImageIcon size={14} /> Library
+                    </button>
+                    <label className="bg-cream-200 hover:bg-cream-300 border border-cream-300 rounded-md px-3 flex items-center justify-center cursor-pointer transition-colors text-charcoal-900 whitespace-nowrap text-xs font-medium gap-1" title="Upload local image">
+                      {uploadingImage ? <Loader2 className="animate-spin text-charcoal-600" size={14} /> : <Plus size={14} />} Upload
                       <input
                         type="file"
                         accept="image/*"
@@ -430,6 +440,13 @@ export default function DestinationsCMS() {
           </div>
         </div>
       )}
+      
+      {/* Media Selector Modal */}
+      <MediaSelectorModal 
+        isOpen={isMediaSelectorOpen}
+        onClose={() => setIsMediaSelectorOpen(false)}
+        onSelect={(url) => setFormData(prev => ({ ...prev, coverImage: url }))}
+      />
     </div>
   );
 }

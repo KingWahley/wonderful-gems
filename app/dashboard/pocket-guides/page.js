@@ -7,6 +7,7 @@ import {
   Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,
   ChevronDown, Calendar, Clock, Compass, MapPin, Sparkle
 } from "lucide-react";
+import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 
 const defaultDetails = {
   pocketTitle: "",
@@ -89,6 +90,7 @@ export default function PocketGuidesCMS() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -791,7 +793,16 @@ export default function PocketGuidesCMS() {
 
                     {/* Featured Image Upload Area */}
                     <div>
-                      <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Featured Image</label>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] font-sans">Featured Image</label>
+                        <button
+                          type="button"
+                          onClick={() => setIsMediaModalOpen(true)}
+                          className="text-[10px] font-bold tracking-[0.1em] text-brand-mustard hover:text-brand-ink uppercase font-sans transition-colors cursor-pointer"
+                        >
+                          Select from Library
+                        </button>
+                      </div>
                       <div 
                         onDragOver={handleDragOver}
                         onDrop={handleDrop}
@@ -1473,6 +1484,13 @@ export default function PocketGuidesCMS() {
 
         </div>
       )}
+
+      {/* Media Selector Modal */}
+      <MediaSelectorModal
+        isOpen={isMediaModalOpen}
+        onClose={() => setIsMediaModalOpen(false)}
+        onSelect={(url) => setFormData(prev => ({ ...prev, heroImage: url }))}
+      />
     </div>
   );
 }

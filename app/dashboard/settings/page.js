@@ -21,6 +21,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import Link from "next/link";
+import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 
 export default function CMSPageSettings() {
   // Tabs State
@@ -68,6 +69,8 @@ export default function CMSPageSettings() {
   const [saving, setSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const [mediaTarget, setMediaTarget] = useState(null);
 
   // Load Settings
   useEffect(() => {
@@ -342,6 +345,17 @@ export default function CMSPageSettings() {
                       className="flex-1 bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
                     />
                     
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMediaTarget({ tab: "home_hero", field: "coverImage" });
+                        setIsMediaModalOpen(true);
+                      }}
+                      className="bg-brand-bg text-brand-ink px-4 py-3 border border-brand-border rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-cream-100 transition-colors flex items-center gap-2 cursor-pointer shrink-0"
+                    >
+                      <ImageIcon size={14} /> Library
+                    </button>
+                    
                     <label className="bg-charcoal-900 text-white px-4 py-3 rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-brand-mustard transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
                       {imageUploading ? (
                         <Loader2 className="animate-spin" size={14} />
@@ -567,6 +581,17 @@ export default function CMSPageSettings() {
                       className="flex-1 bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
                     />
                     
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMediaTarget({ tab: "about_page", field: "coverImage" });
+                        setIsMediaModalOpen(true);
+                      }}
+                      className="bg-brand-bg text-brand-ink px-4 py-3 border border-brand-border rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-cream-100 transition-colors flex items-center gap-2 cursor-pointer shrink-0"
+                    >
+                      <ImageIcon size={14} /> Library
+                    </button>
+                    
                     <label className="bg-charcoal-900 text-white px-4 py-3 rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-brand-mustard transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
                       {imageUploading ? (
                         <Loader2 className="animate-spin" size={14} />
@@ -766,6 +791,22 @@ export default function CMSPageSettings() {
           </div>
         </div>
       )}
+
+      {/* Media Selector Modal */}
+      <MediaSelectorModal
+        isOpen={isMediaModalOpen}
+        onClose={() => {
+          setIsMediaModalOpen(false);
+          setMediaTarget(null);
+        }}
+        onSelect={(url) => {
+          if (mediaTarget?.tab === "home_hero") {
+            setHomeHero(prev => ({ ...prev, [mediaTarget.field]: url }));
+          } else if (mediaTarget?.tab === "about_page") {
+            setAboutPage(prev => ({ ...prev, [mediaTarget.field]: url }));
+          }
+        }}
+      />
     </div>
   );
 }

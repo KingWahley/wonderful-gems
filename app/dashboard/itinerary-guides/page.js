@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchMiniGuides, saveMiniGuide, deleteMiniGuide, fetchDestinations, uploadImage } from "@/lib/db";
+import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 import { 
   Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon,
   Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,
@@ -135,6 +136,7 @@ export default function ItineraryGuidesCMS() {
   });
 
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -956,49 +958,62 @@ export default function ItineraryGuidesCMS() {
                     {/* Cover Photo Upload Area */}
                     <div>
                       <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Hero Image</label>
-                      <div 
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
-                        onClick={() => document.getElementById("file-input").click()}
-                        className="border-2 border-dashed border-brand-mustard/20 bg-[#FCFBF8] rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-mustard hover:bg-[#FAF6EC] transition-all group select-none relative h-40 overflow-hidden"
-                      >
-                        {uploadingImage ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <Loader2 className="animate-spin text-brand-mustard" size={24} />
-                            <span className="text-xs font-bold text-brand-mustard tracking-wider uppercase animate-pulse">Uploading cover...</span>
-                          </div>
-                        ) : formData.heroImage ? (
-                          <>
-                            <img 
-                              src={formData.heroImage} 
-                              alt="Guide Cover Preview" 
-                              className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-10 transition-opacity" 
-                            />
-                            <div className="relative z-10 flex flex-col items-center justify-center">
-                              <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-2" size={24} />
-                              <span className="text-xs font-bold text-brand-ink font-serif block mb-1">Change Featured Image</span>
-                              <span className="text-[9px] text-brand-muted block max-w-xs leading-normal">
-                                Drag and drop or click to browse files
-                              </span>
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div 
+                          onDragOver={handleDragOver}
+                          onDrop={handleDrop}
+                          onClick={() => document.getElementById("file-input").click()}
+                          className="flex-1 border-2 border-dashed border-brand-mustard/20 bg-[#FCFBF8] rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-mustard hover:bg-[#FAF6EC] transition-all group select-none relative h-40 overflow-hidden"
+                        >
+                          {uploadingImage ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <Loader2 className="animate-spin text-brand-mustard" size={24} />
+                              <span className="text-xs font-bold text-brand-mustard tracking-wider uppercase animate-pulse">Uploading cover...</span>
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-2" size={24} />
-                            <span className="text-xs font-bold text-brand-mustard block mb-1 underline">Upload itinerary hero image</span>
-                            <span className="text-[9px] text-brand-muted block max-w-xs leading-normal">
-                              Recommended size: 1800 x 1000px. Used on cards and full itinerary page.
-                            </span>
-                          </>
-                        )}
-                        <input 
-                          id="file-input"
-                          type="file" 
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                          disabled={uploadingImage}
-                        />
+                          ) : formData.heroImage ? (
+                            <>
+                              <img 
+                                src={formData.heroImage} 
+                                alt="Guide Cover Preview" 
+                                className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-10 transition-opacity" 
+                              />
+                              <div className="relative z-10 flex flex-col items-center justify-center">
+                                <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-2" size={24} />
+                                <span className="text-xs font-bold text-brand-ink font-serif block mb-1">Change Featured Image</span>
+                                <span className="text-[9px] text-brand-muted block max-w-xs leading-normal">
+                                  Drag and drop or click to browse files
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="text-brand-mustard/60 group-hover:text-brand-mustard transition-colors mb-2" size={24} />
+                              <span className="text-xs font-bold text-brand-mustard block mb-1 underline">Upload itinerary hero image</span>
+                              <span className="text-[9px] text-brand-muted block max-w-xs leading-normal">
+                                Recommended size: 1800 x 1000px. Used on cards and full itinerary page.
+                              </span>
+                            </>
+                          )}
+                          <input 
+                            id="file-input"
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            disabled={uploadingImage}
+                          />
+                        </div>
+                        <div className="flex flex-col justify-center shrink-0">
+                          <div className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 text-center">OR</div>
+                          <button
+                            type="button"
+                            onClick={() => setIsMediaSelectorOpen(true)}
+                            className="px-5 py-3 border border-brand-border bg-white rounded-xl text-xs font-bold text-brand-ink hover:border-brand-mustard hover:text-brand-mustard transition-all flex items-center justify-center gap-2 shadow-sm"
+                          >
+                            <ImageIcon size={16} />
+                            Select from Library
+                          </button>
+                        </div>
                       </div>
                       <input
                         type="text"
@@ -1835,6 +1850,13 @@ export default function ItineraryGuidesCMS() {
 
         </div>
       )}
+
+      {/* Media Selector Modal */}
+      <MediaSelectorModal 
+        isOpen={isMediaSelectorOpen}
+        onClose={() => setIsMediaSelectorOpen(false)}
+        onSelect={(url) => setFormData(prev => ({ ...prev, heroImage: url }))}
+      />
     </div>
   );
 }
