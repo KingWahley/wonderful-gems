@@ -21,12 +21,13 @@ const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.NEXT_PUBLIC_SUP
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 async function run() {
-  const { data, error } = await supabase.from('blog_posts').select('id, slug, title, status');
-  if (error) {
-    console.error('Error fetching blogs:', error);
-    return;
-  }
-  console.log(JSON.stringify(data, null, 2));
+  const { data: guides } = await supabase.from('mini_guides').select('id, title, status');
+  console.log("=== MINI GUIDES ===");
+  console.log(guides);
+
+  const { data: tours } = await supabase.from('tours').select('id, title, status');
+  console.log("=== TOURS ===");
+  console.log(tours);
 }
 
 run();

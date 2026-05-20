@@ -23,6 +23,7 @@ export default function ToursCMS() {
     description: "",
     details: "",
     badge: "TOUR",
+    status: "published",
     slug: "",
     heroImage: "",
     shortDescription: "",
@@ -87,6 +88,7 @@ export default function ToursCMS() {
       description: "",
       details: "Duration: 3 hours",
       badge: "TOUR",
+      status: "published",
       slug: "",
       heroImage: "",
       shortDescription: "",
@@ -113,6 +115,7 @@ export default function ToursCMS() {
       description: tour.description || "",
       details: tour.details || "",
       badge: tour.badge || "TOUR",
+      status: tour.status || "published",
       slug: tour.slug || "",
       heroImage: tour.heroImage || "",
       shortDescription: tour.shortDescription || "",
@@ -165,6 +168,7 @@ export default function ToursCMS() {
         description: formData.description,
         details: formData.details,
         badge: formData.badge,
+        status: formData.status || "published",
         slug: generatedSlug,
         heroImage: formData.heroImage,
         shortDescription: formData.shortDescription,
@@ -259,6 +263,11 @@ export default function ToursCMS() {
                           }`}>
                             {tour.badge || "TOUR"}
                           </span>
+                          {(tour.status || "published").toLowerCase() !== "published" && (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-charcoal-100 text-charcoal-600 border border-charcoal-200">
+                              Draft
+                            </span>
+                          )}
                         </div>
                         <div className="text-xs text-charcoal-800/60 line-clamp-1 mt-0.5">{tour.description}</div>
                       </div>
@@ -330,7 +339,7 @@ export default function ToursCMS() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div>
                   <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Destination *</label>
                   <input
@@ -365,6 +374,18 @@ export default function ToursCMS() {
                   >
                     <option value="TOUR">TOUR (Guided Experience)</option>
                     <option value="TICKET">TICKET (Admission Pass)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-charcoal-800/70 uppercase tracking-wider mb-2">Status</label>
+                  <select
+                    value={formData.status || "published"}
+                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                    className="w-full border border-cream-200 rounded-md p-2.5 text-sm focus:outline-none focus:border-gold-500 bg-white text-charcoal-900"
+                  >
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
                   </select>
                 </div>
               </div>
@@ -566,7 +587,9 @@ export default function ToursCMS() {
                   className="px-4 py-2 bg-charcoal-900 text-white rounded-md text-sm hover:bg-gold-600 transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
                 >
                   {saving && <Loader2 className="animate-spin" size={16} />}
-                  {modalMode === "add" ? "Create Tour" : "Save Changes"}
+                  {(formData.status || "published").toLowerCase() === "published" 
+                    ? (modalMode === "add" ? "Create Tour" : "Save Changes") 
+                    : "Save Draft"}
                 </button>
               </div>
             </form>

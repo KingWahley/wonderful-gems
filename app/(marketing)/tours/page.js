@@ -6,7 +6,8 @@ export const revalidate = 0;
 export default async function ToursPage() {
   let tours = [];
   try {
-    tours = await fetchTours() || [];
+    const fetchedTours = await fetchTours() || [];
+    tours = fetchedTours.filter(item => (item.status || "published").toLowerCase() === "published");
   } catch (error) {
     console.error("Error fetching tours from Supabase:", error);
   }

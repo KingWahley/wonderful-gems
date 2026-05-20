@@ -559,7 +559,14 @@ export default function PocketGuidesCMS() {
                                 <img src={guide.heroImage || "https://images.unsplash.com/photo-1597212618440-806262de4f6b?q=80&w=2000&auto=format&fit=crop"} alt={guide.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                               </div>
                               <div className="max-w-md">
-                                <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1">{guide.title}</h3>
+                                <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1 flex items-center gap-2">
+                                  {guide.title}
+                                  {(guide.status || "published").toLowerCase() !== "published" && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-sans font-bold tracking-wider uppercase bg-brand-bg text-brand-muted border border-brand-border">
+                                      Draft
+                                    </span>
+                                  )}
+                                </h3>
                                 <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide">/{guide.slug}</div>
                               </div>
                             </div>
@@ -679,19 +686,10 @@ export default function PocketGuidesCMS() {
                 <button
                   type="submit"
                   disabled={saving}
-                  onClick={() => setFormData(prev => ({ ...prev, status: "draft" }))}
-                  className="px-5 py-2.5 bg-white border border-brand-border rounded-xl text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer shadow-2xs"
-                >
-                  Save Draft
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  onClick={() => setFormData(prev => ({ ...prev, status: "published" }))}
-                  className="px-5 py-2.5 bg-brand-mustard text-white rounded-xl text-xs font-bold hover:bg-brand-ink transition-all flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
+                  className="px-5 py-2.5 bg-brand-mustard text-white rounded-xl text-xs font-bold hover:bg-brand-ink transition-all flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50 font-sans"
                 >
                   {saving && <Loader2 className="animate-spin" size={12} />}
-                  Publish Guide
+                  {(formData.status || "published").toLowerCase() === "published" ? "Publish Guide" : "Save Draft"}
                 </button>
               </div>
             </div>

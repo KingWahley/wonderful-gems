@@ -6,7 +6,8 @@ export const dynamic = "force-dynamic";
 export default async function MiniGuidesPage() {
   let guides = [];
   try {
-    guides = await fetchMiniGuides();
+    const fetchedGuides = await fetchMiniGuides();
+    guides = (fetchedGuides || []).filter(item => (item.status || "published").toLowerCase() === "published");
   } catch (err) {
     console.error("Failed to load mini guides dynamically", err);
   }

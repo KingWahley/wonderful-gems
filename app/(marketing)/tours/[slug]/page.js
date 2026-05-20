@@ -7,9 +7,11 @@ export const revalidate = 0;
 export async function generateStaticParams() {
   try {
     const toursList = await fetchTours();
-    return toursList.map((tour) => ({
-      slug: tour.slug || tour.id,
-    }));
+    return toursList
+      .filter((tour) => (tour.status || "published").toLowerCase() === "published")
+      .map((tour) => ({
+        slug: tour.slug || tour.id,
+      }));
   } catch (e) {
     return [];
   }
@@ -28,7 +30,7 @@ export default async function TourDetails({ params }) {
   const tour = toursList.find(t => t.slug === resolvedParams.slug) 
     || toursList.find(t => t.id === resolvedParams.slug);
 
-  if (!tour) {
+  if (!tour || (tour.status || "published").toLowerCase() !== "published") {
     notFound();
   }
   

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { fetchMiniGuides, fetchBlogs, fetchDestinations, fetchTours } from "@/lib/db";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { ArrowLeft, Star, Sparkle, Utensils, Share2, Mail, Copy } from "lucide-react";
 
 // Local SVG implementations of social brand icons since this custom lucide-react lacks them
@@ -75,23 +76,15 @@ export default async function MiniGuideDetails({ params }) {
     ]);
     guides = guidesData;
     destinations = destData;
-    tours = toursData;
-    blogs = blogsData;
+    tours = (toursData || []).filter(item => (item.status || "published").toLowerCase() === "published");
+    blogs = (blogsData || []).filter(item => (item.status || "Draft").toLowerCase() === "published");
   } catch (err) {
     console.error("Failed to load mini guide detail data dynamically", err);
   }
 
   const guide = guides.find(g => g.slug === slug || (g.id && String(g.id) === String(slug)));
-  if (!guide) {
-    return (
-      <div className="pt-32 pb-24 bg-[#FBF7EE] min-h-screen flex flex-col items-center justify-center text-charcoal-900">
-        <h1 className="text-3xl font-serif mb-4">Guide Not Found</h1>
-        <p className="text-sm text-charcoal-500 mb-8">We couldn't find the mini guide you're looking for.</p>
-        <Link href="/mini-guides" className="text-coral-500 text-sm font-bold uppercase tracking-widest hover:text-coral-600 flex items-center gap-2">
-          Back to Mini Guides
-        </Link>
-      </div>
-    );
+  if (!guide || (guide.status || "published").toLowerCase() !== "published") {
+    notFound();
   }
 
   // Resolve flags, or default to generic marker

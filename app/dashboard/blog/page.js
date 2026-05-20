@@ -269,17 +269,9 @@ export default function BlogCMS() {
     }
   };
 
-  const handleSaveDraft = async () => {
-    const updatedData = { ...formData, status: "Draft" };
-    setFormData(updatedData);
-    handleSubmitDirect(updatedData);
-  };
-
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    const updatedData = { ...formData, status: "Published" };
-    setFormData(updatedData);
-    handleSubmitDirect(updatedData);
+    handleSubmitDirect(formData);
   };
 
   const handleSubmitDirect = async (dataToSave) => {
@@ -420,7 +412,14 @@ export default function BlogCMS() {
                               <img src={blog.coverImage || blog.hero_image} alt={blog.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                             </div>
                             <div className="max-w-md">
-                              <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1">{blog.title}</h3>
+                              <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1 flex items-center gap-2">
+                                {blog.title}
+                                {blog.status !== "Published" && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-sans font-bold tracking-wider uppercase bg-brand-bg text-brand-muted border border-brand-border">
+                                    Draft
+                                  </span>
+                                )}
+                              </h3>
                               <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide">/{blog.slug}</div>
                             </div>
                           </div>
@@ -542,20 +541,12 @@ export default function BlogCMS() {
                   Cancel
                 </button>
                 <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  disabled={saving}
-                  className="px-5 py-2.5 bg-white border border-brand-border rounded-xl text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer shadow-2xs flex items-center gap-2"
-                >
-                  Save Draft
-                </button>
-                <button
                   type="submit"
                   disabled={saving}
                   className="px-5 py-2.5 bg-brand-mustard text-white rounded-xl text-xs font-bold hover:bg-brand-ink transition-all flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
                 >
                   {saving && <Loader2 className="animate-spin" size={12} />}
-                  Publish Post
+                  {formData.status === "Published" ? "Publish Post" : "Save Draft"}
                 </button>
               </div>
             </div>

@@ -13,7 +13,7 @@ export default async function BlogPage() {
       fetchBlogs()
     ]);
     destinationsList = destData;
-    blogPosts = blogData;
+    blogPosts = (blogData || []).filter(item => (item.status || "Draft").toLowerCase() === "published");
   } catch (err) {
     console.error("Failed to load blog page dynamically", err);
   }

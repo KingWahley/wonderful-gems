@@ -30,8 +30,8 @@ export default async function Home() {
       fetchSettings("home_cta"),
     ]);
     destinations = fetchedDestinations || [];
-    blogs = fetchedBlogs || [];
-    miniGuides = fetchedMiniGuides || [];
+    blogs = (fetchedBlogs || []).filter(item => (item.status || "Draft").toLowerCase() === "published");
+    miniGuides = (fetchedMiniGuides || []).filter(item => (item.status || "published").toLowerCase() === "published");
     homeHero = fetchedHero;
     homeCta = fetchedCta;
   } catch (error) {

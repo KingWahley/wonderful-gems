@@ -634,8 +634,15 @@ export default function ItineraryGuidesCMS() {
                                 />
                               </div>
                               <div className="max-w-md">
-                                <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1">{guide.title}</h3>
-                                <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide">/mini-guides/{guide.slug}</div>
+                                <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1 flex items-center gap-2">
+                                  {guide.title}
+                                  {(guide.status || "draft").toLowerCase() !== "published" && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-sans font-bold tracking-wider uppercase bg-brand-bg text-brand-muted border border-brand-border">
+                                      Draft
+                                    </span>
+                                  )}
+                                </h3>
+                                <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide font-sans">/mini-guides/{guide.slug}</div>
                               </div>
                             </div>
                           </td>
@@ -754,23 +761,12 @@ export default function ItineraryGuidesCMS() {
                   Discard
                 </button>
                 <button
-                  type="button"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, status: "draft" }));
-                    handleSubmit();
-                  }}
-                  disabled={saving}
-                  className="px-5 py-2.5 bg-white border border-brand-border rounded-xl text-xs font-bold text-brand-ink hover:bg-[#fcfbf9] transition-all cursor-pointer shadow-2xs"
-                >
-                  Save Draft
-                </button>
-                <button
                   type="submit"
                   disabled={saving}
                   className="px-5 py-2.5 bg-brand-mustard text-white rounded-xl text-xs font-bold hover:bg-brand-ink transition-all flex items-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
                 >
                   {saving && <Loader2 className="animate-spin" size={12} />}
-                  Publish Itinerary
+                  {(formData.status || "draft").toLowerCase() === "published" ? "Publish Itinerary" : "Save Draft"}
                 </button>
               </div>
             </div>

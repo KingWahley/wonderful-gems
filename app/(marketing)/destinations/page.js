@@ -13,8 +13,8 @@ export default async function DestinationsPage() {
     ]);
 
     destinationsWithCounts = destData.map(d => {
-      const blogsCount = blogData.filter(b => b.destination === d.country).length;
-      const toursCount = tourData.filter(t => t.destination === d.country).length;
+      const blogsCount = blogData.filter(b => b.destination === d.country && (b.status || "Draft").toLowerCase() === "published").length;
+      const toursCount = tourData.filter(t => t.destination === d.country && (t.status || "published").toLowerCase() === "published").length;
       return { ...d, blogsCount, toursCount };
     });
   } catch (err) {

@@ -36,7 +36,7 @@ export default async function BlogPost({ params }) {
     ]);
 
     post = blogData.find((p) => p.slug === slug);
-    if (!post) {
+    if (!post || (post.status || "Draft").toLowerCase() !== "published") {
       notFound();
     }
 
@@ -44,11 +44,11 @@ export default async function BlogPost({ params }) {
 
     // Find other posts from same destination
     relatedPosts = blogData.filter(
-      (p) => p.destination?.toLowerCase() === post.destination?.toLowerCase() && p.id !== post.id
+      (p) => p.destination?.toLowerCase() === post.destination?.toLowerCase() && p.id !== post.id && (p.status || "Draft").toLowerCase() === "published"
     ).slice(0, 3);
 
     // Latest posts for sidebar
-    latestPosts = blogData.filter(p => p.id !== post.id).slice(0, 5);
+    latestPosts = blogData.filter(p => p.id !== post.id && (p.status || "Draft").toLowerCase() === "published").slice(0, 5);
 
     // Get unique destinations from destinations list or posts
     uniqueDestinations = destData.map(d => d.country);

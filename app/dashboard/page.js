@@ -27,9 +27,9 @@ export default function DashboardOverview() {
         ]);
         setStats({
           destinations: d.length,
-          blogs: b.length,
-          tours: t.length,
-          guides: g.length,
+          blogs: b.filter(item => (item.status || "Draft").toLowerCase() === "published").length,
+          tours: t.filter(item => (item.status || "published").toLowerCase() === "published").length,
+          guides: g.filter(item => (item.status || "published").toLowerCase() === "published").length,
           packages: p.length
         });
       } catch (err) {

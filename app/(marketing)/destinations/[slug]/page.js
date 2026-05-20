@@ -35,10 +35,10 @@ export default async function DestinationDetails({ params }) {
 
     if (destination) {
       relatedBlogs = blogData.filter(
-        b => b.destination.toLowerCase() === destination.country.toLowerCase()
+        b => b.destination.toLowerCase() === destination.country.toLowerCase() && (b.status || "Draft").toLowerCase() === "published"
       );
       companionGuide = guidesData.find(
-        g => g.destination.toLowerCase() === destination.country.toLowerCase()
+        g => g.destination.toLowerCase() === destination.country.toLowerCase() && (g.status || "published").toLowerCase() === "published"
       );
     }
 
