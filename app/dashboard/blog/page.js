@@ -582,33 +582,37 @@ export default function BlogCMS() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Destination</label>
-                        <select
+                        <input
+                          type="text"
+                          list="destinations-list"
                           value={formData.destination}
                           onChange={handleDestinationChange}
                           required
-                          className="w-full border border-brand-border rounded-xl p-3.5 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white text-brand-ink appearance-none transition-all cursor-pointer font-sans"
-                        >
+                          placeholder="Type or select a country"
+                          className="w-full border border-brand-border rounded-xl p-3.5 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                        />
+                        <datalist id="destinations-list">
                           {destinations.map((d) => (
-                            <option key={d.id} value={d.country}>
-                              {d.country}
-                            </option>
+                            <option key={d.id} value={d.country} />
                           ))}
-                        </select>
+                        </datalist>
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">City</label>
-                        <select
+                        <input
+                          type="text"
+                          list="cities-list"
                           value={formData.city}
                           onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          className="w-full border border-brand-border rounded-xl p-3.5 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white text-brand-ink appearance-none transition-all cursor-pointer font-sans"
-                        >
+                          placeholder="Type or select a city"
+                          className="w-full border border-brand-border rounded-xl p-3.5 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                        />
+                        <datalist id="cities-list">
                           {getCitiesForDestination(formData.destination).map((city, idx) => (
-                            <option key={idx} value={city}>
-                              {city}
-                            </option>
+                            <option key={idx} value={city} />
                           ))}
-                        </select>
+                        </datalist>
                       </div>
                     </div>
 

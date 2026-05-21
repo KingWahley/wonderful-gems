@@ -717,57 +717,38 @@ export default function PocketGuidesCMS() {
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Destination</label>
                         <div className="relative">
-                          <select
+                          <input
+                            type="text"
+                            list="pocket-destinations-list"
                             value={formData.destination}
                             onChange={handleDestinationChange}
                             required
-                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink appearance-none transition-all cursor-pointer font-sans pr-10"
-                          >
+                            placeholder="Type or select a country"
+                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                          />
+                          <datalist id="pocket-destinations-list">
                             {destinations.map((d) => (
-                              <option key={d.id} value={d.country}>
-                                {d.country}
-                              </option>
+                              <option key={d.id} value={d.country} />
                             ))}
-                          </select>
-                          <ChevronDown size={14} className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted pointer-events-none" />
+                          </datalist>
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">City</label>
-                        <div className="relative">
-                          <select
-                            value={cityMapping[formData.destination]?.includes(formData.details?.city) ? formData.details?.city : "custom"}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === "custom") {
-                                updateDetailField("city", "");
-                              } else {
-                                updateDetailField("city", val);
-                              }
-                            }}
-                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink appearance-none transition-all cursor-pointer font-sans pr-10"
-                          >
-                            {(cityMapping[formData.destination] || []).map((city) => (
-                              <option key={city} value={city}>
-                                {city}
-                              </option>
-                            ))}
-                            <option value="custom">Other / Custom City...</option>
-                          </select>
-                          <ChevronDown size={14} className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted pointer-events-none" />
-                        </div>
-                        
-                        {(!cityMapping[formData.destination]?.includes(formData.details?.city)) && (
-                          <input
-                            type="text"
-                            value={formData.details?.city || ""}
-                            onChange={(e) => updateDetailField("city", e.target.value)}
-                            className="mt-2 w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
-                            placeholder="Enter custom city name"
-                            required
-                          />
-                        )}
+                        <input
+                          type="text"
+                          list="pocket-cities-list"
+                          value={formData.details?.city || ""}
+                          onChange={(e) => updateDetailField("city", e.target.value)}
+                          placeholder="Type or select a city"
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                        />
+                        <datalist id="pocket-cities-list">
+                          {(cityMapping[formData.destination] || []).map((city) => (
+                            <option key={city} value={city} />
+                          ))}
+                        </datalist>
                       </div>
                     </div>
 

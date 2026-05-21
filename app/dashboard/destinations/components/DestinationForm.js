@@ -195,18 +195,22 @@ export default function DestinationForm({ initialData }) {
                 </div>
                 <div>
                   <label className="block text-[13px] font-extrabold mb-2">Region</label>
-                  <select 
+                  <input 
+                    type="text"
+                    list="regions-list"
                     value={formData.region}
                     onChange={e => setFormData(p => ({ ...p, region: e.target.value }))}
+                    placeholder="e.g. Asia"
                     className="w-full border border-brand-border rounded-lg bg-white px-3 py-3 text-sm focus:outline-none focus:border-brand-mustard"
-                  >
-                    <option>Asia</option>
-                    <option>Europe</option>
-                    <option>Africa</option>
-                    <option>North America</option>
-                    <option>South America</option>
-                    <option>Oceania</option>
-                  </select>
+                  />
+                  <datalist id="regions-list">
+                    <option value="Asia" />
+                    <option value="Europe" />
+                    <option value="Africa" />
+                    <option value="North America" />
+                    <option value="South America" />
+                    <option value="Oceania" />
+                  </datalist>
                 </div>
               </div>
 

@@ -791,19 +791,20 @@ export default function ItineraryGuidesCMS() {
                       {/* Destination Selector */}
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Destination *</label>
-                        <select
+                        <input
+                          type="text"
+                          list="destinations-list"
                           required
                           value={formData.destination}
                           onChange={handleDestinationChange}
-                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink cursor-pointer"
-                        >
-                          <option value="">Select destination</option>
+                          placeholder="Type or select a country"
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                        />
+                        <datalist id="destinations-list">
                           {destinations.map((dest) => (
-                            <option key={dest.id} value={dest.country}>
-                              {dest.country}
-                            </option>
+                            <option key={dest.id} value={dest.country} />
                           ))}
-                        </select>
+                        </datalist>
                       </div>
 
                       {/* Country Input */}

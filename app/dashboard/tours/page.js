@@ -559,57 +559,40 @@ export default function ToursCMS() {
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Destination</label>
                         <div className="relative">
-                          <select
+                          <input
+                            type="text"
+                            list="tour-destinations-list"
                             value={formData.destination}
                             onChange={handleDestinationChange}
                             required
-                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink appearance-none transition-all cursor-pointer pr-10"
-                          >
+                            placeholder="Type or select a country"
+                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                          />
+                          <datalist id="tour-destinations-list">
                             {destinations.map((d) => (
-                              <option key={d.id} value={d.country}>
-                                {d.country}
-                              </option>
+                              <option key={d.id} value={d.country} />
                             ))}
-                          </select>
-                          <ChevronDown size={14} className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted pointer-events-none" />
+                          </datalist>
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">City</label>
                         <div className="relative">
-                          <select
-                            value={cityMapping[formData.destination]?.includes(formData.city) ? formData.city : "custom"}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val === "custom") {
-                                setFormData(prev => ({ ...prev, city: "" }));
-                              } else {
-                                setFormData(prev => ({ ...prev, city: val }));
-                              }
-                            }}
-                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink appearance-none transition-all cursor-pointer pr-10"
-                          >
-                            {(cityMapping[formData.destination] || []).map((city) => (
-                              <option key={city} value={city}>
-                                {city}
-                              </option>
-                            ))}
-                            <option value="custom">Other / Custom City...</option>
-                          </select>
-                          <ChevronDown size={14} className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted pointer-events-none" />
-                        </div>
-                        
-                        {(!cityMapping[formData.destination]?.includes(formData.city)) && (
                           <input
                             type="text"
+                            list="tour-cities-list"
                             value={formData.city}
                             onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                            className="mt-2 w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
-                            placeholder="Enter custom city name"
-                            required
+                            placeholder="Type or select a city"
+                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
                           />
-                        )}
+                          <datalist id="tour-cities-list">
+                            {(cityMapping[formData.destination] || []).map((city) => (
+                              <option key={city} value={city} />
+                            ))}
+                          </datalist>
+                        </div>
                       </div>
                     </div>
 

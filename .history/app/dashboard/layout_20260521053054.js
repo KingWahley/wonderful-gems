@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }) {
           <div className={`text-brand-mustard font-serif text-3xl font-extrabold mb-1 tracking-wider ${isCollapsed ? "" : "hidden"}`}>T</div>
           <div className={`transition-all duration-300 overflow-hidden flex flex-col items-center ${isCollapsed ? "max-h-0 opacity-0 pointer-events-none hidden" : "max-h-24 opacity-100"}`}>
             <Link href="/" className="block hover:opacity-80 transition-opacity">
-              <img src="/images/logo.png" alt="The Long Way" className="h-10 w-auto object-contain rounded-md" />
+              <img src="/images/logo.jpeg" alt="The Long Way" className="h-10 w-auto object-contain rounded-md" />
             </Link>
             <span className="block text-[9px] text-brand-muted mt-3 uppercase tracking-[0.3em] font-semibold">CMS Panel</span>
           </div>

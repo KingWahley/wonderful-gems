@@ -47,19 +47,13 @@ export default function Navbar() {
     <>
       <nav
         className={`fixed top-0 w-full z-50 transition-all duration-500 ease-in-out border-t-[8px] border-b-[16px] border-mustard-500 ${
-          isScrolled
-            ? "bg-cream-100/95 backdrop-blur-md shadow-sm py-4"
-            : "bg-cream-100 py-4 lg:py-5"
+          isScrolled ? "bg-cream-100/95 backdrop-blur-md shadow-sm py-4" : "bg-cream-100 py-4 lg:py-5"
         }`}
       >
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12 flex justify-between items-center">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <img
-              src="/images/logo.png"
-              alt="The Long Way"
-              className="h-12 w-auto object-contain"
-            />
+            <img src="/images/logo.jpeg" alt="The Long Way" className="h-12 w-auto object-contain" />
           </Link>
 
           {/* Desktop Menu */}
@@ -81,29 +75,23 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="hidden lg:flex items-center space-x-5">
-            <div
+            <div 
               className="relative cursor-pointer group"
               onClick={() => setIsSearchOpen(true)}
             >
-              <input
-                type="text"
+              <input 
+                type="text" 
                 readOnly
-                placeholder="Search..."
+                placeholder="Search..." 
                 className="bg-white border border-[#2b3a4a] rounded-full py-2 pl-9 pr-14 text-xs text-charcoal-900 focus:outline-none w-48 focus:w-56 cursor-pointer transition-all duration-300 placeholder:text-gray-500"
               />
-              <Search
-                size={14}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500"
-              />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
               <div className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-cream-200 border border-gray-200 text-gray-500 text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center">
                 ⌘K
               </div>
             </div>
-
-            <Link
-              href="/plan-with-me"
-              className="bg-mustard-500 hover:bg-mustard-600 text-white rounded-full px-6 py-2.5 text-[11px] font-bold tracking-[0.1em] uppercase transition-colors shadow-sm"
-            >
+            
+            <Link href="/plan-with-me" className="bg-mustard-500 hover:bg-mustard-600 text-white rounded-full px-6 py-2.5 text-[11px] font-bold tracking-[0.1em] uppercase transition-colors shadow-sm">
               PLAN WITH ME
             </Link>
           </div>
@@ -122,9 +110,7 @@ export default function Navbar() {
       {/* Mobile Drawer */}
       <div
         className={`fixed inset-0 z-[60] bg-charcoal-900/40 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          mobileMenuOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
+          mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         onClick={() => setMobileMenuOpen(false)}
       >
@@ -135,32 +121,26 @@ export default function Navbar() {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex justify-end p-6">
-            <button
-              onClick={() => setMobileMenuOpen(false)}
-              className="text-charcoal-800 hover:text-mustard-600 transition-colors"
-            >
+            <button onClick={() => setMobileMenuOpen(false)} className="text-charcoal-800 hover:text-mustard-600 transition-colors">
               <X size={28} />
             </button>
           </div>
           <div className="flex flex-col space-y-6 px-10 pt-4">
             {/* Mobile Search Bar */}
-            <div
+            <div 
               className="relative cursor-pointer mb-2"
               onClick={() => {
                 setMobileMenuOpen(false);
                 setIsSearchOpen(true);
               }}
             >
-              <input
-                type="text"
+              <input 
+                type="text" 
                 readOnly
-                placeholder="Search..."
+                placeholder="Search..." 
                 className="bg-white border border-[#2b3a4a] rounded-full py-3 pl-11 pr-4 text-sm text-charcoal-900 focus:outline-none w-full cursor-pointer placeholder:text-gray-500"
               />
-              <Search
-                size={16}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-              />
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
             </div>
 
             {navLinks.map((link) => (
@@ -177,8 +157,8 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            <Link
-              href="/plan-with-me"
+            <Link 
+              href="/plan-with-me" 
               onClick={() => setMobileMenuOpen(false)}
               className="text-xl font-serif text-charcoal-800 hover:text-mustard-600 transition-colors flex items-center"
             >
@@ -189,10 +169,7 @@ export default function Navbar() {
       </div>
 
       {/* Global Interactive Search Modal */}
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }
