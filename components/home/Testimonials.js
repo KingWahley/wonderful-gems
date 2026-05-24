@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function MiniTravelGuides({ miniGuides = [] }) {
+export default function MiniTravelGuides({ miniGuides = [], settings = {} }) {
   // Filter to show ONLY pocket guides (type === 'pocket') and slice to exactly 3
   const pocketGuides = miniGuides.filter((guide) => guide.type === "pocket").slice(0, 3);
 
@@ -12,12 +12,18 @@ export default function MiniTravelGuides({ miniGuides = [] }) {
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="mb-14">
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-mustard-500 font-bold tracking-[0.2em] uppercase text-[11px] flex items-center gap-1.5">
-              <span>⚡</span> POCKET GUIDES
-            </span>
+            {settings?.badge ? (
+              <span className="text-mustard-500 font-bold tracking-[0.2em] uppercase text-[11px] flex items-center gap-1.5">
+                {settings.badge}
+              </span>
+            ) : (
+              <span className="text-mustard-500 font-bold tracking-[0.2em] uppercase text-[11px] flex items-center gap-1.5">
+                <span>⚡</span> POCKET GUIDES
+              </span>
+            )}
           </div>
           <h2 className="text-4xl md:text-[46px] font-serif font-bold text-charcoal-900 mb-4 tracking-tight">
-            Mini Travel Guides
+            {settings?.title || "Mini Travel Guides"}
           </h2>
           <p className="text-charcoal-800/80 font-medium text-[15px] max-w-2xl">
             Where to stay, what to eat, top sights, and day trips — the practical pocket version, 

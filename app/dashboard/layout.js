@@ -17,7 +17,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Home
 } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
@@ -49,6 +50,7 @@ export default function DashboardLayout({ children }) {
     { name: "Media Library", path: "/dashboard/media-library", icon: <ImageIcon size={18} /> },
     { name: "Inquiries", path: "/dashboard/inquiries", icon: <MessageSquare size={18} /> },
     { name: "Bookings", path: "/dashboard/bookings", icon: <CalendarCheck size={18} /> },
+    { name: "Homepage", path: "/dashboard/homepage", icon: <Home size={18} /> },
     { name: "Settings", path: "/dashboard/settings", icon: <Settings size={18} /> },
   ];
 

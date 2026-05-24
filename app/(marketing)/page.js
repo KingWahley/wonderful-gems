@@ -16,6 +16,11 @@ export default async function Home() {
   let tours = [];
   let homeHero = null;
   let homeCta = null;
+  let homeLatestPosts = null;
+  let homeDestinations = null;
+  let homeMiniGuides = null;
+  let homePocketGuides = null;
+  let homeTours = null;
 
   try {
     const [
@@ -24,7 +29,12 @@ export default async function Home() {
       fetchedMiniGuides,
       fetchedTours,
       fetchedHero,
-      fetchedCta
+      fetchedCta,
+      fetchedLatestPosts,
+      fetchedHomeDests,
+      fetchedHomeGuides,
+      fetchedHomePocketGuides,
+      fetchedHomeTours
     ] = await Promise.all([
       fetchDestinations(),
       fetchBlogs(),
@@ -32,6 +42,11 @@ export default async function Home() {
       fetchTours(),
       fetchSettings("home_hero"),
       fetchSettings("home_cta"),
+      fetchSettings("home_latest_posts"),
+      fetchSettings("home_destinations"),
+      fetchSettings("home_mini_guides"),
+      fetchSettings("home_pocket_guides"),
+      fetchSettings("home_tours")
     ]);
     destinations = fetchedDestinations || [];
     blogs = (fetchedBlogs || []).filter(item => (item.status || "Draft").toLowerCase() === "published");
@@ -39,24 +54,66 @@ export default async function Home() {
     tours = fetchedTours || [];
     homeHero = fetchedHero;
     homeCta = fetchedCta;
+    homeLatestPosts = fetchedLatestPosts;
+    homeDestinations = fetchedHomeDests;
+    homeMiniGuides = fetchedHomeGuides;
+    homePocketGuides = fetchedHomePocketGuides;
+    homeTours = fetchedHomeTours;
   } catch (error) {
     console.error("Error fetching homepage data from Supabase:", error);
   }
 
-  const featuredBlogs = blogs.filter((b) => b.isFresh || b.is_fresh);
-  const featuredItineraries = miniGuides.filter((g) => g.type === "itinerary" && (g.details?.featured === "yes" || g.details?.featured === "Yes"));
-  const featuredPocketGuides = miniGuides.filter((g) => g.type === "pocket" && (g.details?.featured === "yes" || g.details?.featured === "Yes"));
-  const featuredTours = tours.filter((t) => (t.status || "").toLowerCase() === "published" && (t.featureOnHomepage === "Yes" || t.featureOnHomepage === "yes"));
+  // Filter blogs based on CMS selection
+  let featuredBlogs = [];
+  if (homeLatestPosts && homeLatestPosts.items && homeLatestPosts.items.length > 0) {
+    featuredBlogs = homeLatestPosts.items.map(id => blogs.find(b => b.id === id)).filter(Boolean);
+  } else {
+    featuredBlogs = blogs.filter((b) => b.isFresh || b.is_fresh).slice(0, 3);
+  }
+
+  // Filter destinations based on CMS selection
+  let displayDestinations = [];
+  if (homeDestinations && homeDestinations.items && homeDestinations.items.length > 0) {
+    displayDestinations = homeDestinations.items.map(id => destinations.find(d => d.id === id)).filter(Boolean);
+  } else {
+    displayDestinations = destinations; // Component handles fallback slice
+  }
+
+  // Filter tours based on CMS selection
+  let featuredToursList = [];
+  if (homeTours && homeTours.items && homeTours.items.length > 0) {
+    featuredToursList = homeTours.items.map(id => tours.find(t => t.id === id)).filter(Boolean);
+  } else {
+    featuredToursList = tours.filter((t) => (t.status || "").toLowerCase() === "published" && (t.featureOnHomepage === "Yes" || t.featureOnHomepage === "yes"));
+  }
+
+  // Filter guides based on CMS selection
+  let selectedGuides = [];
+  if (homeMiniGuides && homeMiniGuides.items && homeMiniGuides.items.length > 0) {
+    selectedGuides = homeMiniGuides.items.map(id => miniGuides.find(g => g.id === id)).filter(Boolean);
+  } else {
+    selectedGuides = miniGuides.filter((g) => g.details?.featured === "yes" || g.details?.featured === "Yes");
+  }
+
+  let selectedPocketGuides = [];
+  if (homePocketGuides && homePocketGuides.items && homePocketGuides.items.length > 0) {
+    selectedPocketGuides = homePocketGuides.items.map(id => miniGuides.find(g => g.id === id)).filter(Boolean);
+  } else {
+    selectedPocketGuides = miniGuides.filter((g) => g.details?.featured === "yes" || g.details?.featured === "Yes");
+  }
+
+  const featuredItineraries = selectedGuides.filter((g) => g.type === "itinerary");
+  const featuredPocketGuides = selectedPocketGuides.filter((g) => g.type === "pocket");
 
   return (
     <>
-      <Hero settings={homeHero} />
-      {featuredBlogs.length > 0 && <FeaturedBlogs blogs={featuredBlogs} />}
-      <FeaturedDestinations destinations={destinations} />
-      {featuredItineraries.length > 0 && <FreshOffTheRoad miniGuides={featuredItineraries} />}
-      {featuredTours.length > 0 && <FeaturedTours tours={featuredTours} />}
-      <WhyTravelWithMe settings={homeCta} />
-      {featuredPocketGuides.length > 0 && <Testimonials miniGuides={featuredPocketGuides} />}
+      {(!homeHero || homeHero.enabled) && <Hero settings={homeHero} />}
+      {(!homeLatestPosts || homeLatestPosts.enabled) && featuredBlogs.length > 0 && <FeaturedBlogs blogs={featuredBlogs} settings={homeLatestPosts} />}
+      {(!homeDestinations || homeDestinations.enabled) && <FeaturedDestinations destinations={displayDestinations} settings={homeDestinations} />}
+      {(!homeMiniGuides || homeMiniGuides.enabled) && featuredItineraries.length > 0 && <FreshOffTheRoad miniGuides={featuredItineraries} settings={homeMiniGuides} />}
+      {(!homeTours || homeTours.enabled) && featuredToursList.length > 0 && <FeaturedTours tours={featuredToursList} settings={homeTours} />}
+      {(!homeCta || homeCta.enabled) && <WhyTravelWithMe settings={homeCta} />}
+      {(!homePocketGuides || homePocketGuides.enabled) && featuredPocketGuides.length > 0 && <Testimonials miniGuides={featuredPocketGuides} settings={homePocketGuides} />}
     </>
   );
 }

@@ -1,14 +1,21 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function FeaturedDestinations({ destinations = [] }) {
+export default function FeaturedDestinations({ destinations = [], settings = {} }) {
   if (!destinations || destinations.length === 0) return null;
   return (
     <section className="py-20 lg:py-28 bg-mustard-500 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="text-center mb-12">
+          {settings?.badge && (
+            <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-white/20 mb-4 bg-white/10">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-white uppercase">
+                {settings.badge}
+              </span>
+            </div>
+          )}
           <h2 className="text-4xl md:text-[56px] font-serif font-bold text-white mb-4 tracking-tight leading-tight">
-            Explore by Destination
+            {settings?.title || "Explore by Destination"}
           </h2>
           <p className="text-white/90 font-sans font-medium text-[14px] md:text-[15px] tracking-wide">
             Tap a country to see every post and guide from there.

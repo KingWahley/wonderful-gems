@@ -1,9 +1,23 @@
 import "./globals.css";
 
-export const metadata = {
-  title: "Wanderful | Luxury Travel & Consultancy",
-  description: "Curating luxury travel experiences and discovering the world's most breathtaking destinations.",
-};
+import { fetchSettings } from "@/lib/db";
+
+export async function generateMetadata() {
+  let seo = null;
+  try {
+    seo = await fetchSettings("home_seo");
+  } catch (error) {
+    console.error("Error fetching SEO settings", error);
+  }
+
+  return {
+    title: seo?.title || "Wanderful | Luxury Travel & Consultancy",
+    description: seo?.description || "Curating luxury travel experiences and discovering the world's most breathtaking destinations.",
+    openGraph: seo?.socialImage ? {
+      images: [{ url: seo.socialImage }]
+    } : undefined
+  };
+}
 
 export default function RootLayout({ children }) {
   return (

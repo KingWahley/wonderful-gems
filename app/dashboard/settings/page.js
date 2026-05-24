@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { fetchSettings, saveSettings, uploadImage } from "@/lib/db";
 import { 
-  Home, 
-  Compass, 
   User, 
   HelpCircle, 
   Save, 
@@ -25,24 +23,9 @@ import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 
 export default function CMSPageSettings() {
   // Tabs State
-  const [activeTab, setActiveTab] = useState("home_hero");
+  const [activeTab, setActiveTab] = useState("about_page");
   
   // Settings States
-  const [homeHero, setHomeHero] = useState({
-    badge: "",
-    title: "",
-    subtitle1: "",
-    subtitle2: "",
-    coverImage: ""
-  });
-  
-  const [homeCta, setHomeCta] = useState({
-    badge: "",
-    title: "",
-    description: "",
-    buttonText: ""
-  });
-  
   const [aboutPage, setAboutPage] = useState({
     badge: "",
     title: "",
@@ -76,15 +59,11 @@ export default function CMSPageSettings() {
   useEffect(() => {
     async function loadAllSettings() {
       try {
-        const [hero, cta, about, plan] = await Promise.all([
-          fetchSettings("home_hero"),
-          fetchSettings("home_cta"),
+        const [about, plan] = await Promise.all([
           fetchSettings("about_page"),
           fetchSettings("plan_page")
         ]);
         
-        if (hero) setHomeHero(hero);
-        if (cta) setHomeCta(cta);
         if (about) setAboutPage(about);
         if (plan) setPlanPage({
           ...plan,
@@ -139,9 +118,7 @@ export default function CMSPageSettings() {
     try {
       const url = await uploadImage(file);
       
-      if (tabKey === "home_hero") {
-        setHomeHero(prev => ({ ...prev, [fieldKey]: url }));
-      } else if (tabKey === "about_page") {
+      if (tabKey === "about_page") {
         setAboutPage(prev => ({ ...prev, [fieldKey]: url }));
       }
       
@@ -150,9 +127,7 @@ export default function CMSPageSettings() {
       console.warn("Storage upload failed (probably bucket wanderful-images is not created yet). Using local preview instead.", err);
       // Generate object URL as preview to support offline testing
       const localUrl = URL.createObjectURL(file);
-      if (tabKey === "home_hero") {
-        setHomeHero(prev => ({ ...prev, [fieldKey]: localUrl }));
-      } else if (tabKey === "about_page") {
+      if (tabKey === "about_page") {
         setAboutPage(prev => ({ ...prev, [fieldKey]: localUrl }));
       }
       showToast("warning", "Storage upload failed. Image preview updated locally, but please save with a valid URL or create the bucket.");
@@ -194,8 +169,6 @@ export default function CMSPageSettings() {
   };
 
   const sidebarTabs = [
-    { id: "home_hero", label: "Home Hero", icon: <Home size={18} /> },
-    { id: "home_cta", label: "Why Travel CTA", icon: <Compass size={18} /> },
     { id: "about_page", label: "About Page", icon: <User size={18} /> },
     { id: "plan_page", label: "Plan & FAQs", icon: <HelpCircle size={18} /> },
   ];
@@ -275,197 +248,6 @@ export default function CMSPageSettings() {
           {/* Form Content Area */}
           <div className="flex-1 w-full bg-white rounded-xl shadow-xs border border-cream-200 p-6 md:p-8">
             
-            {/* HOME HERO TAB */}
-            {activeTab === "home_hero" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="font-serif text-xl text-charcoal-900 mb-1 flex items-center gap-2 font-bold">
-                    Home Hero Cover
-                    <Sparkles size={16} className="text-brand-mustard" />
-                  </h2>
-                  <p className="text-xs text-charcoal-800/60">Configure the badge, bold title, background cover, and descriptions for the main home page header.</p>
-                </div>
-                
-                <hr className="border-cream-200" />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Category Badge</label>
-                    <input 
-                      type="text" 
-                      value={homeHero.badge}
-                      onChange={e => setHomeHero(prev => ({ ...prev, badge: e.target.value }))}
-                      placeholder="e.g. A TRAVEL JOURNAL"
-                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Cover Image Title</label>
-                    <input 
-                      type="text" 
-                      value={homeHero.title}
-                      onChange={e => setHomeHero(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="e.g. The Long Way"
-                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Hero Intro Paragraph 1</label>
-                    <textarea 
-                      rows="3"
-                      value={homeHero.subtitle1}
-                      onChange={e => setHomeHero(prev => ({ ...prev, subtitle1: e.target.value }))}
-                      placeholder="First paragraph of introductory subtitle copy..."
-                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Hero Intro Paragraph 2 (Optional)</label>
-                    <textarea 
-                      rows="3"
-                      value={homeHero.subtitle2}
-                      onChange={e => setHomeHero(prev => ({ ...prev, subtitle2: e.target.value }))}
-                      placeholder="Second paragraph of introductory subtitle copy..."
-                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Cover Image URL</label>
-                  <div className="flex gap-4 items-center">
-                    <input 
-                      type="text" 
-                      value={homeHero.coverImage}
-                      onChange={e => setHomeHero(prev => ({ ...prev, coverImage: e.target.value }))}
-                      placeholder="https://images.unsplash.com/photo-..."
-                      className="flex-1 bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
-                    />
-                    
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMediaTarget({ tab: "home_hero", field: "coverImage" });
-                        setIsMediaModalOpen(true);
-                      }}
-                      className="bg-brand-bg text-brand-ink px-4 py-3 border border-brand-border rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-cream-100 transition-colors flex items-center gap-2 cursor-pointer shrink-0"
-                    >
-                      <ImageIcon size={14} /> Library
-                    </button>
-                    
-                    <label className="bg-charcoal-900 text-white px-4 py-3 rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-brand-mustard transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
-                      {imageUploading ? (
-                        <Loader2 className="animate-spin" size={14} />
-                      ) : (
-                        <Upload size={14} />
-                      )}
-                      Upload
-                      <input 
-                        type="file" 
-                        accept="image/*"
-                        onChange={e => handleImageUpload(e, "home_hero", "coverImage")}
-                        className="hidden" 
-                      />
-                    </label>
-                  </div>
-                  
-                  {homeHero.coverImage && (
-                    <div className="mt-4 relative w-full h-[180px] rounded-lg overflow-hidden border border-brand-border">
-                      <img 
-                        src={homeHero.coverImage} 
-                        alt="Hero cover preview" 
-                        className="object-cover w-full h-full"
-                      />
-                      <div className="absolute top-2 left-2 bg-black/60 text-white text-[8px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full flex items-center gap-1">
-                        <ImageIcon size={10} /> Live Preview
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-4 border-t border-cream-200 flex justify-end">
-                  <button
-                    onClick={() => handleSave("home_hero", homeHero)}
-                    className="bg-charcoal-900 text-white px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase hover:bg-brand-mustard transition-all flex items-center gap-2 shadow-sm cursor-pointer"
-                  >
-                    <Save size={14} /> Save Hero Config
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* HOME CTA TAB */}
-            {activeTab === "home_cta" && (
-              <div className="space-y-6">
-                <div>
-                  <h2 className="font-serif text-xl text-charcoal-900 mb-1 flex items-center gap-2 font-bold">
-                    Why Travel CTA Card
-                    <Sparkles size={16} className="text-brand-mustard" />
-                  </h2>
-                  <p className="text-xs text-charcoal-800/60">Configure the plan callout block at the bottom of the home page, linking visitors to your consultation packages.</p>
-                </div>
-                
-                <hr className="border-cream-200" />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Category Badge</label>
-                    <input 
-                      type="text" 
-                      value={homeCta.badge}
-                      onChange={e => setHomeCta(prev => ({ ...prev, badge: e.target.value }))}
-                      placeholder="e.g. PLAN YOUR TRIP"
-                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Primary Button text</label>
-                    <input 
-                      type="text" 
-                      value={homeCta.buttonText}
-                      onChange={e => setHomeCta(prev => ({ ...prev, buttonText: e.target.value }))}
-                      placeholder="e.g. PLAN WITH ME"
-                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Bold Header Text</label>
-                  <input 
-                    type="text" 
-                    value={homeCta.title}
-                    onChange={e => setHomeCta(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g. Let's build your perfect slow travel itinerary."
-                    className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Description copy</label>
-                  <textarea 
-                    rows="4"
-                    value={homeCta.description}
-                    onChange={e => setHomeCta(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Provide a compelling description of what your travel consulting process delivers..."
-                    className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
-                  />
-                </div>
-
-                <div className="pt-4 border-t border-cream-200 flex justify-end">
-                  <button
-                    onClick={() => handleSave("home_cta", homeCta)}
-                    className="bg-charcoal-900 text-white px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase hover:bg-brand-mustard transition-all flex items-center gap-2 shadow-sm cursor-pointer"
-                  >
-                    <Save size={14} /> Save CTA Config
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* ABOUT PAGE TAB */}
             {activeTab === "about_page" && (
               <div className="space-y-6">
@@ -800,11 +582,13 @@ export default function CMSPageSettings() {
           setMediaTarget(null);
         }}
         onSelect={(url) => {
-          if (mediaTarget?.tab === "home_hero") {
-            setHomeHero(prev => ({ ...prev, [mediaTarget.field]: url }));
-          } else if (mediaTarget?.tab === "about_page") {
-            setAboutPage(prev => ({ ...prev, [mediaTarget.field]: url }));
+          if (mediaTarget) {
+            if (mediaTarget.tab === "about_page") {
+              setAboutPage(prev => ({ ...prev, [mediaTarget.field]: url }));
+            }
           }
+          setIsMediaModalOpen(false);
+          setMediaTarget(null);
         }}
       />
     </div>

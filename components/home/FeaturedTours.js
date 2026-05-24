@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function FeaturedTours({ tours = [] }) {
+export default function FeaturedTours({ tours = [], settings = {} }) {
   if (!tours || tours.length === 0) return null;
 
   return (
@@ -9,12 +9,18 @@ export default function FeaturedTours({ tours = [] }) {
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="mb-14">
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-mustard-500 font-bold tracking-[0.2em] uppercase text-[11px] flex items-center gap-1.5 font-sans">
-              <span>🌟</span> HANDPICKED EXPERIENCES
-            </span>
+            {settings?.badge ? (
+              <span className="text-mustard-500 font-bold tracking-[0.2em] uppercase text-[11px] flex items-center gap-1.5 font-sans">
+                {settings.badge}
+              </span>
+            ) : (
+              <span className="text-mustard-500 font-bold tracking-[0.2em] uppercase text-[11px] flex items-center gap-1.5 font-sans">
+                <span>🌟</span> HANDPICKED EXPERIENCES
+              </span>
+            )}
           </div>
           <h2 className="text-4xl md:text-[46px] font-serif font-bold text-charcoal-900 mb-4 tracking-tight">
-            Featured Tours & Activities
+            {settings?.title || "Featured Tours & Activities"}
           </h2>
           <p className="text-charcoal-800/80 font-medium text-[15px] max-w-2xl leading-relaxed">
             Every guided activity is personally vetted, slow-paced, and rich in local character — 

@@ -10,6 +10,10 @@ export default function PlanYourTripCTA({ settings }) {
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="relative bg-mustard-500 rounded-3xl p-10 md:p-14 lg:p-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-12 overflow-hidden">
           
+          {settings.coverImage && (
+            <img src={settings.coverImage} alt="CTA background" className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40 pointer-events-none" />
+          )}
+          
           {/* NOW BOOKING Badge */}
           <div className="absolute top-8 right-8 inline-flex bg-white px-5 py-2 rounded-full border border-charcoal-900 items-center justify-center">
             <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-charcoal-900">
@@ -36,10 +40,10 @@ export default function PlanYourTripCTA({ settings }) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 shrink-0 relative z-10 mt-2 lg:mt-0 lg:pt-16">
-            <Link href="/plan-with-me" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-white text-charcoal-900 font-bold text-[14px] hover:bg-gray-50 transition-colors animate-all duration-200">
+            <Link href={settings.buttonLink || "/plan-with-me"} className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-white text-charcoal-900 font-bold text-[14px] hover:bg-gray-50 transition-colors animate-all duration-200">
               {buttonText || "See packages"} <span className="ml-2 font-serif text-lg leading-none font-normal">&rarr;</span>
             </Link>
-            <Link href="/plan-with-me#inquiry" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-transparent border border-white text-white font-bold text-[14px] hover:bg-white/10 transition-colors">
+            <Link href={`${settings.buttonLink || "/plan-with-me"}#inquiry`} className="inline-flex items-center justify-center px-8 py-3.5 rounded-full bg-transparent border border-white text-white font-bold text-[14px] hover:bg-white/10 transition-colors">
               Send an inquiry
             </Link>
           </div>

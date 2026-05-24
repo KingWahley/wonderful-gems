@@ -26,19 +26,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const DEFAULT_SETTINGS = {
-  home_hero: {
-    badge: "JOURNAL & FIELD GUIDES",
-    title: "A journal of slow travel.",
-    subtitle1: "Long essays for when you want to be transported, and short pocket guides for when you have a flight already booked.",
-    subtitle2: "Every recommendation is something I've actually done, eaten, or slept in. No AI fluff, no paid PR. Just the places that made me take the long way home.",
-    coverImage: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2000&auto=format&fit=crop"
-  },
-  home_cta: {
-    badge: "PLAN YOUR TRIP",
-    title: "Let's build your perfect slow travel itinerary.",
-    description: "Skip the endless scrolling and cookie-cutter travel blogs. Tell me where you are going, what you love, and how you want to travel — I'll construct a premium custom itinerary just for you.",
-    buttonText: "PLAN WITH ME"
-  },
   about_page: {
     badge: "ABOUT",
     title: "I write about places like I'd text a friend.",

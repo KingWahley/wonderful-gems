@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function FreshOffTheRoad({ miniGuides = [] }) {
+export default function FreshOffTheRoad({ miniGuides = [], settings = {} }) {
   // Helper to format title beautifully with lowercase prepositions
   const formatTitle = (title) => {
     if (!title) return "";
@@ -24,8 +24,15 @@ export default function FreshOffTheRoad({ miniGuides = [] }) {
     <section className="py-20 lg:py-28 bg-cream-100">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="text-center mb-16">
+          {settings?.badge && (
+            <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-[#D9D9D9] mb-4">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-charcoal-400 uppercase">
+                {settings.badge}
+              </span>
+            </div>
+          )}
           <h2 className="text-4xl md:text-[56px] font-serif text-charcoal-900 mb-4 tracking-tight leading-tight font-bold">
-            Fresh <span className="text-coral-500 uppercase">OFF THE ROAD</span>
+            {settings?.title || <>Fresh <span className="text-coral-500 uppercase">OFF THE ROAD</span></>}
           </h2>
           <p className="text-charcoal-800/80 font-medium text-[14px] md:text-[15px] tracking-wide">
             Detailed, slow-travel itineraries to guide your next great journey.

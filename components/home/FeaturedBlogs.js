@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-export default function FeaturedBlogs({ blogs = [] }) {
+export default function FeaturedBlogs({ blogs = [], settings = {} }) {
   if (!blogs || blogs.length === 0) return null;
   // Helper to format category/date exactly like mockup (e.g. CULTURE • KYOTO • APR 2025 -> KYOTO • APRIL 2025)
   const formatCategory = (category, fallback) => {
@@ -47,8 +47,15 @@ export default function FeaturedBlogs({ blogs = [] }) {
     <section className="py-20 lg:py-28 bg-cream-100">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
         <div className="text-center mb-16">
+          {settings?.badge && (
+            <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-[#D9D9D9] mb-4">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-charcoal-400 uppercase">
+                {settings.badge}
+              </span>
+            </div>
+          )}
           <h2 className="text-4xl md:text-[56px] font-serif text-charcoal-900 mb-4 tracking-tight leading-tight">
-            Most <span className="text-mustard-500 uppercase font-sans font-bold">POPULAR</span> Posts
+            {settings?.title || <>Most <span className="text-mustard-500 uppercase font-sans font-bold">POPULAR</span> Posts</>}
           </h2>
           <p className="text-charcoal-800/70 font-light text-[15px] md:text-base tracking-wide">
             Sit-down stories from places worth going slowly.
