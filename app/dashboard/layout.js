@@ -51,7 +51,6 @@ export default function DashboardLayout({ children }) {
     { name: "Inquiries", path: "/dashboard/inquiries", icon: <MessageSquare size={18} /> },
     { name: "Bookings", path: "/dashboard/bookings", icon: <CalendarCheck size={18} /> },
     { name: "Homepage", path: "/dashboard/homepage", icon: <Home size={18} /> },
-    { name: "Settings", path: "/dashboard/settings", icon: <Settings size={18} /> },
   ];
 
   return (

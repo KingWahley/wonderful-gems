@@ -19,7 +19,12 @@ import {
   Plus,
   Trash2,
   Save,
-  ExternalLink
+  ExternalLink,
+  User,
+  HelpCircle,
+  Sparkles,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import Link from "next/link";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
@@ -40,6 +45,16 @@ export default function HomepageManager() {
   const [dbTours, setDbTours] = useState([]);
   const [dbGuides, setDbGuides] = useState([]);
 
+
+  // Settings States
+  const [aboutPage, setAboutPage] = useState({
+    badge: "", title: "", introText: "", middleText: "", footerText: "", coverImage: "", floatingPill: "", contactTitle: "", contactEmail: ""
+  });
+  
+  const [planPage, setPlanPage] = useState({
+    heroBadge: "", heroTitle: "", heroSubtitle: "", faqBadge: "", faqTitle: "", faqs: []
+  });
+
   // Form State
   const [formData, setFormData] = useState({
     home_hero: { enabled: true, badge: "", title: "", subtitle1: "", subtitle2: "", coverImage: "" },
@@ -50,7 +65,7 @@ export default function HomepageManager() {
     home_cta: { enabled: true, badge: "", title: "", description: "", buttonText: "", buttonLink: "", coverImage: "" },
     home_tours: { enabled: true, badge: "", title: "", items: [] }, // items: array of tour IDs
     home_footer: { enabled: true, brandText: "", copyright: "", linkUrl: "" },
-    home_seo: { title: "", description: "", socialImage: "" }
+    home_seo: { title: "", description: "", socialImage: "", siteLogo: "" }
   });
 
   // Select Dropdown States for adding items
@@ -63,6 +78,14 @@ export default function HomepageManager() {
     async function loadData() {
       try {
         // Fetch all possible settings keys
+
+        const [about, plan] = await Promise.all([
+          fetchSettings("about_page"),
+          fetchSettings("plan_page")
+        ]);
+        if (about) setAboutPage(about);
+        if (plan) setPlanPage({ ...plan, faqs: plan.faqs || [] });
+
         const keys = Object.keys(formData);
         const settingsPromises = keys.map(k => fetchSettings(k));
         
@@ -145,6 +168,10 @@ export default function HomepageManager() {
       for (const k of keys) {
         await saveSettings(k, formData[k]);
       }
+
+      await saveSettings("about_page", aboutPage);
+      await saveSettings("plan_page", planPage);
+
       showToast("success", "Homepage configurations saved successfully!");
     } catch (err) {
       console.error(err);
@@ -198,6 +225,23 @@ export default function HomepageManager() {
     if (!file) return;
 
     setImageUploading(true);
+
+    if (sectionKey === "about_page") {
+      try {
+        const url = await uploadImage(file);
+        setAboutPage(prev => ({ ...prev, [fieldKey]: url }));
+        showToast("success", "Image uploaded successfully!");
+      } catch (err) {
+        console.warn("Upload failed, using local preview", err);
+        const localUrl = URL.createObjectURL(file);
+        setAboutPage(prev => ({ ...prev, [fieldKey]: localUrl }));
+        showToast("warning", "Storage upload failed. Local preview used.");
+      } finally {
+        setImageUploading(false);
+      }
+      return;
+    }
+
     try {
       const url = await uploadImage(file);
       updateSection(sectionKey, fieldKey, url);
@@ -210,6 +254,38 @@ export default function HomepageManager() {
     } finally {
       setImageUploading(false);
     }
+  };
+
+
+  const handleFaqChange = (index, field, val) => {
+    const updatedFaqs = [...planPage.faqs];
+    updatedFaqs[index] = { ...updatedFaqs[index], [field]: val };
+    setPlanPage(prev => ({ ...prev, faqs: updatedFaqs }));
+  };
+
+  const addFaq = () => {
+    setPlanPage(prev => ({
+      ...prev,
+      faqs: [...prev.faqs, { q: "", a: "" }]
+    }));
+  };
+
+  const removeFaq = (index) => {
+    const updatedFaqs = planPage.faqs.filter((_, idx) => idx !== index);
+    setPlanPage(prev => ({ ...prev, faqs: updatedFaqs }));
+  };
+
+  const moveFaq = (index, direction) => {
+    if (direction === "up" && index === 0) return;
+    if (direction === "down" && index === planPage.faqs.length - 1) return;
+    
+    const targetIdx = direction === "up" ? index - 1 : index + 1;
+    const updatedFaqs = [...planPage.faqs];
+    const temp = updatedFaqs[index];
+    updatedFaqs[index] = updatedFaqs[targetIdx];
+    updatedFaqs[targetIdx] = temp;
+    
+    setPlanPage(prev => ({ ...prev, faqs: updatedFaqs }));
   };
 
   const ToggleSwitch = ({ checked, onChange }) => (
@@ -273,6 +349,18 @@ export default function HomepageManager() {
           className={`pb-3 text-sm font-bold uppercase tracking-wide transition-colors ${activeTab === "general_site_info" ? "text-[#c7962d] border-b-2 border-[#c7962d]" : "text-gray-400 hover:text-gray-600"}`}
         >
           General Site Info
+        </button>
+        <button 
+          onClick={() => setActiveTab("about_page")}
+          className={`pb-3 text-sm font-bold uppercase tracking-wide transition-colors ${activeTab === "about_page" ? "text-[#c7962d] border-b-2 border-[#c7962d]" : "text-gray-400 hover:text-gray-600"}`}
+        >
+          About Page
+        </button>
+        <button 
+          onClick={() => setActiveTab("plan_page")}
+          className={`pb-3 text-sm font-bold uppercase tracking-wide transition-colors ${activeTab === "plan_page" ? "text-[#c7962d] border-b-2 border-[#c7962d]" : "text-gray-400 hover:text-gray-600"}`}
+        >
+          Plan & FAQs
         </button>
       </div>
 
@@ -690,6 +778,346 @@ export default function HomepageManager() {
             </>
           )}
 
+
+          {/* ABOUT PAGE TAB */}
+          {/* ABOUT PAGE TAB */}
+            {activeTab === "about_page" && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="font-serif text-xl text-charcoal-900 mb-1 flex items-center gap-2 font-bold">
+                    About Elena & Journal
+                    <Sparkles size={16} className="text-brand-mustard" />
+                  </h2>
+                  <p className="text-xs text-charcoal-800/60">Configure the complete static copies, floating portrait pills, about page layouts, and contact card email.</p>
+                </div>
+                
+                <hr className="border-cream-200" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Page Category Badge</label>
+                    <input 
+                      type="text" 
+                      value={aboutPage.badge}
+                      onChange={e => setAboutPage(prev => ({ ...prev, badge: e.target.value }))}
+                      placeholder="e.g. ABOUT"
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Floating Portrait Pill Text</label>
+                    <input 
+                      type="text" 
+                      value={aboutPage.floatingPill}
+                      onChange={e => setAboutPage(prev => ({ ...prev, floatingPill: e.target.value }))}
+                      placeholder="e.g. 👋 HI, THAT'S ME"
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">About Main Title (Supports multi-line with Enter)</label>
+                  <textarea 
+                    rows="2"
+                    value={aboutPage.title}
+                    onChange={e => setAboutPage(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g. I write about places&#10;like I'd text a friend."
+                    className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
+                  />
+                  <p className="text-[10px] text-charcoal-800/40 mt-1">Pressing Enter inserts a line break that shows on the public About page.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Intro Paragraph</label>
+                    <textarea 
+                      rows="3"
+                      value={aboutPage.introText}
+                      onChange={e => setAboutPage(prev => ({ ...prev, introText: e.target.value }))}
+                      placeholder="First paragraph copy..."
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Middle Paragraph</label>
+                    <textarea 
+                      rows="3"
+                      value={aboutPage.middleText}
+                      onChange={e => setAboutPage(prev => ({ ...prev, middleText: e.target.value }))}
+                      placeholder="Second paragraph copy..."
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Footer Paragraph</label>
+                    <textarea 
+                      rows="3"
+                      value={aboutPage.footerText}
+                      onChange={e => setAboutPage(prev => ({ ...prev, footerText: e.target.value }))}
+                      placeholder="Third/disclaimer paragraph copy..."
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Contact Card Title</label>
+                    <input 
+                      type="text" 
+                      value={aboutPage.contactTitle}
+                      onChange={e => setAboutPage(prev => ({ ...prev, contactTitle: e.target.value }))}
+                      placeholder="e.g. say hi 👋"
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Contact Email Address</label>
+                    <input 
+                      type="email" 
+                      value={aboutPage.contactEmail}
+                      onChange={e => setAboutPage(prev => ({ ...prev, contactEmail: e.target.value }))}
+                      placeholder="hello@thelongway.travel"
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Portrait Image URL</label>
+                  <div className="flex gap-4 items-center">
+                    <input 
+                      type="text" 
+                      value={aboutPage.coverImage}
+                      onChange={e => setAboutPage(prev => ({ ...prev, coverImage: e.target.value }))}
+                      placeholder="https://images.unsplash.com/photo-..."
+                      className="flex-1 bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMediaTarget({ tab: "about_page", field: "coverImage" });
+                        setIsMediaModalOpen(true);
+                      }}
+                      className="bg-brand-bg text-brand-ink px-4 py-3 border border-brand-border rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-cream-100 transition-colors flex items-center gap-2 cursor-pointer shrink-0"
+                    >
+                      <ImageIcon size={14} /> Library
+                    </button>
+                    
+                    <label className="bg-charcoal-900 text-white px-4 py-3 rounded-lg text-xs font-semibold tracking-wide uppercase hover:bg-brand-mustard transition-colors flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
+                      {imageUploading ? (
+                        <Loader2 className="animate-spin" size={14} />
+                      ) : (
+                        <Upload size={14} />
+                      )}
+                      Upload
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={e => handleImageUpload(e, "about_page", "coverImage")}
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                  
+                  {aboutPage.coverImage && (
+                    <div className="mt-4 relative max-w-[280px] aspect-[4/5] rounded-xl overflow-hidden border border-brand-border shadow-xs">
+                      <img 
+                        src={aboutPage.coverImage} 
+                        alt="About portrait preview" 
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-cream-200 flex justify-end">
+                  <button
+                    onClick={() => handleSaveAll()}
+                    className="bg-charcoal-900 text-white px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase hover:bg-brand-mustard transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                  >
+                    <Save size={14} /> Save About Page Config
+                  </button>
+                </div>
+              </div>
+            )}
+
+            
+          
+          {/* PLAN PAGE & FAQS TAB */}
+          {/* PLAN PAGE & FAQS TAB */}
+            {activeTab === "plan_page" && (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="font-serif text-xl text-charcoal-900 mb-1 flex items-center gap-2 font-bold">
+                    Plan Customization & FAQs
+                    <Sparkles size={16} className="text-brand-mustard" />
+                  </h2>
+                  <p className="text-xs text-charcoal-800/60">Configure the Plan with Me intro, the FAQ section title, and edit, reorder, or delete direct accordion questions.</p>
+                </div>
+                
+                <hr className="border-cream-200" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Hero Section Badge</label>
+                    <input 
+                      type="text" 
+                      value={planPage.heroBadge}
+                      onChange={e => setPlanPage(prev => ({ ...prev, heroBadge: e.target.value }))}
+                      placeholder="e.g. PLAN WITH ME"
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Hero Section Title</label>
+                    <input 
+                      type="text" 
+                      value={planPage.heroTitle}
+                      onChange={e => setPlanPage(prev => ({ ...prev, heroTitle: e.target.value }))}
+                      placeholder="e.g. Your custom slow travel itinerary."
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">Hero Subtitle copy</label>
+                  <textarea 
+                    rows="3"
+                    value={planPage.heroSubtitle}
+                    onChange={e => setPlanPage(prev => ({ ...prev, heroSubtitle: e.target.value }))}
+                    placeholder="Short summary detailing custom itineraries features..."
+                    className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-cream-100">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">FAQ Badge Title</label>
+                    <input 
+                      type="text" 
+                      value={planPage.faqBadge}
+                      onChange={e => setPlanPage(prev => ({ ...prev, faqBadge: e.target.value }))}
+                      placeholder="e.g. CURIOUS?"
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-charcoal-900 mb-2">FAQ Section Title</label>
+                    <input 
+                      type="text" 
+                      value={planPage.faqTitle}
+                      onChange={e => setPlanPage(prev => ({ ...prev, faqTitle: e.target.value }))}
+                      placeholder="e.g. Common questions"
+                      className="w-full bg-brand-bg border border-brand-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-brand-mustard" 
+                    />
+                  </div>
+                </div>
+
+                {/* FAQ List Dynamic Editor */}
+                <div className="pt-6 border-t border-cream-200">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="font-serif text-lg text-charcoal-900 font-bold">Frequently Asked Questions ({planPage.faqs.length})</h3>
+                      <p className="text-[11px] text-charcoal-800/50">These questions appear in the accordion at the bottom of the plan with me booking form.</p>
+                    </div>
+                  </div>
+
+                  {planPage.faqs.length === 0 ? (
+                    <div className="text-center py-10 border-2 border-dashed border-brand-border rounded-xl bg-brand-bg/50">
+                      <HelpCircle className="mx-auto text-charcoal-300 mb-2" size={32} />
+                      <p className="text-xs text-charcoal-800/50 font-medium mb-4">No FAQ items defined yet.</p>
+                      <button
+                        onClick={addFaq}
+                        className="mx-auto bg-brand-mustard text-white px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-charcoal-900 transition-all cursor-pointer shadow-xs"
+                      >
+                        <Plus size={14} /> Add First FAQ
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {planPage.faqs.map((faq, idx) => (
+                        <div 
+                          key={idx} 
+                          className="bg-brand-bg/30 border border-brand-border rounded-xl p-4 md:p-5 flex gap-4 items-start"
+                        >
+                          <div className="flex flex-col gap-1 shrink-0 pt-2">
+                            <button 
+                              onClick={() => moveFaq(idx, "up")}
+                              disabled={idx === 0}
+                              className={`p-1 rounded hover:bg-cream-200 text-charcoal-500 hover:text-charcoal-800 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer`}
+                              title="Move Up"
+                            >
+                              <ArrowUp size={14} />
+                            </button>
+                            <span className="text-[10px] text-center font-bold text-charcoal-800/40 select-none">{idx + 1}</span>
+                            <button 
+                              onClick={() => moveFaq(idx, "down")}
+                              disabled={idx === planPage.faqs.length - 1}
+                              className={`p-1 rounded hover:bg-cream-200 text-charcoal-500 hover:text-charcoal-800 disabled:opacity-30 disabled:hover:bg-transparent transition-colors cursor-pointer`}
+                              title="Move Down"
+                            >
+                              <ArrowDown size={14} />
+                            </button>
+                          </div>
+
+                          <div className="flex-grow space-y-3">
+                            <input 
+                              type="text" 
+                              value={faq.q}
+                              onChange={e => handleFaqChange(idx, "q", e.target.value)}
+                              placeholder={`Question ${idx + 1}...`}
+                              className="w-full bg-white border border-brand-border rounded-lg px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-brand-mustard text-charcoal-900" 
+                            />
+                            <textarea 
+                              rows="2"
+                              value={faq.a}
+                              onChange={e => handleFaqChange(idx, "a", e.target.value)}
+                              placeholder={`Provide clear, informative answer to Question ${idx + 1}...`}
+                              className="w-full bg-white border border-brand-border rounded-lg px-4 py-2.5 text-xs focus:outline-none focus:border-brand-mustard resize-none text-charcoal-800" 
+                            />
+                          </div>
+
+                          <button 
+                            onClick={() => removeFaq(idx)}
+                            className="p-2.5 rounded-lg text-brand-danger bg-brand-danger-bg hover:opacity-85 transition-opacity cursor-pointer self-start mt-2"
+                            title="Delete FAQ Item"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {planPage.faqs.length > 0 && (
+                    <div className="mt-6 flex justify-center">
+                      <button
+                        onClick={addFaq}
+                        className="bg-brand-mustard text-white px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-charcoal-900 transition-all cursor-pointer shadow-xs"
+                      >
+                        <Plus size={14} /> Add Another FAQ
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-cream-200 flex justify-end">
+                  <button
+                    onClick={() => handleSaveAll()}
+                    className="bg-charcoal-900 text-white px-6 py-3 rounded-full text-xs font-bold tracking-widest uppercase hover:bg-brand-mustard transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                  >
+                    <Save size={14} /> Save FAQ & Plan Config
+                  </button>
+                </div>
+              </div>
+            )}
+
+          
+
           {activeTab === "general_site_info" && (
             <div className="bg-[#faf7f1] border border-gray-200 rounded-2xl p-6 shadow-sm">
               <h2 className="font-bold text-gray-900 text-lg mb-5">Homepage SEO</h2>
@@ -716,6 +1144,19 @@ export default function HomepageManager() {
                     </label>
                   </div>
                 </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase text-gray-700 mb-1.5">Site Logo</label>
+                  <div className="flex gap-2">
+                    <input type="text" value={formData.home_seo?.siteLogo || ""} onChange={e => updateSection("home_seo", "siteLogo", e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:border-[#c7962d] outline-none" placeholder="https://..." />
+                    <button type="button" onClick={() => { setMediaTarget({ tab: "home_seo", field: "siteLogo" }); setIsMediaModalOpen(true); }} className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold hover:bg-gray-50 flex items-center justify-center gap-1.5">
+                      <ImageIcon size={14} /> Library
+                    </button>
+                    <label className="bg-[#f6ead0] text-[#c7962d] font-bold px-4 py-2 rounded-lg text-sm hover:bg-[#e8d5b0] flex items-center gap-2 cursor-pointer">
+                      {imageUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Upload
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, "home_seo", "siteLogo")} />
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -730,7 +1171,12 @@ export default function HomepageManager() {
           setMediaTarget(null);
         }}
         onSelect={(url) => {
+
           if (mediaTarget) {
+            if (mediaTarget.tab === "about_page") {
+              setAboutPage(prev => ({ ...prev, [mediaTarget.field]: url }));
+            }
+
             updateSection(mediaTarget.tab, mediaTarget.field, url);
           }
           setIsMediaModalOpen(false);
