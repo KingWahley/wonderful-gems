@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchDestinations, fetchBlogs, fetchTours, fetchMiniGuides, fetchPackages } from "@/lib/db";
+import { fetchDestinations, fetchBlogs, fetchTours, fetchMiniGuides, fetchPackages, fetchInquiries } from "@/lib/db";
 import { 
   Menu, Search, Bell, ArrowRight, FileText, Mail, Plus, Check, MapPin, 
   ChevronRight, AlignJustify, Map, Calendar, Layers, LayoutList, Book,
@@ -15,20 +15,23 @@ export default function DashboardOverview() {
     blogs: 0,
     tours: 0,
     guides: 0,
-    packages: 0
+    packages: 0,
+    inquiries: 0
   });
   const [recentActivity, setRecentActivity] = useState([]);
+  const [recentInquiries, setRecentInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadStats() {
       try {
-        const [d, b, t, g, p] = await Promise.all([
+        const [d, b, t, g, p, inq] = await Promise.all([
           fetchDestinations().catch(() => []),
           fetchBlogs().catch(() => []),
           fetchTours().catch(() => []),
           fetchMiniGuides().catch(() => []),
-          fetchPackages().catch(() => [])
+          fetchPackages().catch(() => []),
+          fetchInquiries().catch(() => [])
         ]);
         
         setStats({
@@ -36,8 +39,11 @@ export default function DashboardOverview() {
           blogs: b.length,
           tours: t.length,
           guides: g.length,
-          packages: p.length
+          packages: p.length,
+          inquiries: inq.filter(item => item.status === 'new').length
         });
+
+        setRecentInquiries(inq.slice(0, 4));
 
         // Compile recent activity from various tables
         const recentArr = [];
@@ -74,7 +80,7 @@ export default function DashboardOverview() {
         setRecentActivity(recentArr.slice(0, 4));
         
       } catch (err) {
-        console.error("Failed to load dashboard metrics", err);
+        console.warn("Failed to load dashboard metrics:", err);
       } finally {
         setLoading(false);
       }
@@ -86,7 +92,7 @@ export default function DashboardOverview() {
     { title: "Destinations", value: stats.destinations, subtext: "Total published", icon: <ChevronRight size={18} /> },
     { title: "Blog Posts", value: stats.blogs, subtext: "Total stories", icon: <LayoutList size={18} /> },
     { title: "Mini Guides", value: stats.guides, subtext: "Pocket & Itineraries", icon: <Menu size={18} /> },
-    { title: "New Inquiries", value: "-", subtext: "Feature coming soon", icon: <Mail size={18} /> },
+    { title: "New Inquiries", value: stats.inquiries, subtext: stats.inquiries > 0 ? "Awaiting response" : "Up to date", icon: <Mail size={18} /> },
     { title: "Tours", value: stats.tours, subtext: "Active offerings", icon: <Map size={18} /> },
     { title: "Packages", value: stats.packages, subtext: "Active packages", icon: <Plus size={18} /> },
     { title: "Bookings", value: "-", subtext: "Feature coming soon", icon: <Calendar size={18} /> },
@@ -292,27 +298,48 @@ export default function DashboardOverview() {
             {/* New Inquiries */}
             <div>
               <div className="flex justify-between items-center mb-5 px-1">
-                <h3 className="font-bold text-[1.1rem] text-brand-ink">New Inquiries & Bookings</h3>
-                <button className="text-[13px] font-bold text-[#c7962d] hover:text-[#b58522] cursor-not-allowed opacity-50">Manage inquiries</button>
+                <h3 className="font-bold text-[1.1rem] text-brand-ink">Recent Inquiries</h3>
+                <Link href="/dashboard/inquiries" className="text-[13px] font-bold text-[#c7962d] hover:text-[#b58522]">Manage inquiries</Link>
               </div>
               <div className="bg-white rounded-2xl border border-brand-border shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm whitespace-nowrap">
+                  <table className="w-full text-left text-xs whitespace-nowrap">
                     <thead>
-                      <tr className="border-b border-brand-border">
-                        <th className="p-4 pt-5 pb-3 text-[11px] font-bold text-brand-muted uppercase tracking-wider">Name</th>
-                        <th className="p-4 pt-5 pb-3 text-[11px] font-bold text-brand-muted uppercase tracking-wider">Request Type</th>
-                        <th className="p-4 pt-5 pb-3 text-[11px] font-bold text-brand-muted uppercase tracking-wider">Destination</th>
-                        <th className="p-4 pt-5 pb-3 text-[11px] font-bold text-brand-muted uppercase tracking-wider">Status</th>
-                        <th className="p-4 pt-5 pb-3 text-[11px] font-bold text-brand-muted uppercase tracking-wider">Received</th>
+                      <tr className="border-b border-brand-border bg-brand-bg/10">
+                        <th className="p-4 pt-5 pb-3 font-bold text-brand-muted uppercase tracking-wider">Name</th>
+                        <th className="p-4 pt-5 pb-3 font-bold text-brand-muted uppercase tracking-wider">Request Type</th>
+                        <th className="p-4 pt-5 pb-3 font-bold text-brand-muted uppercase tracking-wider">Destination</th>
+                        <th className="p-4 pt-5 pb-3 font-bold text-brand-muted uppercase tracking-wider">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-brand-border/50">
-                      <tr>
-                        <td colSpan="5" className="p-8 py-10 text-center text-brand-muted text-[13px]">
-                          Feature coming soon
-                        </td>
-                      </tr>
+                      {recentInquiries.length > 0 ? (
+                        recentInquiries.map((inq) => (
+                          <tr key={inq.id} className="hover:bg-brand-bg/10 transition-colors">
+                            <td className="p-4 font-semibold text-brand-ink">
+                              <div>{inq.name}</div>
+                              <div className="text-[10px] text-brand-muted font-normal">{inq.email}</div>
+                            </td>
+                            <td className="p-4 text-brand-ink">{inq.package || "Custom"}</td>
+                            <td className="p-4 text-brand-ink">{inq.destinations || "Not specified"}</td>
+                            <td className="p-4">
+                              {inq.status === 'new' ? (
+                                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-brand-mustard/15 text-[#c7962d]">New</span>
+                              ) : inq.status === 'read' ? (
+                                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800">Read</span>
+                              ) : (
+                                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-800">Replied</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="4" className="p-8 py-10 text-center text-brand-muted text-[13px]">
+                            No inquiries yet
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

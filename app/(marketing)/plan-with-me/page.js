@@ -1,4 +1,5 @@
 import { fetchSettings, fetchPackages } from "@/lib/db";
+import InquiryForm from "@/components/marketing/InquiryForm";
 
 export const revalidate = 0;
 
@@ -151,65 +152,7 @@ export default async function PlanWithMePage() {
         </div>
 
         {/* Inquiry Form */}
-        <div id="inquiry" className="mb-32 scroll-mt-24">
-          <div className="bg-white rounded-[32px] shadow-sm p-10 md:p-14 max-w-[700px] mx-auto border border-cream-200">
-            <div className="mb-8">
-              <span className="text-[10px] tracking-[0.2em] font-bold text-mustard-500 uppercase block mb-3">✍️ SEND AN INQUIRY</span>
-              <h2 className="text-[32px] font-serif font-bold text-charcoal-900 mb-2 leading-tight">Tell me about your trip</h2>
-              <p className="text-[13px] font-medium text-charcoal-800/70">Quick form — I read every one personally and reply within 48 hours.</p>
-            </div>
-            
-            <form className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-[11px] font-bold text-charcoal-900 mb-2 tracking-wide">Your name <span className="text-coral-500">*</span></label>
-                  <input type="text" className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500" />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-charcoal-900 mb-2 tracking-wide">Email <span className="text-coral-500">*</span></label>
-                  <input type="email" className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500" />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-[11px] font-bold text-charcoal-900 mb-2 tracking-wide">Package</label>
-                <select className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500 appearance-none text-charcoal-900">
-                  {displayPackages.map((pkg, idx) => (
-                    <option key={idx}>{pkg.title}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-[11px] font-bold text-charcoal-900 mb-2 tracking-wide">Destination(s)</label>
-                  <input type="text" placeholder="e.g. Japan, Portugal..." className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] placeholder:text-charcoal-900/40 focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500" />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-charcoal-900 mb-2 tracking-wide">Approx. dates</label>
-                  <input type="text" placeholder="e.g. Sept 2026, 10 days" className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] placeholder:text-charcoal-900/40 focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-charcoal-900 mb-2 tracking-wide">Rough budget (optional)</label>
-                <input type="text" placeholder="$ per person" className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] placeholder:text-charcoal-900/40 focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500" />
-              </div>
-              
-              <div>
-                <label className="block text-[11px] font-bold text-charcoal-900 mb-2 tracking-wide">Tell me what you're dreaming of</label>
-                <textarea rows="4" placeholder="Slow mornings? Markets? Off-the-beaten-path? Tell me everything." className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] placeholder:text-charcoal-900/40 focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500 resize-none"></textarea>
-              </div>
-              
-              <div className="pt-2">
-                <button type="button" className="bg-[#E6B63E] hover:bg-[#D4A532] text-white text-[11px] tracking-[0.2em] font-bold uppercase py-4 px-8 rounded-full transition-colors w-full sm:w-auto shadow-sm">
-                  SEND INQUIRY &rarr;
-                </button>
-                <p className="text-[9px] text-charcoal-900/40 mt-4 tracking-wide font-medium">By submitting, you agree to be contacted about your inquiry. No spam, ever.</p>
-              </div>
-            </form>
-          </div>
-        </div>
+        <InquiryForm packages={displayPackages} />
 
         {/* FAQ Section */}
         {faqs.length > 0 && (

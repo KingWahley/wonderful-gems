@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import { 
   LayoutDashboard, 
   MapPin, 
@@ -18,11 +19,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Image as ImageIcon,
-  Home
+  Home,
+  Mail
 } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Load from localStorage on mount to prevent layout shifts/reset on refresh
@@ -49,6 +53,7 @@ export default function DashboardLayout({ children }) {
     { name: "Packages", path: "/dashboard/packages", icon: <Briefcase size={18} /> },
     { name: "Media Library", path: "/dashboard/media-library", icon: <ImageIcon size={18} /> },
     { name: "Inquiries", path: "/dashboard/inquiries", icon: <MessageSquare size={18} /> },
+    { name: "Subscribers", path: "/dashboard/subscribers", icon: <Mail size={18} /> },
     { name: "Bookings", path: "/dashboard/bookings", icon: <CalendarCheck size={18} /> },
     { name: "Homepage", path: "/dashboard/homepage", icon: <Home size={18} /> },
   ];
@@ -121,7 +126,19 @@ export default function DashboardLayout({ children }) {
         
         {/* Footer info / Logout */}
         <div className={`border-t border-white/5 bg-black/10 transition-all duration-300 ${isCollapsed ? "p-2" : "p-6"}`}>
-          <button className={`flex items-center w-full text-left text-white/60 hover:text-brand-coral transition-all text-sm rounded-lg hover:bg-white/5 font-medium ${isCollapsed ? "justify-center px-2 py-2.5 gap-0" : "px-4 py-2.5 gap-3"}`} title="Logout">
+          <button 
+            onClick={async () => {
+              try {
+                await supabase.auth.signOut();
+                router.refresh();
+                router.push("/login");
+              } catch (err) {
+                console.error("Logout error:", err);
+              }
+            }}
+            className={`flex items-center w-full text-left text-white/60 hover:text-brand-coral transition-all text-sm rounded-lg hover:bg-white/5 font-medium ${isCollapsed ? "justify-center px-2 py-2.5 gap-0" : "px-4 py-2.5 gap-3"}`} 
+            title="Logout"
+          >
             <LogOut size={18} className="flex-shrink-0" />
             <span className={`transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden ${
               isCollapsed ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"
