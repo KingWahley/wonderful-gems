@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { fetchTours, saveTour, deleteTour, fetchDestinations, fetchMiniGuides, uploadImage } from "@/lib/db";
-import { Plus, Edit2, Trash2, Search, X, Loader2, ArrowLeft, ChevronDown, Bell, Upload, Calendar, Compass, Clock, Tag } from "lucide-react";
+import { Plus, Edit, Eye, Trash2, Search, X, Loader2, ArrowLeft, ChevronDown, Bell, Upload, Calendar, Compass, Clock, Tag, Download } from "lucide-react";
 
 const cityMapping = {
   "Japan": ["Kyoto", "Tokyo", "Osaka", "Nara"],
@@ -31,6 +31,124 @@ export default function ToursCMS() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Expanded Filter, Sorting & Bulk Selection States
+  const [selectedDestination, setSelectedDestination] = useState("All destinations");
+  const [selectedCategory, setSelectedCategory] = useState("All categories");
+  const [selectedStatus, setSelectedStatus] = useState("All statuses");
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // Helper to calculate warm premium HSL backgrounds for country code initials flag
+  const getCountryColor = (code) => {
+    if (!code) return { backgroundColor: "hsl(35, 45%, 28%)", color: "#FAF8F5" };
+    let hash = 0;
+    for (let i = 0; i < code.length; i++) {
+      hash = code.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = Math.abs(hash % 40) + 20; // 20 to 60 for beautiful warm ochres, golds, terracottas
+    const s = 45;
+    const l = 28;
+    return {
+      backgroundColor: `hsl(${h}, ${s}%, ${l}%)`,
+      color: '#FAF8F5'
+    };
+  };
+
+  // Bulk Selection Handlers
+  const toggleSelectRow = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = (filteredTours) => {
+    if (selectedIds.length === filteredTours.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredTours.map(t => t.id));
+    }
+  };
+
+  const handleBulkAction = async (action) => {
+    if (selectedIds.length === 0) {
+      alert("Please select one or more tours first.");
+      return;
+    }
+
+    if (action === "delete") {
+      if (confirm(`Are you sure you want to delete ${selectedIds.length} selected tours?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(selectedIds.map(id => deleteTour(id)));
+          setSelectedIds([]);
+          await loadData();
+        } catch (e) {
+          alert("Failed to delete selected tours: " + e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    } else if (action === "publish" || action === "draft" || action === "feature") {
+      const displayAction = action === "feature" ? "feature on homepage" : `set to ${action.toUpperCase()}`;
+      if (confirm(`Apply ${displayAction} to the ${selectedIds.length} selected tours?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(
+            selectedIds.map(async (id) => {
+              const tour = tours.find(t => t.id === id);
+              if (tour) {
+                const payload = {
+                  ...tour,
+                  status: action === "feature" ? (tour.status || "published") : action,
+                  featureOnHomepage: action === "feature" ? "Yes" : (tour.featureOnHomepage || "No")
+                };
+                await saveTour(payload);
+              }
+            })
+          );
+          setSelectedIds([]);
+          await loadData();
+        } catch (e) {
+          alert("Failed to update selected tours: " + e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+  };
+
+  // Export CSV Handler
+  const handleExportCSV = () => {
+    if (tours.length === 0) {
+      alert("No tours to export.");
+      return;
+    }
+    const headers = ["Title", "Destination", "City", "Category", "Duration", "Price", "Booking Link", "Status", "Featured"];
+    const rows = tours.map(t => {
+      return [
+        t.title || "",
+        t.destination || "",
+        t.city || "",
+        t.category || "",
+        t.duration || "",
+        t.price || "",
+        t.bookingLink || "",
+        t.status || "draft",
+        t.featureOnHomepage || "No"
+      ];
+    });
+
+    const csvContent = [headers.join(","), ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `tours_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   // Form State
   const [formData, setFormData] = useState({
@@ -285,11 +403,34 @@ export default function ToursCMS() {
       setSaving(false);
     }
   };
+  const filtered = tours
+    .filter(t => {
+      const matchSearch = `${t.title} ${t.destination} ${t.category} ${t.shortDescription} ${t.city || ""}`.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      let matchDestination = true;
+      if (selectedDestination !== "All destinations") {
+        matchDestination = t.destination === selectedDestination;
+      }
 
-  const filtered = tours.filter(t => {
-    const matchStr = `${t.title} ${t.destination} ${t.category} ${t.badge} ${t.city || ""}`.toLowerCase();
-    return matchStr.includes(searchQuery.toLowerCase());
-  });
+      let matchCategory = true;
+      if (selectedCategory !== "All categories") {
+        matchCategory = t.category === selectedCategory;
+      }
+
+      let matchStatus = true;
+      if (selectedStatus !== "All statuses") {
+        if (selectedStatus.toLowerCase() === "featured") {
+          matchStatus = t.featureOnHomepage === "Yes" || t.featureOnHomepage === true;
+        } else {
+          matchStatus = (t.status || "draft").toLowerCase() === selectedStatus.toLowerCase();
+        }
+      }
+
+      return matchSearch && matchDestination && matchCategory && matchStatus;
+    })
+    .sort((a, b) => {
+      return new Date(b.created_at || b.id || 0) - new Date(a.created_at || a.id || 0);
+    });
 
   const pocketGuides = miniGuides.filter(g => g.type === "pocket");
   const itineraryGuides = miniGuides.filter(g => g.type === "itinerary");
@@ -300,8 +441,7 @@ export default function ToursCMS() {
   }
 
   return (
-    <div className="space-y-10 min-h-screen">
-      {!isFormOpen ? (
+    <div className="space-y-10 min-h-screen">      {!isFormOpen ? (
         <>
           {/* Editorial Header */}
           <div className="flex flex-col md:flex-row justify-between md:items-end gap-6 pb-6 border-b border-brand-border animate-in fade-in slide-in-from-top-4 duration-300">
@@ -310,37 +450,174 @@ export default function ToursCMS() {
                 EXPERIENCE CMS
               </span>
               <h1 className="text-4xl md:text-5xl font-serif text-brand-ink leading-tight tracking-tight">
-                Tours & Activities
+                Tours
               </h1>
               <p className="text-brand-muted text-sm mt-2 max-w-xl font-light">
-                Manage the curated destination tours, skip-the-line activity recommendations, and partner bookings showcased on destination guides.
+                Manage curated tours and activities by destination. These appear on the Tours page, destination pages, homepage feature sections and guide-related recommendations.
               </p>
             </div>
-            <button
-              onClick={handleOpenAdd}
-              className="bg-brand-ink text-white px-6 py-3 rounded-full text-xs font-bold tracking-[0.2em] uppercase hover:bg-brand-mustard transition-all flex items-center justify-center gap-2 self-start md:self-auto cursor-pointer shadow-sm duration-300 transform hover:-translate-y-0.5 active:translate-y-0 font-sans"
-            >
-              <Plus size={14} className="stroke-[3]" /> Create Tour
-            </button>
+            <div className="flex items-center gap-3 font-sans">
+              <button 
+                onClick={handleExportCSV}
+                className="bg-white border border-brand-border text-brand-ink px-5 py-2.5 rounded-lg text-xs font-bold tracking-wider hover:bg-[#FAF8F5] hover:border-brand-mustard transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Download size={13} /> Export
+              </button>
+              <button
+                onClick={handleOpenAdd}
+                className="bg-[#c7962d] hover:bg-[#b58522] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Plus size={14} className="stroke-[3]" /> Add Tour
+              </button>
+            </div>
           </div>
 
-          {/* Main Container */}
-          <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)] animate-in fade-in slide-in-from-bottom-4 duration-300">
-            {/* Search Bar */}
-            <div className="p-5 border-b border-brand-border flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-brand-bg/30">
-              <div className="relative w-full max-w-md">
+          {/* Metrics Row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 font-sans">
+            {[
+              { label: "Total Tours", value: tours.length },
+              { label: "Published", value: tours.filter(t => (t.status || "").toLowerCase() === "published").length },
+              { label: "Drafts", value: tours.filter(t => (t.status || "").toLowerCase() !== "published").length },
+              { label: "Featured", value: tours.filter(t => t.featureOnHomepage === "Yes" || t.featureOnHomepage === true).length }
+            ].map((card, idx) => (
+              <div key={idx} className="bg-white border border-brand-border/70 rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+                <span className="text-[10px] font-bold text-brand-muted tracking-wide block mb-1">{card.label}</span>
+                <span className="text-3xl font-serif font-bold text-brand-ink">{card.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)] p-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {/* Header Row */}
+            <div className="flex justify-between items-center mb-6 pb-2 border-b border-brand-border/40 font-sans">
+              <h2 className="font-serif font-bold text-lg text-brand-ink">Tours List</h2>
+              
+              <div className="flex items-center gap-3">
+                {selectedIds.length > 0 && (
+                  <div className="flex items-center gap-2 border-r border-brand-border/60 pr-3 mr-1 animate-in fade-in duration-200">
+                    <span className="text-[11px] text-brand-muted font-sans font-medium">{selectedIds.length} selected</span>
+                    <button 
+                      onClick={() => handleBulkAction("publish")}
+                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
+                    >
+                      Publish
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("draft")}
+                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
+                    >
+                      Draft
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("feature")}
+                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
+                    >
+                      Feature
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("delete")}
+                      className="px-2.5 py-1 rounded-md border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-all cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+                
+                {/* Bulk Actions Button as requested by layout */}
+                <div className="relative group">
+                  <button 
+                    className="px-4 py-2 border border-brand-border rounded-lg text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    Bulk Actions <ChevronDown size={12} />
+                  </button>
+                  <div className="absolute right-0 mt-1 w-40 bg-white border border-brand-border rounded-lg shadow-lg py-1 hidden group-hover:block hover:block z-50">
+                    <button 
+                      onClick={() => handleBulkAction("publish")}
+                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                    >
+                      Mark as Published
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("draft")}
+                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                    >
+                      Mark as Draft
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("feature")}
+                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                    >
+                      Feature on Homepage
+                    </button>
+                    <hr className="border-brand-border my-1" />
+                    <button 
+                      onClick={() => handleBulkAction("delete")}
+                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      Delete Selected
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 font-sans">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" size={14} />
                 <input 
                   type="text" 
-                  placeholder="Search experiences by title, destination, category..." 
+                  placeholder="Search by tour name..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full border border-brand-border rounded-xl py-3 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white transition-all text-brand-ink font-sans placeholder:text-brand-muted/70"
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-[#c7962d] transition-colors placeholder:text-brand-muted/70 text-brand-ink" 
                 />
-                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted/80" size={15} />
               </div>
-              <div className="text-xs text-brand-muted font-sans font-medium flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-brand-mustard animate-pulse"></span>
-                Total: {tours.length} experiences
+
+              {/* Destination Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedDestination}
+                  onChange={(e) => setSelectedDestination(e.target.value)}
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                >
+                  <option value="All destinations">All destinations</option>
+                  {Array.from(new Set(tours.map(t => t.destination).filter(Boolean))).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" size={14} />
+              </div>
+
+              {/* Category Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                >
+                  <option value="All categories">All categories</option>
+                  {Array.from(new Set(tours.map(t => t.category).filter(Boolean))).map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" size={14} />
+              </div>
+
+              {/* Status Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                >
+                  <option value="All statuses">All statuses</option>
+                  <option value="Published">Published</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Featured">Featured</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" size={14} />
               </div>
             </div>
 
@@ -350,7 +627,7 @@ export default function ToursCMS() {
                 <p className="text-brand-muted text-xs font-bold tracking-widest uppercase animate-pulse">Fetching tours...</p>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="py-24 text-center max-w-sm mx-auto">
+              <div className="py-24 text-center max-w-sm mx-auto font-sans">
                 <Compass className="text-brand-border mx-auto mb-4" size={40} />
                 <p className="text-brand-ink font-serif text-lg mb-1">No tours found</p>
                 <p className="text-xs text-brand-muted leading-relaxed">
@@ -362,82 +639,142 @@ export default function ToursCMS() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-brand-bg/40 text-[9px] uppercase tracking-[0.25em] text-brand-muted font-bold border-b border-brand-border">
-                      <th className="p-5 font-bold">Tour Details</th>
-                      <th className="p-5 font-bold">Destination</th>
-                      <th className="p-5 font-bold">Category</th>
-                      <th className="p-5 font-bold">Duration / Price</th>
-                      <th className="p-5 font-bold text-right">Actions</th>
+                      <th className="p-4 w-10">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.length === filtered.length && filtered.length > 0}
+                          onChange={() => toggleSelectAll(filtered)}
+                          className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                        />
+                      </th>
+                      <th className="p-4 font-bold">Tour</th>
+                      <th className="p-4 font-bold">Destination</th>
+                      <th className="p-4 font-bold">City</th>
+                      <th className="p-4 font-bold">Category</th>
+                      <th className="p-4 font-bold">Duration</th>
+                      <th className="p-4 font-bold">Price</th>
+                      <th className="p-4 font-bold">Booking Link</th>
+                      <th className="p-4 font-bold">Status</th>
+                      <th className="p-4 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-border">
-                    {filtered.map((tour) => (
-                      <tr key={tour.id} className="hover:bg-brand-bg/20 transition-colors duration-200">
-                        <td className="p-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-20 h-14 rounded-lg overflow-hidden bg-brand-bg flex-shrink-0 border border-brand-border shadow-2xs group relative">
-                              <img src={tour.heroImage || "https://images.unsplash.com/photo-1542044896530-05d85be9b11a?q=80&w=1000&auto=format&fit=crop"} alt={tour.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    {filtered.map((tour) => {
+                      return (
+                        <tr key={tour.id} className="hover:bg-[#fcfbf9]/40 transition-colors duration-200">
+                          <td className="p-4 align-middle">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedIds.includes(tour.id)}
+                              onChange={() => toggleSelectRow(tour.id)}
+                              className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                            />
+                          </td>
+                          <td className="p-4 align-middle">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg overflow-hidden bg-brand-bg flex-shrink-0 border border-brand-border shadow-2xs group relative">
+                                <img src={tour.heroImage || "https://images.unsplash.com/photo-1542044896530-05d85be9b11a?q=80&w=1000&auto=format&fit=crop"} alt={tour.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                              </div>
+                              <div className="max-w-[280px]">
+                                <h3 className="font-serif text-sm font-semibold text-brand-ink leading-snug line-clamp-1">
+                                  {tour.title}
+                                </h3>
+                                <p className="text-[11px] text-brand-muted line-clamp-1 mt-0.5" title={tour.shortDescription || ""}>
+                                  {tour.shortDescription || tour.description}
+                                </p>
+                              </div>
                             </div>
-                            <div className="max-w-md">
-                              <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1 flex items-center gap-2">
-                                {tour.title}
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-sans font-bold tracking-wider uppercase ${
-                                  tour.badge === "TICKET" 
-                                    ? "bg-amber-100 text-amber-800" 
-                                    : "bg-emerald-100 text-emerald-800"
-                                }`}>
-                                  {tour.badge || "TOUR"}
-                                </span>
-                                {(tour.status || "published").toLowerCase() !== "published" && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-sans font-bold tracking-wider uppercase bg-brand-bg text-brand-muted border border-brand-border">
-                                    Draft
+                          </td>
+                          <td className="p-4 text-xs font-medium text-brand-ink align-middle whitespace-nowrap">
+                            {tour.destination}
+                          </td>
+                          <td className="p-4 text-xs text-brand-muted align-middle whitespace-nowrap">
+                            {tour.city || "—"}
+                          </td>
+                          <td className="p-4 text-xs text-brand-muted align-middle whitespace-nowrap">
+                            {tour.category}
+                          </td>
+                          <td className="p-4 text-xs text-brand-ink font-medium align-middle whitespace-nowrap">
+                            {tour.duration || "—"}
+                          </td>
+                          <td className="p-4 text-xs text-brand-muted align-middle whitespace-nowrap">
+                            {tour.price || "—"}
+                          </td>
+                          <td className="p-4 align-middle whitespace-nowrap">
+                            {tour.bookingLink ? (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100 font-sans">
+                                Added
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-100 font-sans">
+                                Missing
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-4 align-middle whitespace-nowrap">
+                            {(() => {
+                              const isFeatured = tour.featureOnHomepage === "Yes" || tour.featureOnHomepage === true;
+                              const status = (tour.status || "draft").toLowerCase();
+                              if (isFeatured) {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider font-sans">
+                                    Featured
                                   </span>
-                                )}
-                              </h3>
-                              <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide">/{tour.slug || tour.id}</div>
+                                );
+                              }
+                              if (status === "published") {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-green-50 text-green-700 border border-green-100 uppercase tracking-wider font-sans">
+                                    Published
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-wider font-sans">
+                                  Draft
+                                </span>
+                              );
+                            })()}
+                          </td>
+                          <td className="p-4 text-right align-middle whitespace-nowrap">
+                            <div className="flex justify-end items-center gap-1.5">
+                              <button 
+                                onClick={() => handleOpenEdit(tour)}
+                                className="p-1.5 text-brand-muted hover:text-[#c7962d] hover:bg-[#FAF8F5] rounded-md transition-all duration-200 cursor-pointer"
+                                title="Edit Tour"
+                                type="button"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <a 
+                                href={`/tours/${tour.slug || tour.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-brand-muted hover:text-[#c7962d] hover:bg-[#FAF8F5] rounded-md transition-all duration-200 inline-flex items-center justify-center"
+                                title="View Live Tour"
+                              >
+                                <Eye size={14} />
+                              </a>
+                              <button 
+                                onClick={() => handleDelete(tour.id, tour.title)}
+                                className="p-1.5 text-brand-muted hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200 cursor-pointer"
+                                title="Delete Tour"
+                                type="button"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             </div>
-                          </div>
-                        </td>
-                        <td className="p-5 text-sm text-brand-ink">
-                          <span className="inline-flex items-center gap-2 font-medium bg-brand-bg border border-brand-border rounded-full py-1.5 px-3">
-                            <span className="text-[8px] bg-brand-mustard text-white px-1.5 py-0.5 rounded font-black tracking-widest font-mono">{tour.countryCode || "TR"}</span>
-                            <span className="text-xs text-brand-ink">{tour.destination}{tour.city && ` • ${tour.city}`}</span>
-                          </span>
-                        </td>
-                        <td className="p-5 text-xs text-brand-muted font-bold uppercase tracking-wider">
-                          {tour.category}
-                        </td>
-                        <td className="p-5">
-                          <div className="text-xs text-brand-ink font-semibold">{tour.duration || "N/A"}</div>
-                          <div className="text-[10px] text-brand-muted font-mono mt-0.5">{tour.price || "N/A"}</div>
-                        </td>
-                        <td className="p-5 text-right">
-                          <div className="flex justify-end gap-1.5">
-                            <button 
-                              onClick={() => handleOpenEdit(tour)}
-                              className="p-2 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
-                              title="Edit Tour"
-                            >
-                              <Edit2 size={15} />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(tour.id, tour.title)}
-                              className="p-2 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
-                              title="Delete Tour"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
             
-            {/* Table Footer */}
-            <div className="p-5 border-t border-brand-border bg-brand-bg/10 flex justify-between items-center text-xs text-brand-muted">
-              <span>Displaying {filtered.length} of {tours.length} experiences</span>
+            <div className="p-5 border-t border-brand-border bg-[#fcfbf9]/40 flex justify-between items-center text-xs text-brand-muted">
+              <span>Displaying {filtered.length} of {tours.length} guides</span>
             </div>
           </div>
         </>

@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { fetchMiniGuides, saveMiniGuide, deleteMiniGuide, fetchDestinations, uploadImage } from "@/lib/db";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 import { 
-  Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon,
+  Plus, Edit, Eye, Trash2, Search, X, Loader2, Image as ImageIcon,
   Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,
-  ChevronDown, Calendar, Clock, Compass, MapPin, Sparkle, ArrowRight, Info
+  ChevronDown, Calendar, Clock, Compass, MapPin, Sparkle, ArrowRight, Info, Download
 } from "lucide-react";
 
 // Initial state for day structures matching DB seeds exactly
@@ -134,6 +134,153 @@ export default function ItineraryGuidesCMS() {
     status: "draft",
     details: defaultDetails
   });
+
+  const [selectedDestination, setSelectedDestination] = useState("All destinations");
+  const [selectedStatus, setSelectedStatus] = useState("All statuses");
+  const [selectedSort, setSelectedSort] = useState("Sort by newest");
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // Helper to clean and format dates (e.g. October 2025)
+  const getDisplayDate = (guide) => {
+    let dateStr = guide.details?.date || guide.date || "";
+    if (dateStr.includes("·")) {
+      const parts = dateStr.split("·").map(p => p.trim());
+      dateStr = parts[parts.length - 1];
+    } else if (dateStr.includes("•")) {
+      const parts = dateStr.split("•").map(p => p.trim());
+      dateStr = parts[parts.length - 1];
+    }
+    
+    if (dateStr) {
+      return dateStr.toLowerCase().replace(/\b[a-z]/g, letter => letter.toUpperCase());
+    }
+    if (guide.created_at) {
+      return new Date(guide.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+    return "October 2025";
+  };
+
+  // Helper to infer travel type dynamically
+  const inferTravelType = (guide) => {
+    if (guide.details?.travelType) return guide.details.travelType;
+    const dest = (guide.destination || "").toLowerCase();
+    const route = (guide.details?.routeFlow || "").toLowerCase();
+    if (dest.includes("portugal") || dest.includes("italy") || route.includes("lisbon") || route.includes("rome")) {
+      return "Train + Car";
+    }
+    return "Train";
+  };
+
+  // Helper to calculate warm premium HSL backgrounds for country code initials flag
+  const getCountryColor = (code) => {
+    if (!code) return { backgroundColor: "hsl(35, 45%, 28%)", color: "#FAF8F5" };
+    let hash = 0;
+    for (let i = 0; i < code.length; i++) {
+      hash = code.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = Math.abs(hash % 40) + 20; // 20 to 60 for beautiful warm ochres, golds, terracottas
+    const s = 45;
+    const l = 28;
+    return {
+      backgroundColor: `hsl(${h}, ${s}%, ${l}%)`,
+      color: '#FAF8F5'
+    };
+  };
+
+  // Bulk Selection Handlers
+  const toggleSelectRow = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = (filteredGuides) => {
+    if (selectedIds.length === filteredGuides.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredGuides.map(g => g.id));
+    }
+  };
+
+  const handleBulkAction = async (action) => {
+    if (selectedIds.length === 0) {
+      alert("Please select one or more guides first.");
+      return;
+    }
+
+    if (action === "delete") {
+      if (confirm(`Are you sure you want to delete ${selectedIds.length} selected guides?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(selectedIds.map(id => deleteMiniGuide(id)));
+          setSelectedIds([]);
+          await loadData();
+        } catch (e) {
+          alert("Failed to delete selected guides: " + e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    } else if (action === "publish" || action === "draft") {
+      if (confirm(`Change status of ${selectedIds.length} selected guides to ${action.toUpperCase()}?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(
+            selectedIds.map(async (id) => {
+              const guide = guides.find(g => g.id === id);
+              if (guide) {
+                const payload = {
+                  ...guide,
+                  status: action
+                };
+                await saveMiniGuide(payload);
+              }
+            })
+          );
+          setSelectedIds([]);
+          await loadData();
+        } catch (e) {
+          alert("Failed to update status: " + e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+  };
+
+  // Export CSV Handler
+  const handleExportCSV = () => {
+    if (guides.length === 0) {
+      alert("No itinerary guides to export.");
+      return;
+    }
+    const headers = ["Title", "Slug", "Destination", "Country Code", "Days Count", "Read Time", "Travel Type", "Status"];
+    const rows = guides.map(g => {
+      const daysCount = g.details?.days?.length || parseInt(g.details?.noOfDays) || 0;
+      const travelType = g.details?.travelType || inferTravelType(g);
+      return [
+        g.title || "",
+        g.slug || "",
+        g.destination || "",
+        g.countryCode || "",
+        daysCount,
+        g.details?.readTime || "10 Min",
+        travelType,
+        g.status || "draft"
+      ];
+    });
+
+    const csvContent = [headers.join(","), ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `itinerary_guides_export_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
@@ -547,10 +694,39 @@ export default function ItineraryGuidesCMS() {
     }
   };
 
-  const filtered = guides.filter(g => {
-    const matchStr = `${g.title} ${g.destination} ${g.excerpt}`.toLowerCase();
-    return matchStr.includes(searchQuery.toLowerCase());
-  });
+  const filtered = guides
+    .filter(g => {
+      const matchSearch = `${g.title} ${g.destination} ${g.excerpt} ${g.details?.routeFlow}`.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      let matchDestination = true;
+      if (selectedDestination !== "All destinations") {
+        matchDestination = g.destination === selectedDestination;
+      }
+
+      let matchStatus = true;
+      if (selectedStatus !== "All statuses") {
+        matchStatus = (g.status || "draft").toLowerCase() === selectedStatus.toLowerCase();
+      }
+
+      return matchSearch && matchDestination && matchStatus;
+    })
+    .sort((a, b) => {
+      if (selectedSort === "Sort by newest") {
+        return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+      }
+      if (selectedSort === "Sort by oldest") {
+        return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+      }
+      if (selectedSort === "Sort by title") {
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      if (selectedSort === "Sort by days") {
+        const daysA = a.details?.days?.length || parseInt(a.details?.noOfDays) || 0;
+        const daysB = b.details?.days?.length || parseInt(b.details?.noOfDays) || 0;
+        return daysB - daysA;
+      }
+      return 0;
+    });
 
   return (
     <div className="space-y-10 min-h-screen">
@@ -566,33 +742,159 @@ export default function ItineraryGuidesCMS() {
                 Itinerary Guides
               </h1>
               <p className="text-brand-muted text-sm mt-2 max-w-xl font-light">
-                Manage the premium, high-read curated itineraries for slow travel. These itinerary guides contain slow travel routing summaries, sights, hotel selections, and activities.
+                Manage route-based mini guides with destination, route, date, title, excerpt, read time, hero image, number of days, route description, day-by-day entries and travel details.
               </p>
             </div>
-            <button
-              onClick={handleOpenAdd}
-              className="bg-brand-ink text-white px-6 py-3 rounded-full text-xs font-bold tracking-[0.2em] uppercase hover:bg-brand-mustard transition-all flex items-center justify-center gap-2 self-start md:self-auto cursor-pointer shadow-sm duration-300 transform hover:-translate-y-0.5 active:translate-y-0 font-sans"
-            >
-              <Plus size={14} className="stroke-[3]" /> Add Itinerary Guide
-            </button>
+            <div className="flex items-center gap-3 font-sans">
+              <button 
+                onClick={handleExportCSV}
+                className="bg-white border border-brand-border text-brand-ink px-5 py-2.5 rounded-lg text-xs font-bold tracking-wider hover:bg-[#FAF8F5] hover:border-brand-mustard transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Download size={13} /> Export
+              </button>
+              <button
+                onClick={handleOpenAdd}
+                className="bg-[#c7962d] hover:bg-[#b58522] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+              >
+                <Plus size={14} className="stroke-[3]" /> Add Itinerary Guide
+              </button>
+            </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)]">
-            {/* Search Bar */}
-            <div className="p-5 border-b border-brand-border flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-[#fcfbf9]">
-              <div className="relative w-full max-w-md">
+          {/* Metrics Row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 font-sans">
+            {[
+              { label: "Total itineraries", value: guides.length },
+              { label: "Published", value: guides.filter(g => (g.status || "").toLowerCase() === "published").length },
+              { label: "Drafts", value: guides.filter(g => (g.status || "").toLowerCase() !== "published").length },
+              { label: "Total Days Planned", value: guides.reduce((acc, g) => acc + (g.details?.days?.length || parseInt(g.details?.noOfDays) || 0), 0) }
+            ].map((card, idx) => (
+              <div key={idx} className="bg-white border border-brand-border/70 rounded-xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.01)]">
+                <span className="text-[10px] font-bold text-brand-muted tracking-wide block mb-1">{card.label}</span>
+                <span className="text-3xl font-serif font-bold text-brand-ink">{card.value}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)] p-6">
+            {/* Header Row */}
+            <div className="flex justify-between items-center mb-6 pb-2 border-b border-brand-border/40 font-sans">
+              <h2 className="font-serif font-bold text-lg text-brand-ink">Itinerary Guides List</h2>
+              
+              <div className="flex items-center gap-3">
+                {selectedIds.length > 0 && (
+                  <div className="flex items-center gap-2 border-r border-brand-border/60 pr-3 mr-1 animate-in fade-in duration-200">
+                    <span className="text-[11px] text-brand-muted font-sans font-medium">{selectedIds.length} selected</span>
+                    <button 
+                      onClick={() => handleBulkAction("publish")}
+                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
+                    >
+                      Publish
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("draft")}
+                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
+                    >
+                      Draft
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("delete")}
+                      className="px-2.5 py-1 rounded-md border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-all cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+                
+                {/* Bulk Actions Button as requested by layout */}
+                <div className="relative group">
+                  <button 
+                    className="px-4 py-2 border border-brand-border rounded-lg text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  >
+                    Bulk Actions <ChevronDown size={12} />
+                  </button>
+                  <div className="absolute right-0 mt-1 w-40 bg-white border border-brand-border rounded-lg shadow-lg py-1 hidden group-hover:block hover:block z-50">
+                    <button 
+                      onClick={() => handleBulkAction("publish")}
+                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                    >
+                      Mark as Published
+                    </button>
+                    <button 
+                      onClick={() => handleBulkAction("draft")}
+                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                    >
+                      Mark as Draft
+                    </button>
+                    <hr className="border-brand-border my-1" />
+                    <button 
+                      onClick={() => handleBulkAction("delete")}
+                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                    >
+                      Delete Selected
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 font-sans">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" size={14} />
                 <input 
                   type="text" 
-                  placeholder="Search itinerary guides by title, destination or keywords..." 
+                  placeholder="Search by title or route..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full border border-brand-border rounded-xl py-3 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white transition-all text-brand-ink font-sans placeholder:text-brand-muted/70"
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-[#c7962d] transition-colors placeholder:text-brand-muted/70 text-brand-ink" 
                 />
-                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted/80" size={15} />
               </div>
-              <div className="text-xs text-brand-muted font-sans font-medium flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-brand-mustard animate-pulse"></span>
-                Total: {guides.length} guides
+
+              {/* Destination Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedDestination}
+                  onChange={(e) => setSelectedDestination(e.target.value)}
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                >
+                  <option value="All destinations">All destinations</option>
+                  {Array.from(new Set(guides.map(g => g.destination).filter(Boolean))).map(d => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" size={14} />
+              </div>
+
+              {/* Status Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                >
+                  <option value="All statuses">All statuses</option>
+                  <option value="Published">Published</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Review">Review</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" size={14} />
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedSort}
+                  onChange={(e) => setSelectedSort(e.target.value)}
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                >
+                  <option value="Sort by newest">Sort by newest</option>
+                  <option value="Sort by oldest">Sort by oldest</option>
+                  <option value="Sort by title">Sort by title</option>
+                  <option value="Sort by days">Sort by days</option>
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" size={14} />
               </div>
             </div>
 
@@ -602,7 +904,7 @@ export default function ItineraryGuidesCMS() {
                 <p className="text-brand-muted text-xs font-bold tracking-widest uppercase animate-pulse">Gathering itineraries...</p>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="py-24 text-center max-w-sm mx-auto">
+              <div className="py-24 text-center max-w-sm mx-auto font-sans">
                 <BookOpen className="text-brand-border mx-auto mb-4" size={40} />
                 <p className="text-brand-ink font-serif text-lg mb-1">No guides found</p>
                 <p className="text-xs text-brand-muted leading-relaxed">
@@ -614,69 +916,125 @@ export default function ItineraryGuidesCMS() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-brand-bg/40 text-[9px] uppercase tracking-[0.25em] text-brand-muted font-bold border-b border-brand-border">
-                      <th className="p-5 font-bold">Guide Details</th>
-                      <th className="p-5 font-bold">Destination</th>
-                      <th className="p-5 font-bold">Days Count</th>
-                      <th className="p-5 font-bold">Excerpt Summary</th>
-                      <th className="p-5 font-bold text-right">Actions</th>
+                      <th className="p-4 w-10">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.length === filtered.length && filtered.length > 0}
+                          onChange={() => toggleSelectAll(filtered)}
+                          className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                        />
+                      </th>
+                      <th className="p-4 font-bold">Itinerary</th>
+                      <th className="p-4 font-bold">Destination</th>
+                      <th className="p-4 font-bold">Route</th>
+                      <th className="p-4 font-bold">Date</th>
+                      <th className="p-4 font-bold">Days</th>
+                      <th className="p-4 font-bold">Read Time</th>
+                      <th className="p-4 font-bold">Travel Type</th>
+                      <th className="p-4 font-bold">Status</th>
+                      <th className="p-4 font-bold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-border">
                     {filtered.map((guide) => {
-                      const daysCount = guide.details?.days?.length || 0;
+                      const daysCount = guide.details?.days?.length || parseInt(guide.details?.noOfDays) || 7;
+                      const colorStyle = getCountryColor(guide.countryCode || "PT");
                       return (
                         <tr key={guide.id} className="hover:bg-[#fcfbf9]/40 transition-colors duration-200">
-                          <td className="p-5">
-                            <div className="flex items-center gap-4">
-                              <div className="w-20 h-14 rounded-lg overflow-hidden bg-brand-bg flex-shrink-0 border border-brand-border shadow-2xs group relative">
-                                <img 
-                                  src={guide.heroImage || "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop"} 
-                                  alt={guide.title} 
-                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                                />
+                          <td className="p-4 align-middle">
+                            <input 
+                              type="checkbox" 
+                              checked={selectedIds.includes(guide.id)}
+                              onChange={() => toggleSelectRow(guide.id)}
+                              className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                            />
+                          </td>
+                          <td className="p-4 align-middle">
+                            <div className="flex items-center gap-3">
+                              <div 
+                                className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center font-bold tracking-wider text-xs font-serif"
+                                style={colorStyle}
+                              >
+                                {guide.countryCode || "PT"}
                               </div>
-                              <div className="max-w-md">
-                                <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1 flex items-center gap-2">
+                              <div className="max-w-[280px]">
+                                <h3 className="font-serif text-sm font-semibold text-brand-ink leading-snug line-clamp-1">
                                   {guide.title}
-                                  {(guide.status || "draft").toLowerCase() !== "published" && (
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-sans font-bold tracking-wider uppercase bg-brand-bg text-brand-muted border border-brand-border">
-                                      Draft
-                                    </span>
-                                  )}
                                 </h3>
-                                <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide font-sans">/mini-guides/{guide.slug}</div>
+                                <p className="text-[11px] text-brand-muted line-clamp-1 mt-0.5" title={guide.excerpt}>
+                                  {guide.excerpt}
+                                </p>
                               </div>
                             </div>
                           </td>
-                          <td className="p-5 text-sm text-brand-ink">
-                            <span className="inline-flex items-center gap-2 font-medium bg-brand-bg border border-brand-border rounded-full py-1.5 px-3">
-                              <span className="text-[8px] bg-brand-mustard text-white px-1.5 py-0.5 rounded font-black tracking-widest font-mono">{guide.countryCode || "TR"}</span>
-                              <span className="text-xs text-brand-ink">{guide.destination}</span>
-                            </span>
+                          <td className="p-4 text-xs font-medium text-brand-ink align-middle whitespace-nowrap">
+                            {guide.destination}
                           </td>
-                          <td className="p-5">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-mustard-soft text-brand-mustard text-[9px] font-bold rounded-full uppercase tracking-wider border border-brand-mustard/20">
-                              {daysCount} Days curations
-                            </span>
+                          <td className="p-4 text-xs text-brand-muted align-middle max-w-[220px] truncate" title={guide.details?.routeFlow || ""}>
+                            {guide.details?.routeFlow || guide.destination}
                           </td>
-                          <td className="p-5 text-xs text-brand-muted font-sans tracking-wide max-w-xs truncate">
-                            {guide.excerpt}
+                          <td className="p-4 text-xs text-brand-muted align-middle whitespace-nowrap">
+                            {getDisplayDate(guide)}
                           </td>
-                          <td className="p-5 text-right">
-                            <div className="flex justify-end gap-1.5">
+                          <td className="p-4 text-xs text-brand-ink font-medium align-middle whitespace-nowrap">
+                            {daysCount}
+                          </td>
+                          <td className="p-4 text-xs text-brand-muted align-middle whitespace-nowrap">
+                            {(guide.details?.readTime || "10 Min").toLowerCase()}
+                          </td>
+                          <td className="p-4 text-xs text-brand-muted align-middle whitespace-nowrap">
+                            {inferTravelType(guide)}
+                          </td>
+                          <td className="p-4 align-middle whitespace-nowrap">
+                            {(() => {
+                              const status = (guide.status || "draft").toLowerCase();
+                              if (status === "published") {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wider">
+                                    Published
+                                  </span>
+                                );
+                              }
+                              if (status === "review") {
+                                return (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-wider">
+                                    Review
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-wider">
+                                  Draft
+                                </span>
+                              );
+                            })()}
+                          </td>
+                          <td className="p-4 text-right align-middle whitespace-nowrap">
+                            <div className="flex justify-end items-center gap-1.5">
                               <button 
                                 onClick={() => handleOpenEdit(guide)}
-                                className="p-2 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
+                                className="p-1.5 text-brand-muted hover:text-[#c7962d] hover:bg-[#FAF8F5] rounded-md transition-all duration-200 cursor-pointer"
                                 title="Edit Guide"
+                                type="button"
                               >
-                                <Edit2 size={15} />
+                                <Edit size={14} />
                               </button>
+                              <a 
+                                href={`/mini-guides/${guide.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-brand-muted hover:text-[#c7962d] hover:bg-[#FAF8F5] rounded-md transition-all duration-200 inline-flex items-center justify-center"
+                                title="View Live Guide"
+                              >
+                                <Eye size={14} />
+                              </a>
                               <button 
                                 onClick={() => handleDelete(guide.id, guide.title)}
-                                className="p-2 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
+                                className="p-1.5 text-brand-muted hover:text-red-600 hover:bg-red-50 rounded-md transition-all duration-200 cursor-pointer"
                                 title="Delete Guide"
+                                type="button"
                               >
-                                <Trash2 size={15} />
+                                <Trash2 size={14} />
                               </button>
                             </div>
                           </td>
