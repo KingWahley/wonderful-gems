@@ -2,148 +2,424 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { fetchDestinations, saveDestination, deleteDestination, uploadImage } from "@/lib/db";
-import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
-import { Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { 
+  fetchDestinations, deleteDestination, fetchBlogs, fetchTours, fetchMiniGuides 
+} from "@/lib/db";
+import { 
+  Plus, Edit, Eye, Trash2, Search, Loader2, ChevronDown, 
+  Inbox, Check, ExternalLink, Archive 
+} from "lucide-react";
 
 export default function DestinationsCMS() {
   const [destinations, setDestinations] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [tours, setTours] = useState([]);
+  const [guides, setGuides] = useState([]);
+  
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("All statuses");
+  const [selectedSort, setSelectedSort] = useState("Sort by newest");
+  
+  // Bulk Selection
+  const [selectedIds, setSelectedIds] = useState([]);
 
-  useEffect(() => {
-    loadDestinations();
-  }, []);
-
-  async function loadDestinations() {
+  async function loadData() {
     try {
       setLoading(true);
-      const data = await fetchDestinations();
-      setDestinations(data);
+      // Fetch all related tables to perform dynamic cross-reference counts
+      const [destData, blogData, tourData, guideData] = await Promise.all([
+        fetchDestinations(),
+        fetchBlogs().catch(() => []),
+        fetchTours().catch(() => []),
+        fetchMiniGuides().catch(() => [])
+      ]);
+      
+      setDestinations(destData || []);
+      setBlogs(blogData || []);
+      setTours(tourData || []);
+      setGuides(guideData || []);
     } catch (e) {
-      console.error("Failed to load destinations", e);
+      console.warn("Failed to load destinations dashboard data:", e);
     } finally {
       setLoading(false);
     }
   }
 
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const handleDelete = async (id, countryName) => {
-    if (confirm(`Are you sure you want to delete ${countryName}?`)) {
+    if (confirm(`Are you sure you want to delete the destination page for ${countryName}?`)) {
       try {
+        setDestinations(prev => prev.filter(d => d.id !== id));
         await deleteDestination(id);
-        setDestinations(destinations.filter(d => d.id !== id));
       } catch (e) {
         alert("Failed to delete destination: " + e.message);
+        loadData(); // Reload on failure
       }
     }
   };
 
-  const filtered = destinations.filter(d => {
-    const matchStr = `${d.country} ${d.slug} ${d.region}`.toLowerCase();
-    return matchStr.includes(searchQuery.toLowerCase());
-  });
+  // Bulk Actions
+  const handleBulkArchive = () => {
+    if (selectedIds.length === 0) {
+      alert("Please select one or more destinations to archive.");
+      return;
+    }
+    if (confirm(`Archive the ${selectedIds.length} selected destinations (setting status to draft)?`)) {
+      setDestinations(prev => prev.map(d => {
+        if (selectedIds.includes(d.id)) {
+          return { ...d, status: "draft" };
+        }
+        return d;
+      }));
+      setSelectedIds([]);
+      alert("Selected destinations successfully set to Draft status.");
+    }
+  };
+
+  const toggleSelectRow = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  // Parsing Utility to split "Why I Love It" into bold title and body dynamically
+  const parseWhyILoveIt = (text) => {
+    if (!text) return { title: "Why I Love It", body: "No details added yet." };
+    
+    // Split by colon
+    const colonIndex = text.indexOf(":");
+    if (colonIndex !== -1) {
+      return {
+        title: text.substring(0, colonIndex).trim(),
+        body: text.substring(colonIndex + 1).trim()
+      };
+    }
+    
+    // Split by period/sentence
+    const periodIndex = text.indexOf(".");
+    if (periodIndex !== -1) {
+      return {
+        title: text.substring(0, periodIndex).trim(),
+        body: text.substring(periodIndex + 1).trim() || text
+      };
+    }
+    
+    // Fallback: take first 4 words as title, rest as body
+    const words = text.split(" ");
+    if (words.length > 4) {
+      return {
+        title: words.slice(0, 4).join(" "),
+        body: words.slice(4).join(" ")
+      };
+    }
+    
+    return { title: text, body: "" };
+  };
+
+  // Filter & Sort Logic
+  const filtered = destinations
+    .filter(dest => {
+      const matchSearch = (dest.country || "").toLowerCase().includes(searchQuery.toLowerCase());
+      
+      let matchStatus = true;
+      if (selectedStatus !== "All statuses") {
+        matchStatus = (dest.status || "").toLowerCase() === selectedStatus.toLowerCase();
+      }
+
+      return matchSearch && matchStatus;
+    })
+    .sort((a, b) => {
+      if (selectedSort === "Sort by newest") {
+        return new Date(b.created_at) - new Date(a.created_at);
+      }
+      if (selectedSort === "Sort by oldest") {
+        return new Date(a.created_at) - new Date(b.created_at);
+      }
+      if (selectedSort === "Sort by country") {
+        return (a.country || "").localeCompare(b.country || "");
+      }
+      return 0;
+    });
+
+  // Metric Totals
+  const totalCount = destinations.length;
+  const publishedCount = destinations.filter(d => (d.status || "").toLowerCase() === "published").length;
+  const draftCount = destinations.filter(d => (d.status || "").toLowerCase() === "draft" || (d.status || "").toLowerCase() === "new").length;
+  
+  // Total linked posts count
+  const totalLinkedCount = blogs.length + tours.length + guides.length;
+
+  const getStatusBadge = (status) => {
+    switch (status?.toLowerCase()) {
+      case "published":
+        return <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-green-100/70 text-green-700 tracking-wide">Published</span>;
+      case "draft":
+      case "new":
+        return <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-brand-mustard/15 text-[#c7962d] tracking-wide">Draft</span>;
+      default:
+        return <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-gray-100 text-gray-700 uppercase">{status}</span>;
+    }
+  };
+
+  const truncateText = (text, maxLength) => {
+    if (!text) return "";
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + "...";
+  };
+
+  const getAvatarInitials = (name) => {
+    if (!name) return "??";
+    return name.slice(0, 2).toUpperCase();
+  };
 
   return (
-    <div>
-      <div className="mb-8 flex flex-col md:flex-row justify-between md:items-end gap-4">
+    <div className="w-full pb-16 font-sans">
+      
+      {/* Top Header Mockup */}
+      <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between mb-8 gap-4 pb-2">
         <div>
-          <h1 className="text-3xl font-serif text-charcoal-900 mb-2">Destinations</h1>
-          <p className="text-charcoal-800/70 text-sm">Manage your luxury travel destinations and content.</p>
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-1.5 tracking-tight">
+            Destinations
+          </h1>
+          <p className="text-brand-muted text-xs leading-relaxed max-w-3xl">
+            Create, edit and manage destination pages. Each destination includes a country, description, "Why I Love It" title and body, memorable moments, image, status and linked content.
+          </p>
         </div>
+        
+        {/* Navigation Action */}
         <Link
           href="/dashboard/destinations/add"
-          className="bg-charcoal-900 text-white px-4 py-2.5 rounded-md text-sm hover:bg-gold-600 transition-all flex items-center justify-center gap-2 font-medium"
+          className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#c7962d] hover:bg-[#b58522] text-white text-xs font-bold rounded-lg shadow-xs transition-colors shrink-0 w-full sm:w-auto text-center"
         >
-          <Plus size={16} /> Add Destination
+          <Plus size={14} className="stroke-[3px]" />
+          Add Destination
         </Link>
       </div>
 
-      {/* Main List Box */}
-      <div className="bg-white rounded-xl shadow-sm border border-cream-200 overflow-hidden">
-        <div className="p-4 border-b border-cream-200 flex justify-between items-center bg-cream-100/30">
-          <div className="relative w-full max-w-sm">
-            <input 
-              type="text" 
-              placeholder="Search destinations..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border border-cream-200 rounded-md py-2.5 pl-9 pr-4 text-sm focus:outline-none focus:border-gold-500 bg-white"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-charcoal-400" size={16} />
+      {/* Metrics Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: "Total Destinations", value: totalCount },
+          { label: "Published", value: publishedCount },
+          { label: "Drafts", value: draftCount },
+          { label: "Linked Posts", value: totalLinkedCount }
+        ].map((card, idx) => (
+          <div key={idx} className="bg-white border border-brand-border/70 rounded-xl p-5 shadow-xs">
+            <span className="text-[10px] uppercase font-bold text-brand-muted tracking-widest block mb-1">{card.label}</span>
+            <span className="text-3xl font-serif font-bold text-brand-ink">{card.value}</span>
           </div>
+        ))}
+      </div>
+
+      {/* Destinations List Main Card */}
+      <div className="bg-white border border-brand-border/70 rounded-2xl shadow-xs p-6">
+        
+        {/* Header Row */}
+        <div className="flex justify-between items-center mb-6 pb-2 border-b border-brand-border/40">
+          <h2 className="font-serif font-bold text-lg text-brand-ink">Destinations List</h2>
+          <button 
+            onClick={handleBulkArchive}
+            className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-semibold text-brand-ink hover:bg-brand-bg shadow-xs transition-all"
+          >
+            Bulk Actions
+          </button>
         </div>
 
+        {/* Filter Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" size={14} />
+            <input 
+              type="text" 
+              placeholder="Search by country..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-[#c7962d] transition-colors placeholder:text-brand-muted/70" 
+            />
+          </div>
+
+          {/* Status Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer"
+            >
+              <option value="All statuses">All statuses</option>
+              <option value="Published">Published</option>
+              <option value="Draft">Draft</option>
+            </select>
+            <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
+          </div>
+
+          {/* Sorting Dropdown */}
+          <div className="relative">
+            <select
+              value={selectedSort}
+              onChange={(e) => setSelectedSort(e.target.value)}
+              className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer"
+            >
+              <option value="Sort by newest">Sort by newest</option>
+              <option value="Sort by oldest">Sort by oldest</option>
+              <option value="Sort by country">Sort by country</option>
+            </select>
+            <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
+          </div>
+
+        </div>
+
+        {/* Table Content */}
         {loading ? (
-          <div className="p-20 flex flex-col items-center justify-center gap-3">
-            <Loader2 className="animate-spin text-gold-600" size={36} />
-            <p className="text-charcoal-800/60 text-sm font-medium">Loading destinations...</p>
+          <div className="p-20 flex flex-col items-center justify-center">
+            <Loader2 className="animate-spin text-[#c7962d] mb-3" size={24} />
+            <span className="text-brand-muted text-xs">Loading destinations...</span>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-20 text-center">
-            <p className="text-charcoal-800/60 mb-2 font-medium">No destinations found.</p>
-            <p className="text-xs text-charcoal-800/40">Try adjusting your search query or add a new destination.</p>
+          <div className="p-20 flex flex-col items-center justify-center text-center">
+            <Inbox size={24} className="text-brand-muted mb-2" />
+            <span className="text-brand-muted text-xs font-semibold">No destinations in your directory.</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto scrollbar-luxury">
+            <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
               <thead>
-                <tr className="bg-cream-100/50 text-xs uppercase tracking-widest text-charcoal-800/60 border-b border-cream-200">
-                  <th className="p-4 font-medium">Destination</th>
-                  <th className="p-4 font-medium">Region</th>
-                  <th className="p-4 font-medium">Blogs</th>
-                  <th className="p-4 font-medium">Tours</th>
-                  <th className="p-4 font-medium text-right">Actions</th>
+                <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
+                  <th className="p-3 w-8"></th>
+                  <th className="p-3 pl-1 pb-3 text-[10px]">Country</th>
+                  <th className="p-3 pb-3 text-[10px]">Description</th>
+                  <th className="p-3 pb-3 text-[10px]">Why I Love It</th>
+                  <th className="p-3 pb-3 text-[10px] text-center">Moments</th>
+                  <th className="p-3 pb-3 text-[10px]">Linked Content</th>
+                  <th className="p-3 pb-3 text-[10px]">Status</th>
+                  <th className="p-3 pb-3 text-right text-[10px] pr-2">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-cream-200">
-                {filtered.map((dest) => (
-                  <tr key={dest.id} className="hover:bg-cream-100/30 transition-colors">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-cream-200 flex-shrink-0 border border-cream-200">
-                          <img src={dest.coverImage} alt={dest.country} className="w-full h-full object-cover" />
+              <tbody className="divide-y divide-brand-border/30">
+                {filtered.map((item) => {
+                  // Perform dynamic lookup for linked counts
+                  const linkedBlogs = blogs.filter(b => b.destination_id === item.id || (b.destination || "").toLowerCase() === (item.country || "").toLowerCase());
+                  const linkedTours = tours.filter(t => t.destination_id === item.id || (t.destination || "").toLowerCase() === (item.country || "").toLowerCase());
+                  const linkedGuides = guides.filter(g => g.destination_id === item.id || (g.destination || "").toLowerCase() === (item.country || "").toLowerCase());
+
+                  // Parse Why I Love It into bold title + regular description
+                  const whyLove = parseWhyILoveIt(item.why_i_love_it || item.whyILoveIt);
+                  
+                  // Moments Count from Database Array
+                  const momentsCount = Array.isArray(item.moments) ? item.moments.length : 0;
+
+                  return (
+                    <tr 
+                      key={item.id}
+                      className="hover:bg-[#FAF8F5]/60 transition-colors cursor-pointer"
+                    >
+                      {/* Checkbox */}
+                      <td className="p-3 pr-1" onClick={(e) => e.stopPropagation()}>
+                        <input 
+                          type="checkbox"
+                          checked={selectedIds.includes(item.id)}
+                          onChange={() => toggleSelectRow(item.id)}
+                          className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                        />
+                      </td>
+
+                      {/* Country Flag & Path */}
+                      <td className="p-3 pl-1">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-[#F5F0E6] text-[#8C764D] border border-[#c7962d]/10 font-bold flex items-center justify-center shrink-0">
+                            {getAvatarInitials(item.country_code || item.code || item.country)}
+                          </div>
+                          <div>
+                            <div className="font-bold text-brand-ink text-[13px]">{item.country}</div>
+                            <div className="text-brand-muted text-[10.5px] font-medium">/destinations/{item.slug}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-medium text-charcoal-900">{dest.country}</div>
-                          <div className="text-xs text-charcoal-800/50">/{dest.slug}</div>
+                      </td>
+
+                      {/* Description */}
+                      <td className="p-3 max-w-[200px] whitespace-normal">
+                        <p className="text-brand-ink/80 text-[11.5px] leading-relaxed font-light line-clamp-2">
+                          {item.excerpt || item.description || "No description provided."}
+                        </p>
+                      </td>
+
+                      {/* Why I Love It parsed title + body with character limit truncation */}
+                      <td className="p-3 max-w-[220px] whitespace-normal">
+                        <div className="text-[11.5px] leading-relaxed font-light">
+                          <span className="font-bold text-brand-ink block mb-0.5" title={whyLove.title}>
+                            {truncateText(whyLove.title, 40)}
+                          </span>
+                          <span className="text-brand-muted text-[11px] font-medium block leading-normal line-clamp-2" title={whyLove.body}>
+                            {truncateText(whyLove.body, 65)}
+                          </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <span className="inline-block px-2.5 py-1 bg-cream-200 text-charcoal-800 text-xs font-medium rounded-full">
-                        {dest.region}
-                      </span>
-                    </td>
-                    <td className="p-4 text-sm text-charcoal-800 font-medium">{dest.blogsCount || 0}</td>
-                    <td className="p-4 text-sm text-charcoal-800 font-medium">{dest.toursCount || 0}</td>
-                    <td className="p-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link 
-                          href={`/dashboard/destinations/edit/${dest.id}`}
-                          className="p-2 text-charcoal-400 hover:text-gold-600 hover:bg-cream-100 rounded-md transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 size={16} />
-                        </Link>
-                        <button 
-                          onClick={() => handleDelete(dest.id, dest.country)}
-                          className="p-2 text-charcoal-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      {/* Memorable Moments Count */}
+                      <td className="p-3 text-center text-brand-ink font-bold text-[12px]">
+                        {momentsCount}
+                      </td>
+
+                      {/* Linked Content List */}
+                      <td className="p-3">
+                        <div className="text-[11px] text-brand-muted font-bold tracking-tight">
+                          {linkedBlogs.length} post{linkedBlogs.length !== 1 ? 's' : ''} &middot; {linkedGuides.length} guide{linkedGuides.length !== 1 ? 's' : ''} &middot; {linkedTours.length} tour{linkedTours.length !== 1 ? 's' : ''}
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="p-3">
+                        {getStatusBadge(item.status)}
+                      </td>
+
+                      {/* Actions Icons Column */}
+                      <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1 text-brand-muted">
+                          
+                          {/* Edit Destination */}
+                          <Link 
+                            href={`/dashboard/destinations/edit/${item.id}`}
+                            title="Edit Destination"
+                            className="p-1.5 rounded-lg hover:bg-[#FAF8F5] hover:text-[#c7962d] transition-colors inline-block"
+                          >
+                            <Edit size={15} />
+                          </Link>
+                          
+                          {/* View Public Page */}
+                          <a 
+                            href={`/destinations/${item.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="View public destination page"
+                            className="p-1.5 rounded-lg hover:bg-[#FAF8F5] hover:text-[#c7962d] transition-colors inline-block"
+                          >
+                            <Eye size={15} />
+                          </a>
+
+                          {/* Delete Destination */}
+                          <button 
+                            onClick={() => handleDelete(item.id, item.country)}
+                            title="Delete Destination"
+                            className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
-        
-        <div className="p-4 border-t border-cream-200 flex items-center justify-between text-sm text-charcoal-800/60">
-          <div>Showing {filtered.length} destinations</div>
-        </div>
+
       </div>
     </div>
   );

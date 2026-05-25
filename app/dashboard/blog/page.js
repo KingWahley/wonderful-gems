@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { fetchBlogs, saveBlog, deleteBlog, fetchDestinations, uploadImage, fetchMiniGuides } from "@/lib/db";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 import { 
-  Plus, Edit2, Trash2, Search, X, Loader2, Image as ImageIcon, 
-  Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle 
+  Plus, Edit, Eye, Trash2, Search, X, Loader2, Image as ImageIcon, 
+  Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,
+  Download, ChevronDown
 } from "lucide-react";
 
 export default function BlogCMS() {
@@ -19,6 +20,193 @@ export default function BlogCMS() {
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isMediaSelectorOpen, setIsMediaSelectorOpen] = useState(false);
+
+  // New list filters and bulk selection states
+  const [selectedDestination, setSelectedDestination] = useState("All destinations");
+  const [selectedStatus, setSelectedStatus] = useState("All statuses");
+  const [selectedSort, setSelectedSort] = useState("Sort by newest");
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // Data-parsing helpers for dynamic fields
+  const parseCityRoute = (cityStr) => {
+    if (!cityStr) return "—";
+    const cities = cityStr.split(/[,·\-\/]/).map(c => c.trim()).filter(Boolean);
+    if (cities.length <= 2) {
+      return cities.join(" · ");
+    }
+    return `${cities.slice(0, 2).join(" · ")} & more`;
+  };
+
+  const getReadTime = (blog) => {
+    if (blog.content) {
+      if (typeof blog.content === "object") {
+        return blog.content.readTime || "5 min";
+      }
+      try {
+        const parsed = JSON.parse(blog.content);
+        return parsed?.readTime || "5 min";
+      } catch (e) {}
+    }
+    return "5 min";
+  };
+
+  const getCity = (blog) => {
+    // 1. First check if there is real parsed city in the blog.content object
+    let cityVal = "";
+    if (blog.content) {
+      if (typeof blog.content === "object") {
+        cityVal = blog.content.city || "";
+      } else {
+        try {
+          const parsed = JSON.parse(blog.content);
+          cityVal = parsed?.city || "";
+        } catch (e) {}
+      }
+    }
+
+    // 2. If it's something custom (not "Kyoto" placeholder), or if destination is Japan (where Kyoto is valid), we can use it
+    if (cityVal && (cityVal !== "Kyoto" || blog.destination === "Japan")) {
+      return cityVal;
+    }
+
+    // 3. Fallback: Parse from category or date which contain real seeded routes
+    const sourceText = blog.category || blog.date || "";
+    if (sourceText.includes("·")) {
+      const parts = sourceText.split("·").map(p => p.trim()).filter(Boolean);
+      // Filter out month-year format strings
+      const cities = parts.filter(p => !/^(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{4}$/i.test(p));
+      if (cities.length > 0) {
+        return cities.join(" · ");
+      }
+    }
+
+    if (sourceText.includes("•")) {
+      const parts = sourceText.split("•").map(p => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        // The middle part is typically the city, clean and capitalize nicely
+        return parts[1].toLowerCase().replace(/\b[a-z]/g, letter => letter.toUpperCase());
+      }
+    }
+
+    // Default fallback
+    return cityVal || "Kyoto";
+  };
+
+  const getDisplayDate = (blog) => {
+    // 1. Try to extract from blog.date
+    let dateStr = blog.date || "";
+    
+    // 2. If it's a long route string (contains '·'), the last part is the month and year
+    if (dateStr.includes("·")) {
+      const parts = dateStr.split("·").map(p => p.trim());
+      dateStr = parts[parts.length - 1];
+    }
+    
+    // 3. If it's empty, try to extract from blog.category (e.g. QUICK GUIDE • MARRAKECH • NOV 2024)
+    if (!dateStr && blog.category) {
+      if (blog.category.includes("•")) {
+        const parts = blog.category.split("•").map(p => p.trim());
+        dateStr = parts[parts.length - 1];
+      }
+    }
+    
+    // 4. Clean and format to "Month Year" titlecase (e.g. "October 2025")
+    if (dateStr) {
+      return dateStr
+        .toLowerCase()
+        .replace(/\b[a-z]/g, letter => letter.toUpperCase());
+    }
+    
+    // 5. Fallback to created_at month and year
+    if (blog.created_at) {
+      return new Date(blog.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    }
+    
+    return "May 2026";
+  };
+
+  const getTags = (blog) => {
+    if (blog.content) {
+      if (typeof blog.content === "object") {
+        return blog.content.tags || "";
+      }
+      try {
+        const parsed = JSON.parse(blog.content);
+        return parsed?.tags || "";
+      } catch (e) {}
+    }
+    return "";
+  };
+
+  const getCityMiniGuideName = (blog) => {
+    let guideId = "";
+    if (blog.content) {
+      if (typeof blog.content === "object") {
+        guideId = blog.content.cityMiniGuide || "";
+      } else {
+        try {
+          const parsed = JSON.parse(blog.content);
+          guideId = parsed?.cityMiniGuide || "";
+        } catch (e) {}
+      }
+    }
+    
+    if (!guideId) return null;
+    const guideObj = miniGuides.find(g => g.id === guideId);
+    return guideObj ? `${guideObj.title.replace("Travel Guide", "").replace("Mini Guide", "").trim()} Guide` : null;
+  };
+
+  const toggleSelectRow = (id) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkArchive = () => {
+    if (selectedIds.length === 0) {
+      alert("Please select one or more blog posts to set as Draft.");
+      return;
+    }
+    if (confirm(`Change status to Draft for ${selectedIds.length} selected blog posts?`)) {
+      setBlogs(prev => prev.map(b => {
+        if (selectedIds.includes(b.id)) {
+          const payload = { ...b, status: "Draft" };
+          saveBlog(payload).catch(err => console.warn("Sync drafts error:", err));
+          return payload;
+        }
+        return b;
+      }));
+      setSelectedIds([]);
+      alert("Selected blog posts successfully updated to Draft.");
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (blogs.length === 0) return;
+    const headers = ["Title", "Slug", "Destination", "Country Code", "City/Route", "Read Time", "Status", "Date", "Excerpt"];
+    const rows = blogs.map(item => [
+      item.title,
+      item.slug,
+      item.destination,
+      item.countryCode || item.country_code,
+      getCity(item),
+      getReadTime(item),
+      item.status,
+      item.date || new Date(item.created_at).toLocaleDateString(),
+      item.excerpt
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.map(val => `"${(val || "").toString().replace(/"/g, '""')}"`).join(","))].join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `blog_posts_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -326,10 +514,35 @@ export default function BlogCMS() {
     }
   };
 
-  const filtered = blogs.filter(b => {
-    const matchStr = `${b.title} ${b.destination} ${b.category} ${b.excerpt}`.toLowerCase();
-    return matchStr.includes(searchQuery.toLowerCase());
-  });
+  const filtered = blogs
+    .filter(b => {
+      const matchSearch = 
+        (b.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (getCity(b) || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (b.destination || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchDest = selectedDestination === "All destinations" || b.destination === selectedDestination;
+      
+      let matchStatus = true;
+      if (selectedStatus !== "All statuses") {
+        matchStatus = (b.status || "").toLowerCase() === selectedStatus.toLowerCase() ||
+          ((selectedStatus === "Review" || selectedStatus === "In Review") && (b.status || "").toLowerCase().includes("review"));
+      }
+
+      return matchSearch && matchDest && matchStatus;
+    })
+    .sort((a, b) => {
+      if (selectedSort === "Sort by newest") {
+        return new Date(b.created_at) - new Date(a.created_at);
+      }
+      if (selectedSort === "Sort by oldest") {
+        return new Date(a.created_at) - new Date(b.created_at);
+      }
+      if (selectedSort === "Sort by title") {
+        return (a.title || "").localeCompare(b.title || "");
+      }
+      return 0;
+    });
 
   const tagsArray = formData.tags
     ? formData.tags.split(",").map(t => t.trim()).filter(Boolean)
@@ -340,46 +553,125 @@ export default function BlogCMS() {
       {!isFormOpen ? (
         <>
           {/* Editorial Header */}
-          <div className="flex flex-col md:flex-row justify-between md:items-end gap-6 pb-6 border-b border-brand-border animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between mb-8 gap-4 pb-2 border-b border-brand-border/40">
             <div>
-              <span className="text-[10px] font-bold tracking-[0.3em] text-brand-mustard uppercase block mb-2 font-sans">
-                JOURNAL ARCHIVE
-              </span>
-              <h1 className="text-4xl md:text-5xl font-serif text-brand-ink leading-tight tracking-tight">
-                Blog & Editorial
+              <h1 className="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-1.5 tracking-tight">
+                Blog Posts
               </h1>
-              <p className="text-brand-muted text-sm mt-2 max-w-xl font-light">
-                Draft, edit, and feature premium stories from the road. The homepage features standard logs as well as highlighted "Fresh Off The Road" features.
+              <p className="text-brand-muted text-xs leading-relaxed max-w-3xl">
+                Manage destination-based journal posts. Each post includes title, destination, city, date, excerpt, read time, city mini guide, cover image, blog content, tags and SEO fields.
               </p>
             </div>
-            <button
-              onClick={handleOpenAdd}
-              className="bg-brand-ink text-white px-6 py-3 rounded-full text-xs font-bold tracking-[0.2em] uppercase hover:bg-brand-mustard transition-all flex items-center justify-center gap-2 self-start md:self-auto cursor-pointer shadow-sm duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
-            >
-              <Plus size={14} className="stroke-[3]" /> Write Blog Post
-            </button>
+            
+            {/* Header Actions */}
+            <div className="flex items-center gap-3 w-full sm:w-auto self-stretch sm:self-auto">
+              <button 
+                onClick={handleExportCSV}
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 border border-brand-border rounded-lg text-xs font-semibold text-brand-ink bg-white hover:bg-brand-bg transition-colors cursor-pointer w-full sm:w-auto shadow-xs"
+              >
+                Export
+              </button>
+              <button
+                onClick={handleOpenAdd}
+                className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#c7962d] hover:bg-[#b58522] text-white text-xs font-bold rounded-lg shadow-xs transition-colors shrink-0 w-full sm:w-auto text-center cursor-pointer"
+              >
+                <Plus size={14} className="stroke-[3px]" />
+                Add New Post
+              </button>
+            </div>
           </div>
 
-          {/* Main Container */}
-          <div className="bg-white rounded-2xl border border-brand-border overflow-hidden shadow-[0_4px_25px_rgba(0,0,0,0.02)] animate-in fade-in slide-in-from-bottom-4 duration-300">
-            {/* Search Bar */}
-            <div className="p-5 border-b border-brand-border flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-brand-bg/30">
-              <div className="relative w-full max-w-md">
-                <input 
-                  type="text" 
-                  placeholder="Search blog posts by title, location or keywords..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full border border-brand-border rounded-xl py-3 pl-10 pr-4 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white transition-all text-brand-ink font-sans placeholder:text-brand-muted/70"
-                />
-                <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-brand-muted/80" size={15} />
+          {/* Metrics Row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[
+              { label: "Total Posts", value: blogs.length },
+              { label: "Published", value: blogs.filter(b => b.status === "Published").length },
+              { label: "Drafts", value: blogs.filter(b => b.status === "Draft").length },
+              { label: "In Review", value: blogs.filter(b => (b.status || "").toLowerCase().includes("review")).length }
+            ].map((card, idx) => (
+              <div key={idx} className="bg-white border border-brand-border/70 rounded-xl p-5 shadow-xs">
+                <span className="text-[10px] uppercase font-bold text-brand-muted tracking-widest block mb-1">{card.label}</span>
+                <span className="text-3xl font-serif font-bold text-brand-ink">{card.value}</span>
               </div>
-              <div className="text-xs text-brand-muted font-sans font-medium flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-brand-mustard animate-pulse"></span>
-                Total: {blogs.length} articles
-              </div>
+            ))}
+          </div>
+
+          {/* Blog Posts List Main Card */}
+          <div className="bg-white border border-brand-border/70 rounded-2xl shadow-xs p-6">
+            
+            {/* Table Header Row */}
+            <div className="flex justify-between items-center mb-6 pb-2 border-b border-brand-border/40">
+              <h2 className="font-serif font-bold text-lg text-brand-ink">Blog Posts List</h2>
+              <button 
+                onClick={handleBulkArchive}
+                className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-semibold text-brand-ink hover:bg-brand-bg shadow-xs transition-all cursor-pointer"
+              >
+                Bulk Actions
+              </button>
             </div>
 
+            {/* Filter Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-6">
+              
+              {/* Search */}
+              <div className="relative col-span-1 sm:col-span-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" size={14} />
+                <input 
+                  type="text" 
+                  placeholder="Search by title or city..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-[#c7962d] transition-colors placeholder:text-brand-muted/70 text-brand-ink font-sans" 
+                />
+              </div>
+
+              {/* Destination Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedDestination}
+                  onChange={(e) => setSelectedDestination(e.target.value)}
+                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer font-sans"
+                >
+                  <option value="All destinations">All destinations</option>
+                  {Array.from(new Set(blogs.map(b => b.destination).filter(Boolean))).map(dest => (
+                    <option key={dest} value={dest}>{dest}</option>
+                  ))}
+                </select>
+                <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
+              </div>
+
+              {/* Status Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer font-sans"
+                >
+                  <option value="All statuses">All statuses</option>
+                  <option value="Published">Published</option>
+                  <option value="Draft">Draft</option>
+                  <option value="Review">Review</option>
+                </select>
+                <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
+              </div>
+
+              {/* Sorting Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedSort}
+                  onChange={(e) => setSelectedSort(e.target.value)}
+                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer font-sans"
+                >
+                  <option value="Sort by newest">Sort by newest</option>
+                  <option value="Sort by oldest">Sort by oldest</option>
+                  <option value="Sort by title">Sort by title</option>
+                </select>
+                <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
+              </div>
+
+            </div>
+
+            {/* Table Content */}
             {loading ? (
               <div className="py-24 flex flex-col items-center justify-center gap-4">
                 <Loader2 className="animate-spin text-brand-mustard" size={32} />
@@ -394,87 +686,161 @@ export default function BlogCMS() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto font-sans">
-                <table className="w-full text-left border-collapse">
+              <div className="overflow-x-auto scrollbar-luxury">
+                <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
                   <thead>
-                    <tr className="bg-brand-bg/40 text-[9px] uppercase tracking-[0.25em] text-brand-muted font-bold border-b border-brand-border">
-                      <th className="p-5 font-bold">Article Details</th>
-                      <th className="p-5 font-bold">Destination</th>
-                      <th className="p-5 font-bold">Homepage Placement</th>
-                      <th className="p-5 font-bold">Publication Subtitle</th>
-                      <th className="p-5 font-bold text-right">Actions</th>
+                    <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
+                      <th className="p-3 w-8">
+                        <input 
+                          type="checkbox" 
+                          checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                          onChange={() => {
+                            if (selectedIds.length === filtered.length) {
+                              setSelectedIds([]);
+                            } else {
+                              setSelectedIds(filtered.map(b => b.id));
+                            }
+                          }}
+                          className="w-3.5 h-3.5 rounded border-brand-border text-brand-mustard focus:ring-brand-mustard accent-brand-mustard cursor-pointer"
+                        />
+                      </th>
+                      <th className="p-3 pl-1 pb-3 text-[10px]">POST</th>
+                      <th className="p-3 pb-3 text-[10px]">DESTINATION</th>
+                      <th className="p-3 pb-3 text-[10px]">CITY / ROUTE</th>
+                      <th className="p-3 pb-3 text-[10px]">DATE</th>
+                      <th className="p-3 pb-3 text-[10px]">READ TIME</th>
+                      <th className="p-3 pb-3 text-[10px]">CITY MINI GUIDE</th>
+                      <th className="p-3 pb-3 text-[10px]">TAGS</th>
+                      <th className="p-3 pb-3 text-[10px]">STATUS</th>
+                      <th className="p-3 pb-3 text-right text-[10px] pr-2">ACTIONS</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-brand-border">
-                    {filtered.map((blog) => (
-                      <tr key={blog.id} className="hover:bg-brand-bg/20 transition-colors duration-200">
-                        <td className="p-5">
-                          <div className="flex items-center gap-4">
-                            <div className="w-20 h-14 rounded-lg overflow-hidden bg-brand-bg flex-shrink-0 border border-brand-border shadow-2xs group relative">
-                              <img src={blog.coverImage || blog.hero_image} alt={blog.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <tbody className="divide-y divide-brand-border/40">
+                    {filtered.map((blog) => {
+                      const isSelected = selectedIds.includes(blog.id);
+                      
+                      // Country colors for premium initial avatars
+                      const getCountryColor = (code) => {
+                        const c = (code || "").toUpperCase();
+                        if (c === "JP") return "bg-[#8D5B4C]";
+                        if (c === "PT") return "bg-[#4E5B49]";
+                        if (c === "BE") return "bg-[#8A7968]";
+                        if (c === "IT") return "bg-[#65594F]";
+                        if (c === "FR") return "bg-[#5A6E72]";
+                        return "bg-[#8C7A6B]";
+                      };
+                      
+                      const countryCode = blog.countryCode || blog.country_code || "JP";
+                      const countryColor = getCountryColor(countryCode);
+                      const countryInitials = countryCode.toUpperCase().slice(0, 2);
+
+                      return (
+                        <tr key={blog.id} className={`hover:bg-[#FAF8F5]/30 transition-colors duration-200 ${isSelected ? "bg-brand-mustard/5" : ""}`}>
+                          <td className="p-3 pl-3">
+                            <input 
+                              type="checkbox" 
+                              checked={isSelected}
+                              onChange={() => toggleSelectRow(blog.id)}
+                              className="w-3.5 h-3.5 rounded border-brand-border text-brand-mustard focus:ring-brand-mustard accent-brand-mustard cursor-pointer"
+                            />
+                          </td>
+                          <td className="p-3 pl-1">
+                            <div className="flex items-center gap-3">
+                              {/* Avatar initials with curated palette */}
+                              <div className={`w-8 h-8 rounded-full ${countryColor} text-white font-sans font-bold text-xs flex items-center justify-center border border-white/10 shrink-0`}>
+                                {countryInitials}
+                              </div>
+                              <div>
+                                <h3 className="font-serif text-sm font-semibold text-brand-ink leading-snug">
+                                  {blog.title}
+                                </h3>
+                                <div className="text-[10px] font-mono text-brand-muted mt-0.5">
+                                  /posts/{blog.slug}
+                                </div>
+                              </div>
                             </div>
-                            <div className="max-w-md">
-                              <h3 className="font-serif text-base font-semibold text-brand-ink hover:text-brand-mustard transition-colors duration-200 leading-snug line-clamp-1 flex items-center gap-2">
-                                {blog.title}
-                                {blog.status !== "Published" && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-sans font-bold tracking-wider uppercase bg-brand-bg text-brand-muted border border-brand-border">
-                                    Draft
-                                  </span>
-                                )}
-                              </h3>
-                              <div className="text-[10px] font-mono text-brand-muted mt-1 tracking-wide">/{blog.slug}</div>
+                          </td>
+                          <td className="p-3 text-brand-ink font-medium">
+                            {blog.destination}
+                          </td>
+                          <td className="p-3 text-brand-ink">
+                            {parseCityRoute(getCity(blog))}
+                          </td>
+                          <td className="p-3 text-brand-muted">
+                            {getDisplayDate(blog)}
+                          </td>
+                          <td className="p-3 text-brand-muted">
+                            {getReadTime(blog)}
+                          </td>
+                          <td className="p-3">
+                            {getCityMiniGuideName(blog) ? (
+                              <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-blue-50 text-blue-700 tracking-wide border border-blue-100">
+                                {getCityMiniGuideName(blog)}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-semibold rounded-full bg-[#FCF8E3]/80 text-[#C7962D] tracking-wide border border-[#FBEED5]">
+                                None
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-brand-muted truncate max-w-[150px]" title={getTags(blog)}>
+                            {getTags(blog) || "—"}
+                          </td>
+                          <td className="p-3">
+                            {blog.status === "Published" ? (
+                              <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-green-50 text-green-700 tracking-wide border border-green-200">
+                                Published
+                              </span>
+                            ) : blog.status === "Review" || blog.status === "In Review" ? (
+                              <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-blue-50 text-blue-700 tracking-wide border border-blue-200">
+                                Review
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-[#FCF8E3] text-[#C7962D] tracking-wide border border-[#FBEED5]">
+                                Draft
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right pr-2">
+                            <div className="flex justify-end items-center gap-1.5">
+                              <button 
+                                onClick={() => handleOpenEdit(blog)}
+                                className="p-1.5 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg rounded-md transition-colors cursor-pointer"
+                                title="Edit Post"
+                              >
+                                <Edit size={14} />
+                              </button>
+                              <a 
+                                href={`/blog/${blog.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg rounded-md transition-colors flex items-center justify-center"
+                                title="View Live"
+                              >
+                                <Eye size={14} />
+                              </a>
+                              <button 
+                                onClick={() => handleDelete(blog.id, blog.title)}
+                                className="p-1.5 text-brand-muted hover:text-[#B04A3C] hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                title="Delete Post"
+                              >
+                                <Trash2 size={14} />
+                              </button>
                             </div>
-                          </div>
-                        </td>
-                        <td className="p-5 text-sm text-brand-ink">
-                          <span className="inline-flex items-center gap-2 font-medium bg-brand-bg border border-brand-border rounded-full py-1.5 px-3">
-                            <span className="text-[8px] bg-brand-mustard text-white px-1.5 py-0.5 rounded font-black tracking-widest font-mono">{blog.countryCode || blog.country_code || "TR"}</span>
-                            <span className="text-xs text-brand-ink">{blog.destination}</span>
-                          </span>
-                        </td>
-                        <td className="p-5">
-                          {(blog.isFresh || blog.is_fresh) ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-brand-mustard-soft text-brand-mustard text-[9px] font-bold rounded-full uppercase tracking-wider border border-brand-mustard/20">
-                              <Sparkles size={10} className="fill-brand-mustard/10 animate-pulse" /> Fresh Off Road
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-bg text-brand-muted text-[9px] font-bold rounded-full uppercase tracking-wider border border-brand-border">
-                              Standard Entry
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-5 text-xs text-brand-muted font-sans tracking-wide">
-                          {blog.category || blog.date}
-                        </td>
-                        <td className="p-5 text-right">
-                          <div className="flex justify-end gap-1.5">
-                            <button 
-                              onClick={() => handleOpenEdit(blog)}
-                              className="p-2 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
-                              title="Edit Article"
-                            >
-                              <Edit2 size={15} />
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(blog.id, blog.title)}
-                              className="p-2 text-brand-muted hover:text-brand-coral hover:bg-brand-danger-bg/50 rounded-lg transition-all duration-200 cursor-pointer"
-                              title="Delete Article"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             )}
-            
+
             {/* Table Footer */}
-            <div className="p-5 border-t border-brand-border bg-brand-bg/10 flex justify-between items-center text-xs text-brand-muted">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-brand-border/40 text-xs text-brand-muted">
               <span>Displaying {filtered.length} of {blogs.length} articles</span>
             </div>
+
           </div>
         </>
       ) : (

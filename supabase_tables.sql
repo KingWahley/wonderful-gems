@@ -11,9 +11,21 @@ CREATE TABLE IF NOT EXISTS inquiries (
   dates TEXT,
   budget TEXT,
   message TEXT,
-  status TEXT DEFAULT 'new', -- 'new', 'read', 'replied'
+  status TEXT DEFAULT 'new', -- 'new', 'read', 'replied', 'converted', 'follow-up'
+  travellers TEXT DEFAULT '2 adults',
+  notes TEXT DEFAULT '',
+  assigned_to TEXT DEFAULT 'Ava Wright',
+  priority TEXT DEFAULT 'Normal',
+  next_action TEXT DEFAULT 'Send reply',
   created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Ensure new columns exist for the inquiries management workflow (non-destructive upgrades for existing tables)
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS travellers TEXT DEFAULT '2 adults';
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS notes TEXT DEFAULT '';
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS assigned_to TEXT DEFAULT 'Ava Wright';
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'Normal';
+ALTER TABLE inquiries ADD COLUMN IF NOT EXISTS next_action TEXT DEFAULT 'Send reply';
 
 -- Enable Row Level Security (RLS) for private traveler details
 ALTER TABLE inquiries ENABLE ROW LEVEL SECURITY;
@@ -22,6 +34,7 @@ ALTER TABLE inquiries ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow public insert to inquiries" ON inquiries;
 DROP POLICY IF EXISTS "Allow admin full access to inquiries" ON inquiries;
 DROP POLICY IF EXISTS "Allow local dev read/write to inquiries" ON inquiries;
+DROP POLICY IF EXISTS "Allow anon read to inquiries" ON inquiries;
 
 -- Policy: Allow travelers (anyone) to send inquiries
 CREATE POLICY "Allow public insert to inquiries" ON inquiries
