@@ -10,6 +10,17 @@
   --color-charcoal-900: #111111;
   --color-coral-500: #ea5849;
   
+  /* Gold Color Palette for Premium Design Elements */
+  --color-gold-50: #fdfaf2;
+  --color-gold-100: #faf1db;
+  --color-gold-200: #f3dfb2;
+  --color-gold-300: #ebca80;
+  --color-gold-400: #e3b64c;
+  --color-gold-500: #d0a33c;
+  --color-gold-600: #c7962d;
+  --color-gold-700: #a37a22;
+  --color-gold-800: #7d5d17;
+  
   /* Brand Premium Design System */
   --color-brand-mustard: #c7962d;
   --color-brand-mustard-soft: #f6ead0;
