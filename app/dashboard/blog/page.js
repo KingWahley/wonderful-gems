@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { fetchBlogs, saveBlog, deleteBlog, fetchDestinations, uploadImage, fetchMiniGuides } from "@/lib/db";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 import dynamic from "next/dynamic";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
   loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
   ssr: false
@@ -37,6 +38,16 @@ export default function BlogCMS() {
 
   // Highlighting and Scroll-To logic for searches
   const [highlightedRowId, setHighlightedRowId] = useState(null);
+
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    emoji: "💡",
+    variant: "primary",
+    confirmLabel: "Confirm",
+    onConfirm: () => {}
+  });
 
 
 
@@ -186,42 +197,62 @@ export default function BlogCMS() {
     }
 
     if (action === "delete") {
-      if (confirm(`Are you sure you want to delete the ${selectedIds.length} selected blog posts?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(selectedIds.map(id => deleteBlog(id)));
-          setSelectedIds([]);
-          await loadData();
-          alert("Selected blog posts successfully deleted.");
-        } catch (e) {
-          alert("Failed to delete selected blog posts: " + e.message);
-        } finally {
-          setLoading(false);
+      setConfirmConfig({
+        isOpen: true,
+        title: "Delete Selected Posts?",
+        message: `Are you sure you want to permanently delete the ${selectedIds.length} selected blog posts? This action is irreversible.`,
+        emoji: "🗑️",
+        variant: "danger",
+        confirmLabel: "Delete",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(selectedIds.map(id => deleteBlog(id)));
+            setSelectedIds([]);
+            await loadData();
+            alert("Selected blog posts successfully deleted.");
+          } catch (e) {
+            alert("Failed to delete selected blog posts: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     } else if (action === "publish" || action === "draft") {
       const nextStatus = action === "publish" ? "Published" : "Draft";
-      if (confirm(`Change status to ${nextStatus} for ${selectedIds.length} selected blog posts?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              const b = blogs.find(blog => blog.id === id);
-              if (b) {
-                const payload = { ...b, status: nextStatus };
-                await saveBlog(payload);
-              }
-            })
-          );
-          setSelectedIds([]);
-          await loadData();
-          alert(`Selected blog posts successfully set to ${nextStatus}.`);
-        } catch (e) {
-          alert("Failed to update selected blog posts: " + e.message);
-        } finally {
-          setLoading(false);
+      const emojiIcon = action === "publish" ? "🚀" : "📝";
+      
+      setConfirmConfig({
+        isOpen: true,
+        title: `${nextStatus} Selected Posts?`,
+        message: `Change status to ${nextStatus.toUpperCase()} for the ${selectedIds.length} selected blog posts?`,
+        emoji: emojiIcon,
+        variant: "primary",
+        confirmLabel: "Apply",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(
+              selectedIds.map(async (id) => {
+                const b = blogs.find(blog => blog.id === id);
+                if (b) {
+                  const payload = { ...b, status: nextStatus };
+                  await saveBlog(payload);
+                }
+              })
+            );
+            setSelectedIds([]);
+            await loadData();
+            alert(`Selected blog posts successfully set to ${nextStatus}.`);
+          } catch (e) {
+            alert("Failed to update selected blog posts: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     }
   };
 
@@ -415,14 +446,23 @@ export default function BlogCMS() {
   };
 
   const handleDelete = async (id, title) => {
-    if (confirm(`Are you sure you want to delete the blog post "${title}"?`)) {
-      try {
-        await deleteBlog(id);
-        setBlogs(blogs.filter(b => b.id !== id));
-      } catch (e) {
-        alert("Failed to delete blog post: " + e.message);
+    setConfirmConfig({
+      isOpen: true,
+      title: "Delete Blog Post?",
+      message: `Are you sure you want to permanently delete the blog post "${title}"? This action cannot be undone.`,
+      emoji: "🗑️",
+      variant: "danger",
+      confirmLabel: "Delete",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          await deleteBlog(id);
+          setBlogs(prev => prev.filter(b => b.id !== id));
+        } catch (e) {
+          alert("Failed to delete blog post: " + e.message);
+        }
       }
-    }
+    });
   };
 
   const handleDestinationChange = (destName, optCode) => {
@@ -513,48 +553,62 @@ export default function BlogCMS() {
       return;
     }
 
-    try {
-      setSaving(true);
+    const actionText = (dataToSave.status || "Draft").toLowerCase() === "published" ? "publish this blog post" : "save this blog post as a draft";
+    const emojiIcon = (dataToSave.status || "Draft").toLowerCase() === "published" ? "🚀" : "📝";
 
-      const payload = {
-        title: dataToSave.title,
-        slug: dataToSave.slug.toLowerCase().replace(/\s+/g, "-"),
-        destination: dataToSave.destination,
-        countryCode: dataToSave.countryCode.toUpperCase(),
-        country_code: dataToSave.countryCode.toUpperCase(),
-        category: dataToSave.category || `TRAVEL • ${dataToSave.destination.toUpperCase()}`,
-        excerpt: dataToSave.excerpt,
-        coverImage: dataToSave.coverImage || "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
-        hero_image: dataToSave.coverImage || "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
-        isFresh: dataToSave.isFresh,
-        is_fresh: dataToSave.isFresh,
-        date: dataToSave.date,
-        status: dataToSave.status || "Draft",
-        content: {
-          body: dataToSave.content || "",
-          city: dataToSave.city || "Kyoto",
-          readTime: dataToSave.readTime || "8 min",
-          cityMiniGuide: dataToSave.cityMiniGuide || "",
-          cityMiniGuideCta: dataToSave.cityMiniGuideCta || "Open the guide",
-          imageAltText: dataToSave.imageAltText || "",
-          tags: dataToSave.tags || "slow travel, temples, food",
-          seoTitle: dataToSave.seoTitle || "",
-          seoDescription: dataToSave.seoDescription || ""
+    setConfirmConfig({
+      isOpen: true,
+      title: (dataToSave.status || "Draft").toLowerCase() === "published" ? "Publish Post?" : "Save Draft?",
+      message: `Are you sure you want to ${actionText}?`,
+      emoji: emojiIcon,
+      variant: "primary",
+      confirmLabel: (dataToSave.status || "Draft").toLowerCase() === "published" ? "Publish" : "Save",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setSaving(true);
+
+          const payload = {
+            title: dataToSave.title,
+            slug: dataToSave.slug.toLowerCase().replace(/\s+/g, "-"),
+            destination: dataToSave.destination,
+            countryCode: dataToSave.countryCode.toUpperCase(),
+            country_code: dataToSave.countryCode.toUpperCase(),
+            category: dataToSave.category || `TRAVEL • ${dataToSave.destination.toUpperCase()}`,
+            excerpt: dataToSave.excerpt,
+            coverImage: dataToSave.coverImage || "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
+            hero_image: dataToSave.coverImage || "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
+            isFresh: dataToSave.isFresh,
+            is_fresh: dataToSave.isFresh,
+            date: dataToSave.date,
+            status: dataToSave.status || "Draft",
+            content: {
+              body: dataToSave.content || "",
+              city: dataToSave.city || "Kyoto",
+              readTime: dataToSave.readTime || "8 min",
+              cityMiniGuide: dataToSave.cityMiniGuide || "",
+              cityMiniGuideCta: dataToSave.cityMiniGuideCta || "Open the guide",
+              imageAltText: dataToSave.imageAltText || "",
+              tags: dataToSave.tags || "slow travel, temples, food",
+              seoTitle: dataToSave.seoTitle || "",
+              seoDescription: dataToSave.seoDescription || ""
+            }
+          };
+
+          if (dataToSave.id) {
+            payload.id = dataToSave.id;
+          }
+
+          await saveBlog(payload);
+          await loadData();
+          setIsFormOpen(false);
+        } catch (err) {
+          alert("Failed to save blog post: " + err.message);
+        } finally {
+          setSaving(false);
         }
-      };
-
-      if (dataToSave.id) {
-        payload.id = dataToSave.id;
       }
-
-      await saveBlog(payload);
-      await loadData();
-      setIsFormOpen(false);
-    } catch (err) {
-      alert("Failed to save blog post: " + err.message);
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   const handlePreview = async () => {
@@ -1570,6 +1624,7 @@ export default function BlogCMS() {
           />
         </div>
       )}
+      <ConfirmModal {...confirmConfig} onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))} />
     </div>
   );
 }

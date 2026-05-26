@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { fetchTours, saveTour, deleteTour, fetchDestinations, fetchMiniGuides, uploadImage } from "@/lib/db";
 import { Plus, Edit, Eye, Trash2, Search, X, Loader2, ArrowLeft, ChevronDown, Bell, Upload, Calendar, Compass, Clock, Tag, Download } from "lucide-react";
 import dynamic from "next/dynamic";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
   loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
   ssr: false
@@ -49,6 +50,16 @@ export default function ToursCMS() {
   // Highlighting and Scroll-To logic for searches
   const [highlightedRowId, setHighlightedRowId] = useState(null);
 
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    emoji: "💡",
+    variant: "primary",
+    confirmLabel: "Confirm",
+    onConfirm: () => {}
+  });
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedDestination, selectedCategory, selectedStatus]);
@@ -91,44 +102,65 @@ export default function ToursCMS() {
     }
 
     if (action === "delete") {
-      if (confirm(`Are you sure you want to delete ${selectedIds.length} selected tours?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(selectedIds.map(id => deleteTour(id)));
-          setSelectedIds([]);
-          await loadData();
-        } catch (e) {
-          alert("Failed to delete selected tours: " + e.message);
-        } finally {
-          setLoading(false);
+      setConfirmConfig({
+        isOpen: true,
+        title: "Delete Selected Tours?",
+        message: `Are you sure you want to permanently delete the ${selectedIds.length} selected tours? This action is irreversible.`,
+        emoji: "🗑️",
+        variant: "danger",
+        confirmLabel: "Delete",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(selectedIds.map(id => deleteTour(id)));
+            setSelectedIds([]);
+            await loadData();
+          } catch (e) {
+            alert("Failed to delete selected tours: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     } else if (action === "publish" || action === "draft" || action === "feature") {
       const displayAction = action === "feature" ? "feature on homepage" : `set to ${action.toUpperCase()}`;
-      if (confirm(`Apply ${displayAction} to the ${selectedIds.length} selected tours?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              const tour = tours.find(t => t.id === id);
-              if (tour) {
-                const payload = {
-                  ...tour,
-                  status: action === "feature" ? (tour.status || "published") : action,
-                  featureOnHomepage: action === "feature" ? "Yes" : (tour.featureOnHomepage || "No")
-                };
-                await saveTour(payload);
-              }
-            })
-          );
-          setSelectedIds([]);
-          await loadData();
-        } catch (e) {
-          alert("Failed to update selected tours: " + e.message);
-        } finally {
-          setLoading(false);
+      const titleText = action === "feature" ? "Feature Tours" : action === "publish" ? "Publish Tours" : "Draft Tours";
+      const emojiIcon = action === "feature" ? "⭐" : action === "publish" ? "🚀" : "📝";
+      
+      setConfirmConfig({
+        isOpen: true,
+        title: `${titleText}?`,
+        message: `Are you sure you want to apply ${displayAction} to the ${selectedIds.length} selected tours?`,
+        emoji: emojiIcon,
+        variant: "primary",
+        confirmLabel: "Apply",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(
+              selectedIds.map(async (id) => {
+                const tour = tours.find(t => t.id === id);
+                if (tour) {
+                  const payload = {
+                    ...tour,
+                    status: action === "feature" ? (tour.status || "published") : action,
+                    featureOnHomepage: action === "feature" ? "Yes" : (tour.featureOnHomepage || "No")
+                  };
+                  await saveTour(payload);
+                }
+              })
+            );
+            setSelectedIds([]);
+            await loadData();
+          } catch (e) {
+            alert("Failed to update selected tours: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     }
   };
 
@@ -295,14 +327,23 @@ export default function ToursCMS() {
   };
 
   const handleDelete = async (id, title) => {
-    if (confirm(`Are you sure you want to delete the tour "${title}"?`)) {
-      try {
-        await deleteTour(id);
-        setTours(tours.filter(t => t.id !== id));
-      } catch (e) {
-        alert("Failed to delete tour: " + e.message);
+    setConfirmConfig({
+      isOpen: true,
+      title: "Delete Tour?",
+      message: `Are you sure you want to permanently delete the tour "${title}"? This action cannot be undone.`,
+      emoji: "🗑️",
+      variant: "danger",
+      confirmLabel: "Delete",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          await deleteTour(id);
+          setTours(prev => prev.filter(t => t.id !== id));
+        } catch (e) {
+          alert("Failed to delete tour: " + e.message);
+        }
       }
-    }
+    });
   };
 
   const handleDestinationChange = (destName, optCode) => {
@@ -370,52 +411,66 @@ export default function ToursCMS() {
       return;
     }
 
-    try {
-      setSaving(true);
-      const generatedSlug = formData.slug || formData.title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      const statusToSave = statusOverride || formData.status || "published";
+    const statusToSave = statusOverride || formData.status || "published";
+    const actionText = statusToSave.toLowerCase() === "published" ? "publish this tour" : "save this tour as a draft";
+    const emojiIcon = statusToSave.toLowerCase() === "published" ? "🚀" : "📝";
 
-      const payload = {
-        title: formData.title,
-        destination: formData.destination,
-        countryCode: formData.countryCode.toUpperCase(),
-        category: formData.category,
-        description: formData.description, // Maps to Full Description
-        badge: formData.badge,
-        status: statusToSave,
-        slug: generatedSlug,
-        heroImage: formData.heroImage,
-        shortDescription: formData.shortDescription,
-        price: formData.price,
-        duration: formData.duration,
-        availability: formData.availability,
-        city: formData.city,
-        bookingLink: formData.bookingLink,
-        partnerNote: formData.partnerNote,
-        imageAltText: formData.imageAltText,
-        pocketGuideId: formData.pocketGuideId,
-        itineraryGuideId: formData.itineraryGuideId,
-        featureOnHomepage: formData.featureOnHomepage,
-        featureOnDestination: formData.featureOnDestination,
-        sortOrder: formData.sortOrder,
-        seoTitle: formData.seoTitle,
-        metaDescription: formData.metaDescription,
-        included: formData.included.filter(Boolean),
-        gallery: formData.gallery.filter(Boolean)
-      };
+    setConfirmConfig({
+      isOpen: true,
+      title: statusToSave.toLowerCase() === "published" ? "Publish Tour?" : "Save Draft?",
+      message: `Are you sure you want to ${actionText}?`,
+      emoji: emojiIcon,
+      variant: "primary",
+      confirmLabel: statusToSave.toLowerCase() === "published" ? "Publish" : "Save",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setSaving(true);
+          const generatedSlug = formData.slug || formData.title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
-      if (formData.id) {
-        payload.id = formData.id;
+          const payload = {
+            title: formData.title,
+            destination: formData.destination,
+            countryCode: formData.countryCode.toUpperCase(),
+            category: formData.category,
+            description: formData.description, // Maps to Full Description
+            badge: formData.badge,
+            status: statusToSave,
+            slug: generatedSlug,
+            heroImage: formData.heroImage,
+            shortDescription: formData.shortDescription,
+            price: formData.price,
+            duration: formData.duration,
+            availability: formData.availability,
+            city: formData.city,
+            bookingLink: formData.bookingLink,
+            partnerNote: formData.partnerNote,
+            imageAltText: formData.imageAltText,
+            pocketGuideId: formData.pocketGuideId,
+            itineraryGuideId: formData.itineraryGuideId,
+            featureOnHomepage: formData.featureOnHomepage,
+            featureOnDestination: formData.featureOnDestination,
+            sortOrder: formData.sortOrder,
+            seoTitle: formData.seoTitle,
+            metaDescription: formData.metaDescription,
+            included: formData.included.filter(Boolean),
+            gallery: formData.gallery.filter(Boolean)
+          };
+
+          if (formData.id) {
+            payload.id = formData.id;
+          }
+
+          await saveTour(payload);
+          await loadData();
+          setIsFormOpen(false);
+        } catch (error) {
+          alert("Failed to save tour: " + error.message);
+        } finally {
+          setSaving(false);
+        }
       }
-
-      await saveTour(payload);
-      await loadData();
-      setIsFormOpen(false);
-    } catch (err) {
-      alert("Failed to save tour: " + err.message);
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   const handlePreview = async () => {
@@ -1496,6 +1551,7 @@ export default function ToursCMS() {
           </div>
         </div>
       )}
+      <ConfirmModal {...confirmConfig} onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))} />
     </div>
   );
 }

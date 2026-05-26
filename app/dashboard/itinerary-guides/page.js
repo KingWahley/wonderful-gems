@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { fetchMiniGuides, saveMiniGuide, deleteMiniGuide, fetchDestinations, uploadImage } from "@/lib/db";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
 import dynamic from "next/dynamic";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
   loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
   ssr: false
@@ -151,6 +152,16 @@ export default function ItineraryGuidesCMS() {
   // Highlighting and Scroll-To logic for searches
   const [highlightedRowId, setHighlightedRowId] = useState(null);
 
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    emoji: "💡",
+    variant: "primary",
+    confirmLabel: "Confirm",
+    onConfirm: () => {}
+  });
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedDestination, selectedStatus, selectedSort]);
@@ -224,42 +235,63 @@ export default function ItineraryGuidesCMS() {
     }
 
     if (action === "delete") {
-      if (confirm(`Are you sure you want to delete ${selectedIds.length} selected guides?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(selectedIds.map(id => deleteMiniGuide(id)));
-          setSelectedIds([]);
-          await loadData();
-        } catch (e) {
-          alert("Failed to delete selected guides: " + e.message);
-        } finally {
-          setLoading(false);
+      setConfirmConfig({
+        isOpen: true,
+        title: "Delete Selected Guides?",
+        message: `Are you sure you want to permanently delete the ${selectedIds.length} selected itinerary guides? This action is irreversible.`,
+        emoji: "🗑️",
+        variant: "danger",
+        confirmLabel: "Delete",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(selectedIds.map(id => deleteMiniGuide(id)));
+            setSelectedIds([]);
+            await loadData();
+          } catch (e) {
+            alert("Failed to delete selected guides: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     } else if (action === "publish" || action === "draft") {
-      if (confirm(`Change status of ${selectedIds.length} selected guides to ${action.toUpperCase()}?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              const guide = guides.find(g => g.id === id);
-              if (guide) {
-                const payload = {
-                  ...guide,
-                  status: action
-                };
-                await saveMiniGuide(payload);
-              }
-            })
-          );
-          setSelectedIds([]);
-          await loadData();
-        } catch (e) {
-          alert("Failed to update status: " + e.message);
-        } finally {
-          setLoading(false);
+      const nextStatus = action === "publish" ? "published" : "draft";
+      const emojiIcon = action === "publish" ? "🚀" : "📝";
+      
+      setConfirmConfig({
+        isOpen: true,
+        title: `${action === "publish" ? "Publish" : "Draft"} Selected Guides?`,
+        message: `Change status of ${selectedIds.length} selected guides to ${action.toUpperCase()}?`,
+        emoji: emojiIcon,
+        variant: "primary",
+        confirmLabel: "Apply",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(
+              selectedIds.map(async (id) => {
+                const guide = guides.find(g => g.id === id);
+                if (guide) {
+                  const payload = {
+                    ...guide,
+                    status: action
+                  };
+                  await saveMiniGuide(payload);
+                }
+              })
+            );
+            setSelectedIds([]);
+            await loadData();
+          } catch (e) {
+            alert("Failed to update status: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     }
   };
 
@@ -365,15 +397,28 @@ export default function ItineraryGuidesCMS() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id, title) => {
-    if (confirm(`Are you sure you want to delete the guide "${title}"?`)) {
-      try {
-        await deleteMiniGuide(id);
-        setGuides(guides.filter(g => g.id !== id));
-      } catch (e) {
-        alert("Failed to delete guide: " + e.message);
+  const handleDelete = (id, title) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: "Delete Itinerary Guide",
+      message: `Are you sure you want to delete the guide "${title}"? This action cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      emoji: "🗑️",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, loading: true }));
+          await deleteMiniGuide(id);
+          setGuides(guides.filter(g => g.id !== id));
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        } catch (e) {
+          alert("Failed to delete guide: " + e.message);
+        } finally {
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
+        }
       }
-    }
+    });
   };
 
   const handleDestinationChange = (destName, optCode) => {
@@ -660,52 +705,70 @@ export default function ItineraryGuidesCMS() {
     addRestaurantItem("mid"); // Default to mid-range
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     if (e) e.preventDefault();
     if (!formData.title || !formData.slug || !formData.destination) {
       alert("Title, slug, and destination are required.");
       return;
     }
 
-    try {
-      setSaving(true);
+    const isPublishing = (formData.status || "draft").toLowerCase() === "published";
+    const actionText = isPublishing ? "publish this itinerary guide" : "save this itinerary guide as a draft";
+    const emoji = isPublishing ? "🚀" : "📝";
+    const titleText = isPublishing ? "Publish Itinerary Guide" : "Save as Draft";
 
-      const computedCountry = formData.details.country || formData.destination || "";
-      const computedDays = formData.details.days?.length || parseInt(formData.details.noOfDays) || 7;
+    setConfirmConfig({
+      isOpen: true,
+      title: titleText,
+      message: `Are you sure you want to ${actionText}?`,
+      confirmLabel: isPublishing ? "Publish" : "Save Draft",
+      cancelLabel: "Cancel",
+      emoji: emoji,
+      variant: "primary",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, loading: true }));
+          setSaving(true);
 
-      const payload = {
-        type: "itinerary",
-        slug: formData.slug.toLowerCase().trim().replace(/\s+/g, "-"),
-        destination: formData.destination,
-        countryCode: formData.countryCode.toUpperCase(),
-        title: formData.title,
-        excerpt: formData.excerpt,
-        status: formData.status || "draft",
-        heroImage: formData.heroImage || "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop",
-        details: {
-          ...formData.details,
-          // Automate structural fields matching details.js template exactly
-          pocketTitle: formData.details.pocketTitle || `${computedCountry.toUpperCase()} MINI GUIDE • POCKET VERSION`,
-          itineraryTitle: formData.details.itineraryTitle || `${computedDays} DAYS IN ${computedCountry.toUpperCase()} • FULL ITINERARY`,
-          blogCountText: formData.details.blogCountText || `3 POSTS FROM ${computedCountry.toUpperCase()}`,
-          introText: formData.details.introText || "",
-          routeTitle: formData.details.routeTitle || `${computedDays}-day route`,
-          routeFlow: formData.details.routeFlow || formData.details.days?.map(d => d.city).filter(Boolean).join(", ") || ""
+          const computedCountry = formData.details.country || formData.destination || "";
+          const computedDays = formData.details.days?.length || parseInt(formData.details.noOfDays) || 7;
+
+          const payload = {
+            type: "itinerary",
+            slug: formData.slug.toLowerCase().trim().replace(/\s+/g, "-"),
+            destination: formData.destination,
+            countryCode: formData.countryCode.toUpperCase(),
+            title: formData.title,
+            excerpt: formData.excerpt,
+            status: formData.status || "draft",
+            heroImage: formData.heroImage || "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop",
+            details: {
+              ...formData.details,
+              pocketTitle: formData.details.pocketTitle || `${computedCountry.toUpperCase()} MINI GUIDE • POCKET VERSION`,
+              itineraryTitle: formData.details.itineraryTitle || `${computedDays} DAYS IN ${computedCountry.toUpperCase()} • FULL ITINERARY`,
+              blogCountText: formData.details.blogCountText || `3 POSTS FROM ${computedCountry.toUpperCase()}`,
+              introText: formData.details.introText || "",
+              routeTitle: formData.details.routeTitle || `${computedDays}-day route`,
+              routeFlow: formData.details.routeFlow || formData.details.days?.map(d => d.city).filter(Boolean).join(", ") || ""
+            }
+          };
+
+          if (formData.id) {
+            payload.id = formData.id;
+          }
+
+          await saveMiniGuide(payload);
+          await loadData();
+          setIsFormOpen(false);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        } catch (err) {
+          alert("Failed to save itinerary guide: " + err.message);
+        } finally {
+          setSaving(false);
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
         }
-      };
-
-      if (formData.id) {
-        payload.id = formData.id;
       }
-
-      await saveMiniGuide(payload);
-      await loadData();
-      setIsFormOpen(false);
-    } catch (err) {
-      alert("Failed to save itinerary guide: " + err.message);
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   const handlePreview = async () => {
@@ -2345,6 +2408,12 @@ export default function ItineraryGuidesCMS() {
         isOpen={isMediaSelectorOpen}
         onClose={() => setIsMediaSelectorOpen(false)}
         onSelect={(url) => setFormData(prev => ({ ...prev, heroImage: url }))}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        {...confirmConfig}
+        onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

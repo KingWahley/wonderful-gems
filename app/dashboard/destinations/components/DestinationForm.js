@@ -7,6 +7,7 @@ import { saveDestination, uploadImage } from "@/lib/db";
 import { ChevronRight, Loader2, X, Plus, Search, Bell } from "lucide-react";
 import { getFlagEmoji } from "@/components/dashboard/LocationAutocomplete";
 import dynamic from "next/dynamic";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
   loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
   ssr: false
@@ -17,6 +18,16 @@ export default function DestinationForm({ initialData }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    emoji: "💡",
+    variant: "primary",
+    confirmLabel: "Confirm",
+    onConfirm: () => {}
+  });
 
   const [formData, setFormData] = useState({
     id: initialData?.id || "",
@@ -72,47 +83,62 @@ export default function DestinationForm({ initialData }) {
       alert("Country is required.");
       return;
     }
-    try {
-      setSaving(true);
-      
-      const generatedSlug = formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-');
-      const countryCode = formData.code || "XX"; // fallback
 
-      // Store extra visual fields into description_json if we want to retain them without breaking DB
-      const extras = {
-        flag: formData.flag,
-        whyILoveItTitle: formData.whyILoveItTitle,
-        featureOnHomepage: formData.featureOnHomepage,
-        sortOrder: formData.sortOrder,
-        seoTitle: formData.seoTitle,
-        metaDescription: formData.metaDescription || formData.excerpt || ""
-      };
+    const actionText = isDraft ? "save this destination as a draft" : "publish this destination page";
+    const emojiIcon = isDraft ? "📝" : "🚀";
 
-      const payload = {
-        country: formData.country,
-        code: countryCode.toUpperCase(),
-        slug: generatedSlug,
-        region: formData.region,
-        excerpt: formData.excerpt || formData.metaDescription || "",
-        description: formData.description,
-        description_json: JSON.stringify(extras),
-        whyILoveIt: formData.whyILoveIt,
-        moments: formData.moments.filter(m => m.trim().length > 0),
-        coverImage: formData.coverImage,
-        status: isDraft ? "draft" : "published"
-      };
+    setConfirmConfig({
+      isOpen: true,
+      title: isDraft ? "Save Draft?" : "Publish Destination?",
+      message: `Are you sure you want to ${actionText}?`,
+      emoji: emojiIcon,
+      variant: "primary",
+      confirmLabel: isDraft ? "Save" : "Publish",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setSaving(true);
+          
+          const generatedSlug = formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-');
+          const countryCode = formData.code || "XX"; // fallback
 
-      if (formData.id) {
-        payload.id = formData.id;
+          // Store extra visual fields into description_json if we want to retain them without breaking DB
+          const extras = {
+            flag: formData.flag,
+            whyILoveItTitle: formData.whyILoveItTitle,
+            featureOnHomepage: formData.featureOnHomepage,
+            sortOrder: formData.sortOrder,
+            seoTitle: formData.seoTitle,
+            metaDescription: formData.metaDescription || formData.excerpt || ""
+          };
+
+          const payload = {
+            country: formData.country,
+            code: countryCode.toUpperCase(),
+            slug: generatedSlug,
+            region: formData.region,
+            excerpt: formData.excerpt || formData.metaDescription || "",
+            description: formData.description,
+            description_json: JSON.stringify(extras),
+            whyILoveIt: formData.whyILoveIt,
+            moments: formData.moments.filter(m => m.trim().length > 0),
+            coverImage: formData.coverImage,
+            status: isDraft ? "draft" : "published"
+          };
+
+          if (formData.id) {
+            payload.id = formData.id;
+          }
+
+          await saveDestination(payload);
+          router.push("/dashboard/destinations");
+        } catch (e) {
+          alert("Failed to save: " + e.message);
+        } finally {
+          setSaving(false);
+        }
       }
-
-      await saveDestination(payload);
-      router.push("/dashboard/destinations");
-    } catch (e) {
-      alert("Failed to save: " + e.message);
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   const handlePreview = async () => {
@@ -535,6 +561,7 @@ export default function DestinationForm({ initialData }) {
         </aside>
 
       </div>
+      <ConfirmModal {...confirmConfig} onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))} />
     </div>
   );
 }

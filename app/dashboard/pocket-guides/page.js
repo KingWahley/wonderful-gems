@@ -8,6 +8,7 @@ import {
   ChevronDown, Calendar, Clock, Compass, MapPin, Sparkle, Download
 } from "lucide-react";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 import dynamic from "next/dynamic";
 const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
   loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
@@ -111,6 +112,18 @@ export default function PocketGuidesCMS() {
   // Highlighting and Scroll-To logic for searches
   const [highlightedRowId, setHighlightedRowId] = useState(null);
 
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmLabel: "Confirm",
+    cancelLabel: "Cancel",
+    onConfirm: () => {},
+    loading: false,
+    emoji: "💡",
+    variant: "primary"
+  });
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedDestination, selectedStatus, selectedSort]);
@@ -121,49 +134,74 @@ export default function PocketGuidesCMS() {
     );
   };
 
-  const handleBulkAction = async (action) => {
+  const handleBulkAction = (action) => {
     if (selectedIds.length === 0) {
       alert("Please select one or more pocket guides first.");
       return;
     }
 
     if (action === "delete") {
-      if (confirm(`Are you sure you want to delete the ${selectedIds.length} selected pocket guides?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(selectedIds.map(id => deleteMiniGuide(id)));
-          setSelectedIds([]);
-          await loadData();
-          alert("Selected pocket guides successfully deleted.");
-        } catch (e) {
-          alert("Failed to delete selected pocket guides: " + e.message);
-        } finally {
-          setLoading(false);
+      setConfirmConfig({
+        isOpen: true,
+        title: "Delete Selected Pocket Guides",
+        message: `Are you sure you want to delete the ${selectedIds.length} selected pocket guides? This action cannot be undone.`,
+        confirmLabel: "Delete",
+        cancelLabel: "Cancel",
+        emoji: "🗑️",
+        variant: "danger",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, loading: true }));
+            setLoading(true);
+            await Promise.all(selectedIds.map(id => deleteMiniGuide(id)));
+            setSelectedIds([]);
+            await loadData();
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          } catch (e) {
+            alert("Failed to delete selected pocket guides: " + e.message);
+          } finally {
+            setLoading(false);
+            setConfirmConfig(prev => ({ ...prev, loading: false }));
+          }
         }
-      }
+      });
     } else if (action === "publish" || action === "draft") {
       const nextStatus = action === "publish" ? "published" : "draft";
-      if (confirm(`Change status to ${nextStatus.toUpperCase()} for ${selectedIds.length} selected pocket guides?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              const g = guides.find(guide => guide.id === id);
-              if (g) {
-                const payload = { ...g, status: nextStatus };
-                await saveMiniGuide(payload);
-              }
-            })
-          );
-          setSelectedIds([]);
-          await loadData();
-          alert(`Selected pocket guides successfully set to ${nextStatus.toUpperCase()}.`);
-        } catch (e) {
-          alert("Failed to update selected pocket guides: " + e.message);
-        } finally {
-          setLoading(false);
+      const emoji = action === "publish" ? "🚀" : "📝";
+      const titleText = action === "publish" ? "Publish Selected" : "Save Selected as Draft";
+
+      setConfirmConfig({
+        isOpen: true,
+        title: titleText,
+        message: `Are you sure you want to change status to ${nextStatus.toUpperCase()} for ${selectedIds.length} selected pocket guides?`,
+        confirmLabel: action === "publish" ? "Publish" : "Save Draft",
+        cancelLabel: "Cancel",
+        emoji: emoji,
+        variant: "primary",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, loading: true }));
+            setLoading(true);
+            await Promise.all(
+              selectedIds.map(async (id) => {
+                const g = guides.find(guide => guide.id === id);
+                if (g) {
+                  const payload = { ...g, status: nextStatus };
+                  await saveMiniGuide(payload);
+                }
+              })
+            );
+            setSelectedIds([]);
+            await loadData();
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          } catch (e) {
+            alert("Failed to update selected pocket guides: " + e.message);
+          } finally {
+            setLoading(false);
+            setConfirmConfig(prev => ({ ...prev, loading: false }));
+          }
         }
-      }
+      });
     }
   };
 
@@ -278,15 +316,28 @@ export default function PocketGuidesCMS() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = async (id, title) => {
-    if (confirm(`Are you sure you want to delete the guide "${title}"?`)) {
-      try {
-        await deleteMiniGuide(id);
-        setGuides(guides.filter(g => g.id !== id));
-      } catch (e) {
-        alert("Failed to delete guide: " + e.message);
+  const handleDelete = (id, title) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: "Delete Pocket Guide",
+      message: `Are you sure you want to delete the guide "${title}"? This action cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      emoji: "🗑️",
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, loading: true }));
+          await deleteMiniGuide(id);
+          setGuides(guides.filter(g => g.id !== id));
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        } catch (e) {
+          alert("Failed to delete guide: " + e.message);
+        } finally {
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
+        }
       }
-    }
+    });
   };
 
   const handleDestinationChange = (destName, optCode) => {
@@ -472,40 +523,59 @@ export default function PocketGuidesCMS() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     if (e) e.preventDefault();
     if (!formData.title || !formData.slug || !formData.destination) {
       alert("Title, slug, and destination are required.");
       return;
     }
 
-    try {
-      setSaving(true);
+    const isPublishing = (formData.status || "published").toLowerCase() === "published";
+    const actionText = isPublishing ? "publish this pocket guide" : "save this pocket guide as a draft";
+    const emoji = isPublishing ? "🚀" : "📝";
+    const titleText = isPublishing ? "Publish Pocket Guide" : "Save as Draft";
 
-      const payload = {
-        type: "pocket",
-        slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
-        destination: formData.destination,
-        countryCode: formData.countryCode.toUpperCase(),
-        title: formData.title,
-        excerpt: formData.excerpt,
-        heroImage: formData.heroImage || "https://images.unsplash.com/photo-1597212618440-806262de4f6b?q=80&w=2000&auto=format&fit=crop",
-        details: formData.details,
-        status: formData.status || "published"
-      };
+    setConfirmConfig({
+      isOpen: true,
+      title: titleText,
+      message: `Are you sure you want to ${actionText}?`,
+      confirmLabel: isPublishing ? "Publish" : "Save Draft",
+      cancelLabel: "Cancel",
+      emoji: emoji,
+      variant: "primary",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, loading: true }));
+          setSaving(true);
 
-      if (formData.id) {
-        payload.id = formData.id;
+          const payload = {
+            type: "pocket",
+            slug: formData.slug.toLowerCase().replace(/\s+/g, "-"),
+            destination: formData.destination,
+            countryCode: formData.countryCode.toUpperCase(),
+            title: formData.title,
+            excerpt: formData.excerpt,
+            heroImage: formData.heroImage || "https://images.unsplash.com/photo-1597212618440-806262de4f6b?q=80&w=2000&auto=format&fit=crop",
+            details: formData.details,
+            status: formData.status || "published"
+          };
+
+          if (formData.id) {
+            payload.id = formData.id;
+          }
+
+          await saveMiniGuide(payload);
+          await loadData();
+          setIsFormOpen(false);
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        } catch (err) {
+          alert("Failed to save pocket guide: " + err.message);
+        } finally {
+          setSaving(false);
+          setConfirmConfig(prev => ({ ...prev, loading: false }));
+        }
       }
-
-      await saveMiniGuide(payload);
-      await loadData();
-      setIsFormOpen(false);
-    } catch (err) {
-      alert("Failed to save pocket guide: " + err.message);
-    } finally {
-      setSaving(false);
-    }
+    });
   };
 
   const handlePreview = async () => {
@@ -1894,6 +1964,12 @@ export default function PocketGuidesCMS() {
         isOpen={isMediaModalOpen}
         onClose={() => setIsMediaModalOpen(false)}
         onSelect={(url) => setFormData(prev => ({ ...prev, heroImage: url }))}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        {...confirmConfig}
+        onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))}
       />
     </div>
   );

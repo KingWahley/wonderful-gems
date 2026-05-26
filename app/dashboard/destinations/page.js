@@ -9,7 +9,7 @@ import {
   Plus, Edit, Eye, Trash2, Search, Loader2, ChevronDown, 
   Inbox, Check, ExternalLink, Archive 
 } from "lucide-react";
-
+import ConfirmModal from "@/components/shared/ConfirmModal";
 export default function DestinationsCMS() {
   const [destinations, setDestinations] = useState([]);
   const [blogs, setBlogs] = useState([]);
@@ -28,6 +28,16 @@ export default function DestinationsCMS() {
 
   // Highlighting and Scroll-To logic for searches
   const [highlightedRowId, setHighlightedRowId] = useState(null);
+
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    emoji: "💡",
+    variant: "primary",
+    confirmLabel: "Confirm",
+    onConfirm: () => {}
+  });
 
   useEffect(() => {
     setCurrentPage(1);
@@ -60,15 +70,24 @@ export default function DestinationsCMS() {
   }, []);
 
   const handleDelete = async (id, countryName) => {
-    if (confirm(`Are you sure you want to delete the destination page for ${countryName}?`)) {
-      try {
-        setDestinations(prev => prev.filter(d => d.id !== id));
-        await deleteDestination(id);
-      } catch (e) {
-        alert("Failed to delete destination: " + e.message);
-        loadData(); // Reload on failure
+    setConfirmConfig({
+      isOpen: true,
+      title: "Delete Destination?",
+      message: `Are you sure you want to permanently delete the destination page for ${countryName}? All associated content references will remain, but this country page layout will be removed.`,
+      emoji: "🗑️",
+      variant: "danger",
+      confirmLabel: "Delete",
+      onConfirm: async () => {
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          setDestinations(prev => prev.filter(d => d.id !== id));
+          await deleteDestination(id);
+        } catch (e) {
+          alert("Failed to delete destination: " + e.message);
+          loadData(); // Reload on failure
+        }
       }
-    }
+    });
   };
 
   // Bulk Actions
@@ -79,42 +98,62 @@ export default function DestinationsCMS() {
     }
 
     if (action === "delete") {
-      if (confirm(`Are you sure you want to delete the ${selectedIds.length} selected destinations?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(selectedIds.map(id => deleteDestination(id)));
-          setSelectedIds([]);
-          await loadData();
-          alert("Selected destinations successfully deleted.");
-        } catch (e) {
-          alert("Failed to delete selected destinations: " + e.message);
-        } finally {
-          setLoading(false);
+      setConfirmConfig({
+        isOpen: true,
+        title: "Delete Selected Destinations?",
+        message: `Are you sure you want to permanently delete the ${selectedIds.length} selected destinations? This action cannot be undone.`,
+        emoji: "🗑️",
+        variant: "danger",
+        confirmLabel: "Delete",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(selectedIds.map(id => deleteDestination(id)));
+            setSelectedIds([]);
+            await loadData();
+            alert("Selected destinations successfully deleted.");
+          } catch (e) {
+            alert("Failed to delete selected destinations: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     } else if (action === "publish" || action === "draft") {
       const nextStatus = action === "publish" ? "published" : "draft";
-      if (confirm(`Change status to ${nextStatus} for ${selectedIds.length} selected destinations?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              const d = destinations.find(dest => dest.id === id);
-              if (d) {
-                const payload = { ...d, status: nextStatus };
-                await saveDestination(payload);
-              }
-            })
-          );
-          setSelectedIds([]);
-          await loadData();
-          alert(`Selected destinations successfully set to ${nextStatus}.`);
-        } catch (e) {
-          alert("Failed to update selected destinations: " + e.message);
-        } finally {
-          setLoading(false);
+      const emojiIcon = action === "publish" ? "🚀" : "📝";
+      
+      setConfirmConfig({
+        isOpen: true,
+        title: `${action === "publish" ? "Publish" : "Draft"} Selected Destinations?`,
+        message: `Change status to ${nextStatus.toUpperCase()} for the ${selectedIds.length} selected destinations?`,
+        emoji: emojiIcon,
+        variant: "primary",
+        confirmLabel: "Apply",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(
+              selectedIds.map(async (id) => {
+                const d = destinations.find(dest => dest.id === id);
+                if (d) {
+                  const payload = { ...d, status: nextStatus };
+                  await saveDestination(payload);
+                }
+              })
+            );
+            setSelectedIds([]);
+            await loadData();
+            alert(`Selected destinations successfully set to ${nextStatus}.`);
+          } catch (e) {
+            alert("Failed to update selected destinations: " + e.message);
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     }
   };
 
@@ -579,6 +618,7 @@ export default function DestinationsCMS() {
         )}
 
       </div>
+      <ConfirmModal {...confirmConfig} onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))} />
     </div>
   );
 }
