@@ -481,9 +481,9 @@ export default function InquiriesDashboard() {
 
             {/* Inquiries Table */}
             {loading && inquiries.length === 0 ? (
-              <div className="p-16 flex flex-col items-center justify-center">
-                <Loader2 className="animate-spin text-[#c7962d] mb-3" size={24} />
-                <span className="text-brand-muted text-xs">Loading travelers...</span>
+              <div className="p-16 flex flex-col items-center justify-center font-sans">
+                <div className="brand-loader mb-4" style={{ '--s': '12px' }} />
+                <span className="text-brand-muted text-[11px] font-medium tracking-tight">Loading travelers...</span>
               </div>
             ) : filteredInquiries.length === 0 ? (
               <div className="p-16 flex flex-col items-center justify-center text-center">

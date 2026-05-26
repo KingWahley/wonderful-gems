@@ -392,9 +392,9 @@ export default function MediaLibraryPage() {
         {/* Media Grid */}
         <div className="p-6 bg-[#FCFBF8]">
           {loading ? (
-            <div className="py-24 flex flex-col items-center justify-center gap-4">
-              <Loader2 className="animate-spin text-brand-mustard" size={32} />
-              <p className="text-brand-muted text-xs font-bold tracking-widest uppercase animate-pulse">Loading Library...</p>
+            <div className="py-24 flex flex-col items-center justify-center gap-4 font-sans">
+              <div className="brand-loader" style={{ '--s': '12px' }} />
+              <p className="text-brand-muted text-[11px] font-bold tracking-widest uppercase animate-pulse">Loading Library...</p>
             </div>
           ) : processedAssets.length === 0 ? (
             <div className="py-24 text-center max-w-sm mx-auto">

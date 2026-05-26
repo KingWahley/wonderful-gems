@@ -222,7 +222,7 @@ export default function DashboardOverview() {
         <div className="fixed inset-0 bg-[#FAF8F5]/85 backdrop-blur-xs flex flex-col items-center justify-center z-[9999] animate-in fade-in duration-300 font-sans">
           <div className="brand-loader mb-5" style={{ '--s': '15px' }} />
           <span className="text-brand-ink font-serif font-bold text-sm tracking-wide">Navigating to content...</span>
-          <span className="text-brand-muted text-[10px] mt-1.5 font-medium tracking-tight">Taking you there</span>
+          <span className="text-brand-muted text-[10px] mt-1.5 font-medium tracking-tight">Taking </span>
         </div>
       )}
       {/* Top Navigation Bar */}

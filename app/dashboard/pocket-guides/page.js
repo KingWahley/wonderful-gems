@@ -795,9 +795,9 @@ export default function PocketGuidesCMS() {
 
             {/* Table Content */}
             {loading ? (
-              <div className="py-24 flex flex-col items-center justify-center gap-4">
-                <Loader2 className="animate-spin text-[#c7962d]" size={32} />
-                <p className="text-brand-muted text-xs font-bold tracking-widest uppercase animate-pulse">Gathering guides...</p>
+              <div className="py-24 flex flex-col items-center justify-center gap-4 font-sans">
+                <div className="brand-loader" style={{ '--s': '12px' }} />
+                <p className="text-brand-muted text-[11px] font-bold tracking-widest uppercase animate-pulse">Gathering guides...</p>
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-24 text-center max-w-sm mx-auto">

@@ -311,9 +311,9 @@ export default function HomepageManager() {
       )}
 
       {saving && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center font-sans">
           <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-xl flex flex-col items-center">
-            <Loader2 className="animate-spin text-[#c7962d] mb-4" size={40} />
+            <div className="brand-loader mb-5" style={{ '--s': '12px' }} />
             <h3 className="font-serif text-lg text-gray-900 font-bold mb-1">Publishing Changes</h3>
             <p className="text-xs text-gray-500">Syncing settings to Supabase...</p>
           </div>
@@ -365,8 +365,9 @@ export default function HomepageManager() {
       </div>
 
       {loading ? (
-        <div className="py-20 flex justify-center">
-          <Loader2 className="animate-spin text-[#c7962d]" size={40} />
+        <div className="py-20 flex flex-col items-center justify-center font-sans">
+          <div className="brand-loader mb-4" style={{ '--s': '12px' }} />
+          <span className="text-brand-muted text-[11px] font-medium tracking-tight">Loading homepage data...</span>
         </div>
       ) : (
         <div className="max-w-4xl space-y-6">

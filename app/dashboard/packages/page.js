@@ -438,9 +438,9 @@ export default function PackagesCMS() {
 
       {/* Main 2-Column Split CMS Layout */}
       {loading ? (
-        <div className="p-20 flex flex-col items-center justify-center gap-3">
-          <Loader2 className="animate-spin text-gold-600" size={36} />
-          <p className="text-charcoal-800/60 text-sm font-medium">Loading packages data...</p>
+        <div className="p-20 flex flex-col items-center justify-center gap-3 font-sans">
+          <div className="brand-loader" style={{ '--s': '12px' }} />
+          <p className="text-charcoal-800/60 text-[11px] font-medium tracking-tight">Loading packages data...</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
