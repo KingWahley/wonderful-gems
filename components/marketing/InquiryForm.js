@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { saveInquiry } from "@/lib/db";
 import { Loader2 } from "lucide-react";
 
@@ -18,6 +18,19 @@ export default function InquiryForm({ packages = [] }) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
+  // Captcha State
+  const [captcha, setCaptcha] = useState({ num1: 0, num2: 0, answer: "" });
+
+  const generateCaptcha = () => {
+    const num1 = Math.floor(Math.random() * 8) + 2; // numbers 2-9
+    const num2 = Math.floor(Math.random() * 8) + 2;
+    setCaptcha({ num1, num2, answer: "" });
+  };
+
+  useEffect(() => {
+    generateCaptcha();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -27,6 +40,14 @@ export default function InquiryForm({ packages = [] }) {
     e.preventDefault();
     if (!formData.name || !formData.email) {
       setError("Name and Email are required.");
+      return;
+    }
+
+    // Captcha Validation
+    const isHuman = parseInt(captcha.answer) === (captcha.num1 + captcha.num2);
+    if (!isHuman) {
+      setError("Incorrect verification code. Please prove you are human!");
+      generateCaptcha();
       return;
     }
 
@@ -55,6 +76,7 @@ export default function InquiryForm({ packages = [] }) {
         budget: "",
         message: ""
       });
+      generateCaptcha();
     } catch (err) {
       console.error("Error submitting inquiry:", err);
       setError("Something went wrong. Please try again.");
@@ -118,7 +140,7 @@ export default function InquiryForm({ packages = [] }) {
                   name="package"
                   value={formData.package}
                   onChange={handleChange}
-                  className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500 appearance-none text-charcoal-900"
+                  className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500 appearance-none text-charcoal-900 cursor-pointer"
                 >
                   {packages.map((pkg, idx) => (
                     <option key={idx} value={pkg.title}>{pkg.title}</option>
@@ -178,12 +200,38 @@ export default function InquiryForm({ packages = [] }) {
                 className="w-full bg-[#FBF7EE] border border-charcoal-900/10 rounded-[12px] px-4 py-3.5 text-[14px] placeholder:text-charcoal-900/40 focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500 resize-none"
               />
             </div>
+
+            {/* Elegant Anti-Bot Verification Checkbox Card */}
+            <div className="bg-[#FAF8F5] border border-charcoal-900/5 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-inner">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🛡️</span>
+                <div className="text-left">
+                  <h4 className="text-[12px] font-bold text-charcoal-900 uppercase tracking-wider mb-0.5">Human Verification</h4>
+                  <p className="text-[11px] text-charcoal-800/60 font-medium leading-tight">Please complete this quick check to prevent robot spam.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-center">
+                <span className="text-[13px] font-bold text-charcoal-900 bg-cream-200 px-3 py-2 rounded-lg border border-charcoal-900/5 font-mono select-none">
+                  {captcha.num1} + {captcha.num2} =
+                </span>
+                <input 
+                  type="number"
+                  name="captcha"
+                  required
+                  placeholder="?"
+                  value={captcha.answer}
+                  onChange={(e) => setCaptcha(prev => ({ ...prev, answer: e.target.value }))}
+                  className="w-16 bg-white border border-charcoal-900/10 rounded-lg px-2.5 py-2 text-center text-[14px] font-bold text-charcoal-900 focus:outline-none focus:border-mustard-500 focus:ring-1 focus:ring-mustard-500 font-mono placeholder:text-charcoal-900/20"
+                />
+              </div>
+            </div>
             
             <div className="pt-2">
               <button 
                 type="submit" 
                 disabled={loading}
-                className="bg-[#E6B63E] hover:bg-[#D4A532] text-white text-[11px] tracking-[0.2em] font-bold uppercase py-4 px-8 rounded-full transition-colors w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                className="bg-[#E6B63E] hover:bg-[#D4A532] text-white text-[11px] tracking-[0.2em] font-bold uppercase py-4 px-8 rounded-full transition-colors w-full sm:w-auto shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {loading && <Loader2 className="animate-spin" size={14} />}
                 SEND INQUIRY &rarr;

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { saveDestination, uploadImage } from "@/lib/db";
+import { saveDestination, uploadImage, fetchBlogs, fetchTours, fetchMiniGuides } from "@/lib/db";
 import { ChevronRight, Loader2, X, Plus, Search, Bell } from "lucide-react";
 import { getFlagEmoji } from "@/components/dashboard/LocationAutocomplete";
 import dynamic from "next/dynamic";
@@ -48,6 +48,43 @@ export default function DestinationForm({ initialData }) {
     metaDescription: initialData?.extras?.metaDescription || initialData?.excerpt || "",
     region: initialData?.region || "Asia"
   });
+
+  const [blogsList, setBlogsList] = useState([]);
+  const [toursList, setToursList] = useState([]);
+  const [guidesList, setGuidesList] = useState([]);
+
+  useEffect(() => {
+    async function loadCountsData() {
+      try {
+        const [fetchedBlogs, fetchedTours, fetchedGuides] = await Promise.all([
+          fetchBlogs().catch(() => []),
+          fetchTours().catch(() => []),
+          fetchMiniGuides().catch(() => [])
+        ]);
+        setBlogsList(fetchedBlogs || []);
+        setToursList(fetchedTours || []);
+        setGuidesList(fetchedGuides || []);
+      } catch (e) {
+        console.warn("Failed to load linked counts data", e);
+      }
+    }
+    loadCountsData();
+  }, []);
+
+  const linkedBlogsCount = blogsList.filter(b => 
+    (formData.id && b.destination_id === formData.id) || 
+    (formData.country && (b.destination || "").toLowerCase() === formData.country.toLowerCase())
+  ).length;
+
+  const linkedToursCount = toursList.filter(t => 
+    (formData.id && t.destination_id === formData.id) || 
+    (formData.country && (t.destination || "").toLowerCase() === formData.country.toLowerCase())
+  ).length;
+
+  const linkedGuidesCount = guidesList.filter(g => 
+    (formData.id && g.destination_id === formData.id) || 
+    (formData.country && (g.destination || "").toLowerCase() === formData.country.toLowerCase())
+  ).length;
 
   const handleAddMoment = () => {
     setFormData(prev => ({ ...prev, moments: [...prev.moments, ""] }));
@@ -614,7 +651,7 @@ export default function DestinationForm({ initialData }) {
             )}
 
             <div className="mb-4 flex flex-wrap gap-1.5">
-              {(formData.moments.filter(Boolean).length > 0 ? formData.moments.filter(Boolean) : ["Lantern-lit streets", "Temple walks", "Train rides"]).map((m, i) => (
+              {formData.moments.filter(Boolean).map((m, i) => (
                 <span key={i} className="inline-block bg-brand-mustard-soft text-[#7a5517] rounded-full px-2.5 py-1.5 text-[11px] font-extrabold">
                   {m}
                 </span>
@@ -623,15 +660,15 @@ export default function DestinationForm({ initialData }) {
 
             <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-brand-border">
               <div className="bg-[#fffdf9] border border-brand-border rounded-xl p-3">
-                <strong className="block font-serif text-xl">0</strong>
+                <strong className="block font-serif text-xl">{linkedBlogsCount}</strong>
                 <span className="text-brand-muted text-[11px]">Blog Posts</span>
               </div>
               <div className="bg-[#fffdf9] border border-brand-border rounded-xl p-3">
-                <strong className="block font-serif text-xl">0</strong>
+                <strong className="block font-serif text-xl">{linkedGuidesCount}</strong>
                 <span className="text-brand-muted text-[11px]">Mini Guides</span>
               </div>
               <div className="bg-[#fffdf9] border border-brand-border rounded-xl p-3">
-                <strong className="block font-serif text-xl">0</strong>
+                <strong className="block font-serif text-xl">{linkedToursCount}</strong>
                 <span className="text-brand-muted text-[11px]">Tours</span>
               </div>
               <div className="bg-[#fffdf9] border border-brand-border rounded-xl p-3">

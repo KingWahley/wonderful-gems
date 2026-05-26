@@ -8,6 +8,7 @@ import {
   Send, Loader2, Plus, Archive, ChevronDown, Check, UserCheck, 
   Download, FileText, Activity
 } from "lucide-react";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 
 export default function InquiriesDashboard() {
   const [inquiries, setInquiries] = useState([]);
@@ -37,6 +38,32 @@ export default function InquiriesDashboard() {
     message: ""
   });
   const [addingInquiry, setAddingInquiry] = useState(false);
+
+  // ConfirmModal Config State
+  const [confirmConfig, setConfirmConfig] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmLabel: "Confirm",
+    cancelLabel: "Cancel",
+    onConfirm: () => {},
+    emoji: "💡",
+    variant: "primary",
+    loading: false
+  });
+
+  const showAlert = (title, message, emoji = "💡") => {
+    setConfirmConfig({
+      isOpen: true,
+      title,
+      message,
+      emoji,
+      variant: "primary",
+      confirmLabel: "Okay",
+      cancelLabel: null,
+      onConfirm: () => setConfirmConfig(prev => ({ ...prev, isOpen: false }))
+    });
+  };
 
   const [selectedIds, setSelectedIds] = useState([]);
   const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
@@ -93,19 +120,33 @@ export default function InquiriesDashboard() {
     setStatusUpdating(false);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this inquiry?")) return;
-
-    try {
-      // Clear locally first
-      setInquiries(prev => prev.filter(item => item.id !== id));
-      if (selectedInquiry && selectedInquiry.id === id) {
-        setSelectedInquiry(null);
+  const handleDelete = (id) => {
+    setConfirmConfig({
+      isOpen: true,
+      title: "Delete Inquiry?",
+      message: "Are you sure you want to permanently delete this inquiry? This action cannot be undone.",
+      emoji: "🗑️",
+      variant: "danger",
+      confirmLabel: "Delete",
+      onConfirm: async () => {
+        const previousInquiries = [...inquiries];
+        try {
+          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+          // Clear locally first
+          setInquiries(prev => prev.filter(item => item.id !== id));
+          if (selectedInquiry && selectedInquiry.id === id) {
+            setSelectedInquiry(null);
+          }
+          await deleteInquiry(id);
+          showAlert("Deleted", "Inquiry successfully deleted.", "🗑️");
+        } catch (err) {
+          // Rollback local state
+          setInquiries(previousInquiries);
+          showAlert("Delete Failed", "Failed to delete inquiry: " + err.message, "⚠️");
+          console.warn("Deleted locally rollback. Supabase failed: ", err.message);
+        }
       }
-      await deleteInquiry(id);
-    } catch (err) {
-      console.warn("Deleted locally. Supabase bypass: ", err.message);
-    }
+    });
   };
 
   // Create Manual Inquiry Submission
@@ -188,46 +229,65 @@ export default function InquiriesDashboard() {
   };
 
   // Bulk Actions
-  const handleBulkAction = async (action) => {
+  const handleBulkAction = (action) => {
     if (selectedIds.length === 0) {
-      alert("Please select one or more inquiries first.");
+      showAlert("No Inquiries Selected", "Please select one or more inquiries first.", "⚠️");
       return;
     }
 
     if (action === "delete") {
-      if (confirm(`Are you sure you want to delete the ${selectedIds.length} selected inquiries?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(selectedIds.map(id => deleteInquiry(id)));
-          setSelectedIds([]);
-          await loadInquiries();
-          alert("Selected inquiries successfully deleted.");
-        } catch (e) {
-          alert("Failed to delete selected inquiries: " + e.message);
-        } finally {
-          setLoading(false);
+      setConfirmConfig({
+        isOpen: true,
+        title: "Delete Selected?",
+        message: `Are you sure you want to permanently delete the ${selectedIds.length} selected inquiries? This action is irreversible.`,
+        emoji: "🗑️",
+        variant: "danger",
+        confirmLabel: "Delete",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(selectedIds.map(id => deleteInquiry(id)));
+            setSelectedIds([]);
+            await loadInquiries();
+            showAlert("Deleted", "Selected inquiries successfully deleted.", "🗑️");
+          } catch (e) {
+            showAlert("Error", "Failed to delete selected inquiries: " + e.message, "⚠️");
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     } else if (action === "publish" || action === "draft") {
       const nextStatus = action === "publish" ? "read" : "new";
       const nextStatusLabel = action === "publish" ? "Read" : "Unread";
-      if (confirm(`Mark ${selectedIds.length} selected inquiries as ${nextStatusLabel}?`)) {
-        try {
-          setLoading(true);
-          await Promise.all(
-            selectedIds.map(async (id) => {
-              await updateInquiry(id, { status: nextStatus });
-            })
-          );
-          setSelectedIds([]);
-          await loadInquiries();
-          alert(`Selected inquiries successfully marked as ${nextStatusLabel}.`);
-        } catch (e) {
-          alert("Failed to update selected inquiries: " + e.message);
-        } finally {
-          setLoading(false);
+      const emojiIcon = action === "publish" ? "✅" : "📩";
+      setConfirmConfig({
+        isOpen: true,
+        title: `Mark as ${nextStatusLabel}?`,
+        message: `Are you sure you want to mark the ${selectedIds.length} selected inquiries as ${nextStatusLabel}?`,
+        emoji: emojiIcon,
+        variant: "primary",
+        confirmLabel: "Update",
+        onConfirm: async () => {
+          try {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            setLoading(true);
+            await Promise.all(
+              selectedIds.map(async (id) => {
+                await updateInquiry(id, { status: nextStatus });
+              })
+            );
+            setSelectedIds([]);
+            await loadInquiries();
+            showAlert("Success", `Selected inquiries successfully marked as ${nextStatusLabel}.`, emojiIcon);
+          } catch (e) {
+            showAlert("Error", "Failed to update selected inquiries: " + e.message, "⚠️");
+          } finally {
+            setLoading(false);
+          }
         }
-      }
+      });
     }
   };
 
@@ -1006,6 +1066,7 @@ export default function InquiriesDashboard() {
         </div>
       )}
 
+      <ConfirmModal {...confirmConfig} onCancel={() => setConfirmConfig(prev => ({ ...prev, isOpen: false }))} />
     </div>
   );
 }

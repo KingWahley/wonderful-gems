@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchTours, saveTour, deleteTour, fetchDestinations, fetchMiniGuides, uploadImage } from "@/lib/db";
+import { fetchTours, saveTour, deleteTour, fetchDestinations, fetchMiniGuides, uploadImage, formatExternalLink } from "@/lib/db";
 import { Plus, Edit, Eye, Trash2, Search, X, Loader2, ArrowLeft, ChevronDown, Bell, Upload, Calendar, Compass, Clock, Tag, Download } from "lucide-react";
 import dynamic from "next/dynamic";
 import ConfirmModal from "@/components/shared/ConfirmModal";
@@ -515,7 +515,7 @@ export default function ToursCMS() {
 
       await saveTour(payload);
       await loadData();
-      window.open(formData.bookingLink || '/tours', '_blank');
+      window.open(formatExternalLink(formData.bookingLink) || '/tours', '_blank');
     } catch (err) {
       alert("Failed to save and preview tour: " + err.message);
     } finally {
