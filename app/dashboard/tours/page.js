@@ -359,15 +359,11 @@ export default function ToursCMS() {
 
   const handleTitleChange = (e) => {
     const title = e.target.value;
-    if (modalMode === "add") {
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-");
-      setFormData(prev => ({ ...prev, title, slug }));
-    } else {
-      setFormData(prev => ({ ...prev, title }));
-    }
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+    setFormData(prev => ({ ...prev, title, slug }));
   };
 
   const handleImageUpload = async (e) => {
@@ -944,19 +940,30 @@ export default function ToursCMS() {
                     >
                       Previous
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
-                          currentPage === page
-                            ? "bg-brand-ink text-white border-brand-ink"
-                            : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                    {(() => {
+                      const maxVisible = 10;
+                      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                      let endPage = startPage + maxVisible - 1;
+                      
+                      if (endPage > totalPages) {
+                        endPage = totalPages;
+                        startPage = Math.max(1, endPage - maxVisible + 1);
+                      }
+                      
+                      return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                            currentPage === page
+                              ? "bg-brand-ink text-white border-brand-ink"
+                              : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ));
+                    })()}
                     <button
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(currentPage + 1)}

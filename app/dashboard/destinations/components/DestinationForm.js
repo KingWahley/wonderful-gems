@@ -248,6 +248,7 @@ export default function DestinationForm({ initialData }) {
                       setFormData(p => ({ 
                         ...p, 
                         country: val,
+                        slug: val.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, '-'),
                         code: code || p.code,
                         flag: code ? getFlagEmoji(code) : p.flag
                       }));

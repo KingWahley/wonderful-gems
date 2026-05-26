@@ -488,23 +488,25 @@ export default function BlogCMS() {
 
   const handleTitleChange = (e) => {
     const title = e.target.value;
-    if (modalMode === "add") {
-      const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "") // remove special chars
-        .replace(/\s+/g, "-"); // spaces to hyphens
-      
-      setFormData(prev => ({
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "") // remove special chars
+      .replace(/\s+/g, "-"); // spaces to hyphens
+    
+    setFormData(prev => {
+      const updated = {
         ...prev,
         title,
         slug,
-        seoTitle: `${title} — The Long Way`,
-        category: prev.category || `TRAVEL • ${prev.destination.toUpperCase()} • ${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()}`,
-        date: prev.date || `${prev.destination.toUpperCase()} • ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}`
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, title }));
-    }
+        seoTitle: `${title} — The Long Way`
+      };
+      
+      if (modalMode === "add") {
+        updated.category = prev.category || `TRAVEL • ${prev.destination.toUpperCase()} • ${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()}`;
+        updated.date = prev.date || `${prev.destination.toUpperCase()} • ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}`;
+      }
+      return updated;
+    });
   };
 
   const handleImageUpload = async (e) => {
@@ -1079,19 +1081,30 @@ export default function BlogCMS() {
                     >
                       Previous
                     </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
-                          currentPage === page
-                            ? "bg-brand-ink text-white border-brand-ink"
-                            : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
+                    {(() => {
+                      const maxVisible = 10;
+                      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                      let endPage = startPage + maxVisible - 1;
+                      
+                      if (endPage > totalPages) {
+                        endPage = totalPages;
+                        startPage = Math.max(1, endPage - maxVisible + 1);
+                      }
+                      
+                      return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                            currentPage === page
+                              ? "bg-brand-ink text-white border-brand-ink"
+                              : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ));
+                    })()}
                     <button
                       disabled={currentPage === totalPages}
                       onClick={() => setCurrentPage(currentPage + 1)}
