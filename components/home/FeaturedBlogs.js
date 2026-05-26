@@ -43,6 +43,9 @@ export default function FeaturedBlogs({ blogs = [], settings = {} }) {
       .replace(/\bWith\b/g, 'with');
   };
 
+  const isCustomList = settings?.items && settings.items.length > 0;
+  const listToRender = isCustomList ? blogs : blogs.slice(0, 3);
+
   return (
     <section className="py-20 lg:py-28 bg-cream-100">
       <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
@@ -61,9 +64,9 @@ export default function FeaturedBlogs({ blogs = [], settings = {} }) {
             Sit-down stories from places worth going slowly.
           </p>
         </div>
-
+ 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogs.slice(0, 3).map((post) => {
+          {listToRender.map((post) => {
             const formattedCategory = formatCategory(post.category, post.date);
             const formattedTitle = formatTitle(post.title);
             

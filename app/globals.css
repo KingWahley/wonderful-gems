@@ -79,37 +79,37 @@
 
 /* Explicit brand color utilities to prevent Tailwind compilation mismatch */
 @utility bg-brand-sidebar {
-  background-color: #111312;
+  background-color: var(--color-brand-sidebar) !important;
 }
 @utility bg-brand-bg {
-  background-color: #faf7f1;
+  background-color: var(--color-brand-bg) !important;
 }
 @utility bg-brand-ink {
-  background-color: #161616;
+  background-color: var(--color-brand-ink) !important;
 }
 @utility bg-brand-mustard {
-  background-color: #c7962d;
+  background-color: var(--color-brand-mustard) !important;
 }
 @utility bg-brand-mustard-soft {
-  background-color: #f6ead0;
+  background-color: var(--color-brand-mustard-soft) !important;
 }
 @utility bg-brand-danger-bg {
-  background-color: #fdecec;
+  background-color: var(--color-brand-danger-bg, #fdecec) !important;
 }
 @utility text-brand-mustard {
-  color: #c7962d;
+  color: var(--color-brand-mustard) !important;
 }
 @utility text-brand-ink {
-  color: #161616;
+  color: var(--color-brand-ink) !important;
 }
 @utility text-brand-muted {
-  color: #6f6b63;
+  color: var(--color-brand-muted) !important;
 }
 @utility text-brand-coral {
-  color: #d95f43;
+  color: var(--color-brand-coral) !important;
 }
 @utility border-brand-border {
-  border-color: #e7dfd2;
+  border-color: var(--color-brand-border) !important;
 }
 
 /* Custom luxury scrollbar style */
@@ -117,20 +117,21 @@
   width: 5px;
 }
 .scrollbar-luxury::-webkit-scrollbar-track {
-  background: #f4f0e6;
+  background: var(--color-brand-mustard-soft) !important;
   border-radius: 4px;
 }
 .scrollbar-luxury::-webkit-scrollbar-thumb {
-  background: #e3b64c;
+  background: var(--color-brand-mustard) !important;
   border-radius: 4px;
 }
 .scrollbar-luxury::-webkit-scrollbar-thumb:hover {
-  background: #d0a33c;
+  background: var(--color-brand-mustard) !important;
+  opacity: 0.8;
 }
 
 @keyframes row-flash {
-  0% { background-color: rgba(220, 160, 40, 0.75); }
-  35% { background-color: rgba(220, 160, 40, 0.35); }
+  0% { background-color: var(--color-brand-mustard); opacity: 0.75; }
+  35% { background-color: var(--color-brand-mustard); opacity: 0.35; }
   100% { background-color: transparent; }
 }
 
@@ -180,6 +181,8 @@ tr.animate-row-flash td {
   --color-brand-sidebar: #111312 !important;
   --color-brand-border: #e7dfd2 !important;
   --color-brand-coral: #d95f43 !important;
+  --color-brand-ink: #161616 !important;
+  --color-brand-muted: #6f6b63 !important;
 }
 
 .theme-rose {
@@ -189,6 +192,8 @@ tr.animate-row-flash td {
   --color-brand-sidebar: #22120e !important;
   --color-brand-border: #f0e2df !important;
   --color-brand-coral: #d46f5b !important;
+  --color-brand-ink: #2a120e !important;
+  --color-brand-muted: #8e7a77 !important;
 }
 
 .theme-emerald {
@@ -198,6 +203,8 @@ tr.animate-row-flash td {
   --color-brand-sidebar: #0e1511 !important;
   --color-brand-border: #dee8df !important;
   --color-brand-coral: #ea5849 !important;
+  --color-brand-ink: #0b1a11 !important;
+  --color-brand-muted: #637367 !important;
 }
 
 .theme-cobalt {
@@ -207,6 +214,8 @@ tr.animate-row-flash td {
   --color-brand-sidebar: #0b111a !important;
   --color-brand-border: #dee5f0 !important;
   --color-brand-coral: #da6b55 !important;
+  --color-brand-ink: #091224 !important;
+  --color-brand-muted: #5c6d85 !important;
 }
 
 .theme-charcoal {
@@ -216,5 +225,151 @@ tr.animate-row-flash td {
   --color-brand-sidebar: #181818 !important;
   --color-brand-border: #e8e8e8 !important;
   --color-brand-coral: #555555 !important;
+  --color-brand-ink: #1a1a1a !important;
+  --color-brand-muted: #737373 !important;
 }
+
+/* Comprehensive real-time Theme Overrides for hardcoded Tailwind Utility Classes */
+.bg-\[\#c7962d\] {
+  background-color: var(--color-brand-mustard) !important;
+}
+.hover\:bg-\[\#b58522\]:hover {
+  background-color: var(--color-brand-mustard) !important;
+  opacity: 0.9 !important;
+}
+.hover\:bg-\[\#b88a29\]:hover {
+  background-color: var(--color-brand-mustard) !important;
+  opacity: 0.9 !important;
+}
+.text-\[\#c7962d\] {
+  color: var(--color-brand-mustard) !important;
+}
+.text-\[\#C7962D\] {
+  color: var(--color-brand-mustard) !important;
+}
+.hover\:text-\[\#b58522\]:hover {
+  color: var(--color-brand-mustard) !important;
+  opacity: 0.9 !important;
+}
+.border-\[\#c7962d\] {
+  border-color: var(--color-brand-mustard) !important;
+}
+.border-\[\#c7962d\]\/10 {
+  border-color: color-mix(in srgb, var(--color-brand-mustard) 10%, transparent) !important;
+}
+.border-brand-mustard\/20 {
+  border-color: color-mix(in srgb, var(--color-brand-mustard) 20%, transparent) !important;
+}
+.focus\:border-\[\#c7962d\]:focus {
+  border-color: var(--color-brand-mustard) !important;
+}
+.focus\:ring-\[\#c7962d\]:focus {
+  --tw-ring-color: var(--color-brand-mustard) !important;
+  outline-color: var(--color-brand-mustard) !important;
+}
+.bg-\[\#f6ead0\] {
+  background-color: var(--color-brand-mustard-soft) !important;
+}
+.hover\:bg-\[\#e8d5b0\]:hover {
+  background-color: var(--color-brand-mustard-soft) !important;
+  opacity: 0.95 !important;
+}
+.hover\:bg-\[\#f0e0b8\]:hover {
+  background-color: var(--color-brand-mustard-soft) !important;
+  opacity: 0.95 !important;
+}
+.bg-\[\#FAF8F5\] {
+  background-color: var(--color-brand-bg) !important;
+}
+.bg-\[\#FAF8F5\]\/30 {
+  background-color: color-mix(in srgb, var(--color-brand-bg) 30%, transparent) !important;
+}
+.bg-\[\#FAF8F5\]\/40 {
+  background-color: color-mix(in srgb, var(--color-brand-bg) 40%, transparent) !important;
+}
+.bg-\[\#FAF8F5\]\/60 {
+  background-color: color-mix(in srgb, var(--color-brand-bg) 60%, transparent) !important;
+}
+.bg-\[\#FAF8F5\]\/80 {
+  background-color: color-mix(in srgb, var(--color-brand-bg) 80%, transparent) !important;
+}
+.bg-\[\#FAF8F5\]\/85 {
+  background-color: color-mix(in srgb, var(--color-brand-bg) 85%, transparent) !important;
+}
+.bg-\[\#f6ead0\]\/30 {
+  background-color: color-mix(in srgb, var(--color-brand-mustard-soft) 30%, transparent) !important;
+}
+.bg-\[\#f6ead0\]\/35 {
+  background-color: color-mix(in srgb, var(--color-brand-mustard-soft) 35%, transparent) !important;
+}
+.hover\:bg-\[\#f6ead0\]\/50:hover {
+  background-color: color-mix(in srgb, var(--color-brand-mustard-soft) 50%, transparent) !important;
+}
+.hover\:bg-\[\#FAF8F5\]\/30:hover {
+  background-color: color-mix(in srgb, var(--color-brand-bg) 30%, transparent) !important;
+}
+.hover\:bg-\[\#FAF8F5\]\/60:hover {
+  background-color: color-mix(in srgb, var(--color-brand-bg) 60%, transparent) !important;
+}
+.bg-\[\#faf7f1\] {
+  background-color: var(--color-brand-bg) !important;
+}
+.border-\[\#e7dfd2\] {
+  border-color: var(--color-brand-border) !important;
+}
+.border-\[\#d4c6ad\] {
+  border-color: var(--color-brand-border) !important;
+}
+.border-\[\#cfb678\] {
+  border-color: var(--color-brand-mustard) !important;
+}
+.bg-\[\#fffaf1\] {
+  background-color: var(--color-brand-bg) !important;
+}
+.bg-\[\#fffdf9\] {
+  background-color: var(--color-brand-bg) !important;
+}
+.hover\:bg-\[\#fff5e1\]:hover {
+  background-color: var(--color-brand-mustard-soft) !important;
+  opacity: 0.95 !important;
+}
+.text-\[\#7a5517\] {
+  color: var(--color-brand-mustard) !important;
+}
+.text-\[\#8C764D\] {
+  color: var(--color-brand-mustard) !important;
+}
+.bg-brand-mustard\/15 {
+  background-color: color-mix(in srgb, var(--color-brand-mustard) 15%, transparent) !important;
+}
+.bg-\[\#F5F0E6\] {
+  background-color: var(--color-brand-mustard-soft) !important;
+}
+.bg-\[\#FCF8E3\]\/80 {
+  background-color: var(--color-brand-mustard-soft) !important;
+}
+.bg-\[\#FCF8E3\] {
+  background-color: var(--color-brand-mustard-soft) !important;
+}
+.border-\[\#FBEED5\] {
+  border-color: var(--color-brand-border) !important;
+}
+.bg-\[\#FCFBF8\] {
+  background-color: var(--color-brand-bg) !important;
+}
+.hover\:bg-\[\#FAF6EC\]:hover {
+  background-color: var(--color-brand-mustard-soft) !important;
+  opacity: 0.9 !important;
+}
+
+/* Premium utility to hide scrollbars globally */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+
 

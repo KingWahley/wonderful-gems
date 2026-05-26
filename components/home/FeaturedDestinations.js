@@ -1,11 +1,57 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 
 export default function FeaturedDestinations({ destinations = [], settings = {} }) {
+  const scrollContainerRef = useRef(null);
+
   if (!destinations || destinations.length === 0) return null;
+
+  const isCustomList = settings?.items && settings.items.length > 0;
+  const listToRender = isCustomList ? destinations : destinations.slice(0, 5);
+
+  // Infinite auto-scroll interval every 5 seconds
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || listToRender.length <= 5) return;
+
+    const interval = setInterval(() => {
+      const card = container.firstElementChild;
+      if (!card) return;
+
+      const cardWidth = card.getBoundingClientRect().width;
+      const gap = 20; // gap-5 is 20px
+      const step = cardWidth + gap;
+
+      const maxScroll = container.scrollWidth - container.clientWidth;
+
+      // If we are at the end, smoothly wrap back to the beginning
+      if (container.scrollLeft >= maxScroll - 10) {
+        container.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        container.scrollBy({ left: step, behavior: "smooth" });
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [listToRender.length]);
+
   return (
     <section className="py-20 lg:py-28 bg-mustard-500 overflow-hidden">
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-12">
+      {/* Inline style block to fully guarantee scrollbars are completely hidden */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .no-scrollbar::-webkit-scrollbar {
+          display: none !important;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
+        }
+      `}} />
+      {/* Reduced padding from px-6 lg:px-12 to px-4 lg:px-6 to let cards span wider */}
+      <div className="max-w-[1400px] mx-auto px-4 lg:px-6">
         <div className="text-center mb-12">
           {settings?.badge && (
             <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full border border-white/20 mb-4 bg-white/10">
@@ -22,9 +68,16 @@ export default function FeaturedDestinations({ destinations = [], settings = {} 
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-5">
-          {destinations.slice(0, 5).map((dest, index) => (
-            <div key={dest.id} className="group flex flex-col items-center">
+        {/* Carousel Flex Container with Snap-X, Gap-5, and Hidden scrollbars */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto gap-5 pb-6 snap-x snap-mandatory scroll-smooth no-scrollbar"
+        >
+          {listToRender.map((dest) => (
+            <div 
+              key={dest.id} 
+              className="flex-none w-[82vw] sm:w-[45vw] md:w-[29vw] lg:w-[calc((100%-4*20px)/5)] snap-start group flex flex-col items-center"
+            >
               <Link href={`/destinations/${dest.slug}`} className="w-full relative block">
                 <div className="relative w-full aspect-[3/4] rounded-3xl overflow-hidden mb-5 border-[1.5px] border-white/40 shadow-xl group-hover:-translate-y-1 transition-transform duration-300">
                   <Image 
@@ -37,20 +90,6 @@ export default function FeaturedDestinations({ destinations = [], settings = {} 
                     {dest.code}
                   </div>
                 </div>
-                
-                {/* Left Arrow for first item */}
-                {index === 0 && (
-                  <div className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#fdfbf7] rounded-full flex items-center justify-center text-charcoal-900 shadow-md z-10 pointer-events-none mt-[-10px]">
-                    <span className="font-serif italic text-sm opacity-60 ml-[-2px]">&larr;</span>
-                  </div>
-                )}
-                
-                {/* Right Arrow for last item */}
-                {index === 4 && (
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#fdfbf7] rounded-full flex items-center justify-center text-charcoal-900 shadow-md z-10 pointer-events-none mt-[-10px]">
-                    <span className="font-serif italic text-sm opacity-60 mr-[-2px]">&rarr;</span>
-                  </div>
-                )}
               </Link>
               
               <h3 className="text-[28px] font-serif font-bold text-white mb-1">

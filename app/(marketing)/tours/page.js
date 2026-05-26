@@ -50,20 +50,31 @@ export default async function ToursPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-16">
-          <button className="bg-white border border-charcoal-900/10 text-charcoal-900 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">
+          <a 
+            href="#all-tours" 
+            className="bg-white border border-charcoal-900/10 text-charcoal-900 hover:border-charcoal-900/30 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm transition-colors inline-block"
+          >
             ALL ({tours.length})
-          </button>
+          </a>
           {uniqueDestinations.map(dest => (
-            <button key={dest.name} className="bg-white border border-charcoal-900/10 text-charcoal-900 hover:border-charcoal-900/30 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm transition-colors">
+            <a 
+              key={dest.name} 
+              href={`#${dest.name.toLowerCase().replace(/\s+/g, '-')}`} 
+              className="bg-white border border-charcoal-900/10 text-charcoal-900 hover:border-charcoal-900/30 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm transition-colors inline-block"
+            >
               {dest.name} ({dest.count})
-            </button>
+            </a>
           ))}
         </div>
 
         {/* Grouped Content */}
-        <div className="space-y-12">
+        <div id="all-tours" className="space-y-12 scroll-mt-24">
           {uniqueDestinations.map(group => (
-            <div key={group.name} className="border-t border-charcoal-900/10 pt-4">
+            <div 
+              key={group.name} 
+              id={group.name.toLowerCase().replace(/\s+/g, '-')} 
+              className="border-t border-charcoal-900/10 pt-4 scroll-mt-24"
+            >
               <div className="flex justify-between items-end mb-6">
                 <h2 className="text-3xl text-charcoal-900">
                   <span className="font-serif font-bold mr-2">{group.code}</span>

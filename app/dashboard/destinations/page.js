@@ -270,7 +270,7 @@ export default function DestinationsCMS() {
         {/* Navigation Action */}
         <Link
           href="/dashboard/destinations/add"
-          className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#c7962d] hover:bg-[#b58522] text-white text-xs font-bold rounded-lg shadow-xs transition-colors shrink-0 w-full sm:w-auto text-center"
+          className="flex items-center justify-center gap-1.5 px-5 py-2.5 bg-brand-mustard hover:opacity-90 text-white text-xs font-bold rounded-lg shadow-xs transition-colors shrink-0 w-full sm:w-auto text-center"
         >
           <Plus size={14} className="stroke-[3px]" />
           Add Destination
@@ -346,7 +346,7 @@ export default function DestinationsCMS() {
               placeholder="Search by country..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-[#c7962d] transition-colors placeholder:text-brand-muted/70" 
+              className="w-full bg-brand-bg/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-brand-mustard transition-colors placeholder:text-brand-muted/70" 
             />
           </div>
 
@@ -355,7 +355,7 @@ export default function DestinationsCMS() {
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer"
+              className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-brand-mustard appearance-none text-brand-ink cursor-pointer"
             >
               <option value="All statuses">All statuses</option>
               <option value="Published">Published</option>
@@ -369,7 +369,7 @@ export default function DestinationsCMS() {
             <select
               value={selectedSort}
               onChange={(e) => setSelectedSort(e.target.value)}
-              className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer"
+              className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-brand-mustard appearance-none text-brand-ink cursor-pointer"
             >
               <option value="Sort by newest">Sort by newest</option>
               <option value="Sort by oldest">Sort by oldest</option>
@@ -396,7 +396,7 @@ export default function DestinationsCMS() {
             <div className="overflow-x-auto scrollbar-luxury">
               <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
                 <thead>
-                  <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
+                  <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-brand-bg/30">
                     <th className="p-3 w-8"></th>
                     <th className="p-3 pl-1 pb-3 text-[10px]">Country</th>
                     <th className="p-3 pb-3 text-[10px]">Description</th>
@@ -432,24 +432,24 @@ export default function DestinationsCMS() {
                           selectedIds.includes(item.id) 
                             ? "bg-brand-mustard/10" 
                             : isDraft 
-                              ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50" 
-                              : "hover:bg-[#FAF8F5]/60 bg-white"
+                              ? "bg-brand-mustard-soft/30 hover:bg-brand-mustard-soft/50" 
+                              : "hover:bg-brand-bg/60 bg-white"
                         }`}
                       >
                         {/* Checkbox */}
                         <td className="p-3 pr-1" onClick={(e) => e.stopPropagation()}>
-                          <input 
+                           <input 
                             type="checkbox"
                             checked={selectedIds.includes(item.id)}
                             onChange={() => toggleSelectRow(item.id)}
-                            className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                            className="rounded border-brand-border text-brand-mustard focus:ring-brand-mustard cursor-pointer"
                           />
                         </td>
 
                         {/* Country Flag & Path */}
                         <td className="p-3 pl-1">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#F5F0E6] text-[#8C764D] border border-[#c7962d]/10 font-bold flex items-center justify-center shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-brand-mustard-soft text-brand-mustard border border-brand-mustard/10 font-bold flex items-center justify-center shrink-0">
                               {getAvatarInitials(item.country_code || item.code || item.country)}
                             </div>
                             <div>
@@ -503,7 +503,7 @@ export default function DestinationsCMS() {
                             <Link 
                               href={`/dashboard/destinations/edit/${item.id}`}
                               title="Edit Destination"
-                              className="p-1.5 rounded-lg hover:bg-[#FAF8F5] hover:text-[#c7962d] transition-colors inline-block"
+                              className="p-1.5 rounded-lg hover:bg-brand-bg hover:text-brand-mustard transition-colors inline-block"
                             >
                               <Edit size={15} />
                             </Link>
@@ -514,7 +514,7 @@ export default function DestinationsCMS() {
                               target="_blank"
                               rel="noopener noreferrer"
                               title="View public destination page"
-                              className="p-1.5 rounded-lg hover:bg-[#FAF8F5] hover:text-[#c7962d] transition-colors inline-block"
+                              className="p-1.5 rounded-lg hover:bg-brand-bg hover:text-brand-mustard transition-colors inline-block"
                             >
                               <Eye size={15} />
                             </a>

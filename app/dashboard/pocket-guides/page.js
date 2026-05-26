@@ -744,7 +744,7 @@ export default function PocketGuidesCMS() {
                   placeholder="Search by title or city..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-[#c7962d] transition-colors placeholder:text-brand-muted/70 text-brand-ink font-sans" 
+                  className="w-full bg-brand-bg/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-brand-mustard transition-colors placeholder:text-brand-muted/70 text-brand-ink font-sans" 
                 />
               </div>
 
@@ -753,7 +753,7 @@ export default function PocketGuidesCMS() {
                 <select
                   value={selectedDestination}
                   onChange={(e) => setSelectedDestination(e.target.value)}
-                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer font-sans"
+                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-brand-mustard appearance-none text-brand-ink cursor-pointer font-sans"
                 >
                   <option value="All destinations">All destinations</option>
                   {Array.from(new Set(guides.map(g => g.destination).filter(Boolean))).map(dest => (
@@ -768,7 +768,7 @@ export default function PocketGuidesCMS() {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer font-sans"
+                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-brand-mustard appearance-none text-brand-ink cursor-pointer font-sans"
                 >
                   <option value="All statuses">All statuses</option>
                   <option value="Published">Published</option>
@@ -782,7 +782,7 @@ export default function PocketGuidesCMS() {
                 <select
                   value={selectedSort}
                   onChange={(e) => setSelectedSort(e.target.value)}
-                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-[#c7962d] appearance-none text-brand-ink cursor-pointer font-sans"
+                  className="w-full bg-white border border-brand-border rounded-lg py-2 px-3 pr-8 text-xs focus:outline-none focus:border-brand-mustard appearance-none text-brand-ink cursor-pointer font-sans"
                 >
                   <option value="Sort by newest">Sort by newest</option>
                   <option value="Sort by oldest">Sort by oldest</option>
@@ -812,7 +812,7 @@ export default function PocketGuidesCMS() {
                 <div className="overflow-x-auto scrollbar-luxury">
                   <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
                     <thead>
-                      <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
+                      <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-brand-bg">
                         <th className="p-3 w-8">
                           <input 
                             type="checkbox" 
@@ -869,8 +869,8 @@ export default function PocketGuidesCMS() {
                               isSelected 
                                 ? "bg-brand-mustard/10" 
                                 : isDraft 
-                                  ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50" 
-                                  : "hover:bg-[#FAF8F5]/30 bg-white"
+                                  ? "bg-brand-mustard-soft/30 hover:bg-brand-mustard-soft/50" 
+                                  : "hover:bg-brand-bg/30 bg-white"
                             }`}
                           >
                             <td className="p-3 pl-3">

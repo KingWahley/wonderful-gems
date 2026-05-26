@@ -876,14 +876,14 @@ export default function ItineraryGuidesCMS() {
             {/* Filter Bar */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-6 font-sans">
               {/* Search */}
-              <div className="relative">
+              <div className="relative col-span-1 sm:col-span-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" size={14} />
                 <input 
                   type="text" 
                   placeholder="Search by title or route..." 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-[#c7962d] transition-colors placeholder:text-brand-muted/70 text-brand-ink" 
+                  className="w-full bg-brand-bg/40 border border-brand-border rounded-lg py-2 pl-9 pr-3 text-xs focus:outline-none focus:border-brand-mustard transition-colors placeholder:text-brand-muted/70 text-brand-ink" 
                 />
               </div>
 
@@ -892,7 +892,7 @@ export default function ItineraryGuidesCMS() {
                 <select
                   value={selectedDestination}
                   onChange={(e) => setSelectedDestination(e.target.value)}
-                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                  className="w-full bg-brand-bg/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-brand-mustard text-brand-ink cursor-pointer appearance-none pr-8"
                 >
                   <option value="All destinations">All destinations</option>
                   {Array.from(new Set(guides.map(g => g.destination).filter(Boolean))).map(d => (
@@ -907,7 +907,7 @@ export default function ItineraryGuidesCMS() {
                 <select
                   value={selectedStatus}
                   onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                  className="w-full bg-brand-bg/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-brand-mustard text-brand-ink cursor-pointer appearance-none pr-8"
                 >
                   <option value="All statuses">All statuses</option>
                   <option value="Published">Published</option>
@@ -922,7 +922,7 @@ export default function ItineraryGuidesCMS() {
                 <select
                   value={selectedSort}
                   onChange={(e) => setSelectedSort(e.target.value)}
-                  className="w-full bg-[#FAF8F5]/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-[#c7962d] text-brand-ink cursor-pointer appearance-none pr-8"
+                  className="w-full bg-brand-bg/40 border border-brand-border rounded-lg py-2 px-3 text-xs focus:outline-none focus:border-brand-mustard text-brand-ink cursor-pointer appearance-none pr-8"
                 >
                   <option value="Sort by newest">Sort by newest</option>
                   <option value="Sort by oldest">Sort by oldest</option>
@@ -986,8 +986,8 @@ export default function ItineraryGuidesCMS() {
                             selectedIds.includes(guide.id)
                               ? "bg-brand-mustard/10"
                               : isDraft
-                                ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50"
-                                : "hover:bg-[#fcfbf9]/40 bg-white"
+                                ? "bg-brand-mustard-soft/30 hover:bg-brand-mustard-soft/50"
+                                : "hover:bg-brand-bg/40 bg-white"
                           }`}
                         >
                           <td className="p-4 align-middle">
@@ -995,7 +995,7 @@ export default function ItineraryGuidesCMS() {
                               type="checkbox" 
                               checked={selectedIds.includes(guide.id)}
                               onChange={() => toggleSelectRow(guide.id)}
-                              className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                              className="rounded border-brand-border text-brand-mustard focus:ring-brand-mustard cursor-pointer"
                             />
                           </td>
                           <td className="p-4 align-middle">

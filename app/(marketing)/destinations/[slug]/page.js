@@ -84,9 +84,11 @@ export default async function DestinationDetails({ params }) {
               </span>
               {destination.country}
             </h1>
-            <p className="text-charcoal-700 text-[16px] md:text-[18px] leading-relaxed mb-6 font-medium max-w-lg">
-              {destination.excerpt || "Old capitals, neon avenues, and the ritual of small things."}
-            </p>
+            {destination.excerpt && (
+              <p className="text-charcoal-700 text-[16px] md:text-[18px] leading-relaxed mb-6 font-medium max-w-lg">
+                {destination.excerpt}
+              </p>
+            )}
             <span className="text-coral-500 font-serif text-[22px] font-bold block mb-4 italic">
               {relatedBlogs.length} posts from {destination.country}
             </span>

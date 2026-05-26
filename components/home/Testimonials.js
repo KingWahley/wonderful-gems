@@ -2,10 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function MiniTravelGuides({ miniGuides = [], settings = {} }) {
-  // Filter to show ONLY pocket guides (type === 'pocket') and slice to exactly 3
-  const pocketGuides = miniGuides.filter((guide) => guide.type === "pocket").slice(0, 3);
+  const isCustomList = settings?.items && settings.items.length > 0;
+  const pocketGuides = miniGuides.filter((guide) => guide.type === "pocket");
+  const listToRender = isCustomList ? pocketGuides : pocketGuides.slice(0, 3);
 
-  if (pocketGuides.length === 0) return null;
+  if (listToRender.length === 0) return null;
 
   return (
     <section className="py-20 lg:py-28 bg-cream-100">
@@ -33,7 +34,7 @@ export default function MiniTravelGuides({ miniGuides = [], settings = {} }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {pocketGuides.map((guide) => (
+          {listToRender.map((guide) => (
             <div 
               key={guide.id} 
               className="bg-white rounded-[20px] overflow-hidden group flex flex-col border border-charcoal-900/5 shadow-sm hover:shadow-md transition-shadow duration-300 h-full"

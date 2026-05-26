@@ -232,7 +232,7 @@ export default function DashboardOverview() {
   return (
     <div className="w-full pb-10">
       {routingLoading && (
-        <div className="fixed inset-0 bg-[#FAF8F5]/85 backdrop-blur-xs flex flex-col items-center justify-center z-[9999] animate-in fade-in duration-300 font-sans">
+        <div className="fixed inset-0 bg-brand-bg/85 backdrop-blur-xs flex flex-col items-center justify-center z-[9999] animate-in fade-in duration-300 font-sans">
           <div className="brand-loader mb-5" style={{ '--s': '15px' }} />
           <span className="text-brand-ink font-serif font-bold text-sm tracking-wide">Navigating to content...</span>
           <span className="text-brand-muted text-[10px] mt-1.5 font-medium tracking-tight">Taking you there</span>
@@ -264,7 +264,7 @@ export default function DashboardOverview() {
               <div className="brand-loader" style={{ '--s': '7px' }} />
             </div>
           )}
-
+ 
           {showSearchDropdown && dashboardSearchQuery.trim() !== "" && (
             <div className="absolute left-0 right-0 mt-2 bg-white border border-brand-border rounded-xl shadow-lg z-50 overflow-hidden font-sans text-xs animate-in fade-in zoom-in-95 duration-100">
               {searchLoading ? (
@@ -288,17 +288,17 @@ export default function DashboardOverview() {
                           setShowSearchDropdown(false);
                           setDashboardSearchQuery("");
                         }}
-                        className="w-full text-left px-4 py-2.5 hover:bg-[#FAF8F5]/80 transition-colors flex items-center justify-between cursor-pointer group"
+                        className="w-full text-left px-4 py-2.5 hover:bg-brand-bg/80 transition-colors flex items-center justify-between cursor-pointer group"
                       >
                         <div>
-                          <div className="font-semibold text-brand-ink group-hover:text-[#c7962d] transition-colors">
+                          <div className="font-semibold text-brand-ink group-hover:text-brand-mustard transition-colors">
                             {item.name}
                           </div>
                           <div className="text-[10px] text-brand-muted mt-0.5 font-mono">
                             {item.url}
                           </div>
                         </div>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#f6ead0]/30 text-[#8C764D] uppercase tracking-wider shrink-0 ml-2">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-brand-mustard-soft/30 text-brand-mustard uppercase tracking-wider shrink-0 ml-2">
                           {item.category}
                         </span>
                       </button>
@@ -374,41 +374,41 @@ export default function DashboardOverview() {
               </div>
             </div>
             
-            <div className="bg-[#faf7f1] border border-brand-border rounded-2xl p-6 flex flex-col shadow-sm">
+            <div className="bg-brand-bg border border-brand-border rounded-2xl p-6 flex flex-col shadow-sm">
               <h3 className="font-bold text-[1.05rem] text-brand-ink mb-1">Quick Actions</h3>
               <p className="text-[13px] text-brand-muted mb-6">Create the most common content types directly from the dashboard.</p>
               <div className="flex flex-col gap-2.5 flex-1 justify-between">
-                <Link href="/dashboard/destinations" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-[#c7962d] transition-colors text-left group shadow-sm">
+                <Link href="/dashboard/destinations" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-brand-mustard transition-colors text-left group shadow-sm">
                   Add Destination
-                  <ArrowRight size={16} className="text-[#c7962d] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight size={16} className="text-brand-mustard opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </Link>
-                <Link href="/dashboard/blog" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-[#c7962d] transition-colors text-left group shadow-sm">
+                <Link href="/dashboard/blog" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-brand-mustard transition-colors text-left group shadow-sm">
                   Add Blog Post
-                  <ArrowRight size={16} className="text-[#c7962d] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight size={16} className="text-brand-mustard opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </Link>
-                <Link href="/dashboard/pocket-guides" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-[#c7962d] transition-colors text-left group shadow-sm">
+                <Link href="/dashboard/pocket-guides" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-brand-mustard transition-colors text-left group shadow-sm">
                   Add Pocket Guide
-                  <ArrowRight size={16} className="text-[#c7962d] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight size={16} className="text-brand-mustard opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </Link>
-                <Link href="/dashboard/itinerary-guides" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-[#c7962d] transition-colors text-left group shadow-sm">
+                <Link href="/dashboard/itinerary-guides" className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-brand-mustard transition-colors text-left group shadow-sm">
                   Add Itinerary Guide
-                  <ArrowRight size={16} className="text-[#c7962d] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight size={16} className="text-brand-mustard opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </Link>
-                <button className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-[#c7962d] transition-colors text-left group shadow-sm">
+                <button className="flex items-center justify-between p-3.5 bg-white border border-brand-border rounded-xl text-sm font-semibold text-brand-ink hover:border-brand-mustard transition-colors text-left group shadow-sm">
                   Review New Inquiry
-                  <ArrowRight size={16} className="text-[#c7962d] opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                  <ArrowRight size={16} className="text-brand-mustard opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </button>
               </div>
             </div>
           </div>
-
+ 
           {/* Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
             {statCards.map((stat, i) => (
               <div key={i} className="bg-white p-6 rounded-2xl border border-brand-border flex flex-col justify-between h-[155px] shadow-sm hover:shadow-md transition-shadow group">
                 <div className="flex justify-between items-start">
                   <div className="text-[13px] text-brand-muted font-medium">{stat.title}</div>
-                  <div className="w-[34px] h-[34px] rounded-full bg-[#f6ead0] flex items-center justify-center text-[#c7962d] group-hover:scale-110 transition-transform">
+                  <div className="w-[34px] h-[34px] rounded-full bg-brand-mustard-soft flex items-center justify-center text-brand-mustard group-hover:scale-110 transition-transform">
                     {stat.icon}
                   </div>
                 </div>
@@ -419,20 +419,20 @@ export default function DashboardOverview() {
               </div>
             ))}
           </div>
-
+ 
           {/* Recent Activity & Modules */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-10 mb-12">
             {/* Recent Content Activity */}
             <div>
               <div className="flex justify-between items-center mb-5 px-1">
                 <h3 className="font-bold text-[1.1rem] text-brand-ink">Recent Content Activity</h3>
-                <button className="text-[13px] font-bold text-[#c7962d] hover:text-[#b58522]">View all</button>
+                <button className="text-[13px] font-bold text-brand-mustard hover:opacity-80">View all</button>
               </div>
               <div className="flex flex-col gap-3.5">
                 {recentActivity.length > 0 ? recentActivity.map((item, i) => (
                   <div key={i} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-brand-border shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-xl bg-[#a68a56] shrink-0 overflow-hidden relative">
+                      <div className="w-14 h-14 rounded-xl bg-brand-mustard/30 shrink-0 overflow-hidden relative">
                          <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
                       </div>
                       <div>
@@ -456,7 +456,7 @@ export default function DashboardOverview() {
             <div>
               <div className="flex justify-between items-center mb-5 px-1">
                 <h3 className="font-bold text-[1.1rem] text-brand-ink">CMS Modules</h3>
-                <button className="text-[13px] font-bold text-[#c7962d] hover:text-[#b58522]">Open sitemap</button>
+                <button className="text-[13px] font-bold text-brand-mustard hover:opacity-80">Open sitemap</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {modules.map((mod, i) => (
@@ -465,7 +465,7 @@ export default function DashboardOverview() {
                       <div className="font-bold text-brand-ink text-[13px] mb-2">{mod.title}</div>
                       <div className="text-[12px] text-brand-muted leading-relaxed mb-4">{mod.desc}</div>
                     </div>
-                    <div className="text-[12px] font-bold text-[#c7962d] text-left flex items-center gap-1.5 w-fit mt-auto">
+                    <div className="text-[12px] font-bold text-brand-mustard text-left flex items-center gap-1.5 w-fit mt-auto">
                       Manage <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
                     </div>
                   </Link>
@@ -473,14 +473,14 @@ export default function DashboardOverview() {
               </div>
             </div>
           </div>
-
+ 
           {/* Inquiries & Workflow */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-10">
             {/* New Inquiries */}
             <div>
               <div className="flex justify-between items-center mb-5 px-1">
                 <h3 className="font-bold text-[1.1rem] text-brand-ink">Recent Inquiries</h3>
-                <Link href="/dashboard/inquiries" className="text-[13px] font-bold text-[#c7962d] hover:text-[#b58522]">Manage inquiries</Link>
+                <Link href="/dashboard/inquiries" className="text-[13px] font-bold text-brand-mustard hover:opacity-80">Manage inquiries</Link>
               </div>
               <div className="bg-white rounded-2xl border border-brand-border shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
@@ -505,7 +505,7 @@ export default function DashboardOverview() {
                             <td className="p-4 text-brand-ink">{inq.destinations || "Not specified"}</td>
                             <td className="p-4">
                               {inq.status === 'new' ? (
-                                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-brand-mustard/15 text-[#c7962d]">New</span>
+                                <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-brand-mustard/15 text-brand-mustard">New</span>
                               ) : inq.status === 'read' ? (
                                 <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-800">Read</span>
                               ) : (
@@ -526,18 +526,18 @@ export default function DashboardOverview() {
                 </div>
               </div>
             </div>
-
+ 
             {/* Editorial Workflow */}
             <div className="flex flex-col">
               <div className="flex justify-between items-center mb-5 px-1">
                 <h3 className="font-bold text-[1.1rem] text-brand-ink">Editorial Workflow</h3>
-                <button className="text-[13px] font-bold text-[#c7962d] hover:text-[#b58522]">View queue</button>
+                <button className="text-[13px] font-bold text-brand-mustard hover:opacity-80">View queue</button>
               </div>
               <div className="bg-white rounded-2xl border border-brand-border shadow-sm p-8 flex-1">
                 <div className="flex flex-col gap-7">
                   {workflow.map((item, i) => (
                     <div key={i} className="flex items-start gap-5">
-                      <div className="w-[34px] h-[34px] rounded-full bg-[#f6ead0] text-[#c7962d] font-bold flex items-center justify-center shrink-0 text-sm">
+                      <div className="w-[34px] h-[34px] rounded-full bg-brand-mustard-soft text-brand-mustard font-bold flex items-center justify-center shrink-0 text-sm">
                         {item.step}
                       </div>
                       <div className="mt-0.5">

@@ -18,6 +18,7 @@ export default function DestinationForm({ initialData }) {
     flag: initialData?.extras?.flag || "",
     code: initialData?.code || "",
     description: initialData?.description || "",
+    excerpt: initialData?.excerpt || "",
     coverImage: initialData?.coverImage || "",
     whyILoveItTitle: initialData?.extras?.whyILoveItTitle || "",
     whyILoveIt: initialData?.whyILoveIt || "",
@@ -27,7 +28,7 @@ export default function DestinationForm({ initialData }) {
     slug: initialData?.slug || "",
     sortOrder: initialData?.extras?.sortOrder || "1",
     seoTitle: initialData?.extras?.seoTitle || "",
-    metaDescription: initialData?.excerpt || "",
+    metaDescription: initialData?.extras?.metaDescription || initialData?.excerpt || "",
     region: initialData?.region || "Asia"
   });
 
@@ -78,7 +79,7 @@ export default function DestinationForm({ initialData }) {
         featureOnHomepage: formData.featureOnHomepage,
         sortOrder: formData.sortOrder,
         seoTitle: formData.seoTitle,
-        metaDescription: formData.metaDescription
+        metaDescription: formData.metaDescription || formData.excerpt || ""
       };
 
       const payload = {
@@ -86,7 +87,7 @@ export default function DestinationForm({ initialData }) {
         code: countryCode.toUpperCase(),
         slug: generatedSlug,
         region: formData.region,
-        excerpt: formData.metaDescription || "",
+        excerpt: formData.excerpt || formData.metaDescription || "",
         description: formData.description,
         description_json: JSON.stringify(extras),
         whyILoveIt: formData.whyILoveIt,
@@ -231,6 +232,17 @@ export default function DestinationForm({ initialData }) {
                   className="w-full border border-brand-border rounded-lg bg-white px-3 py-3 text-sm focus:outline-none focus:border-brand-mustard min-h-[120px]"
                 />
                 <div className="text-xs text-brand-muted mt-1.5">Used on destination cards, destination details and previews.</div>
+              </div>
+
+              <div>
+                <label className="block text-[13px] font-extrabold mb-2">Excerpt / Subtitle</label>
+                <textarea 
+                  value={formData.excerpt}
+                  onChange={e => setFormData(p => ({ ...p, excerpt: e.target.value }))}
+                  placeholder="e.g. Old capitals, neon avenues, and the ritual of small things." 
+                  className="w-full border border-brand-border rounded-lg bg-white px-3 py-3 text-sm focus:outline-none focus:border-brand-mustard min-h-[80px]"
+                />
+                <div className="text-xs text-brand-muted mt-1.5">A short, evocative summary of the destination. Appears as a subtitle on the guide details page.</div>
               </div>
 
               <div>
@@ -414,6 +426,11 @@ export default function DestinationForm({ initialData }) {
               {formData.status} Preview
             </span>
             <h4 className="font-serif text-lg m-0 mb-2">{formData.whyILoveItTitle || "Kyoto rewards a slower pace"}</h4>
+            {formData.excerpt && (
+              <p className="text-brand-ink text-[12px] italic leading-relaxed mb-3 border-l-2 border-brand-mustard pl-2">
+                &ldquo;{formData.excerpt}&rdquo;
+              </p>
+            )}
             <p className="text-brand-muted text-[13px] leading-relaxed mb-3">
               {formData.description || "Scenic view from Japan, with slow temples, food counters and quiet city mornings."}
             </p>

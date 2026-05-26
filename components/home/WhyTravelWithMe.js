@@ -28,7 +28,7 @@ export default function PlanYourTripCTA({ settings }) {
               </span>
             )}
             {title && (
-              <h2 className="text-4xl md:text-[52px] font-serif font-bold text-white mb-4 leading-tight">
+              <h2 className="text-3xl md:text-[40px] font-serif font-bold text-white mb-4 leading-tight">
                 {title}
               </h2>
             )}
