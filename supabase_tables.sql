@@ -84,3 +84,25 @@ GRANT ALL ON newsletter_subscribers TO public;
 -- CREATE POLICY "Allow local dev read/write to newsletter_subscribers" ON newsletter_subscribers
 --   FOR ALL TO anon USING (true);
 
+
+-- =========================================================================
+-- OPTIMIZED PERFORMANCE INDICES
+-- =========================================================================
+-- Run this in your Supabase SQL Editor to shield against high-traffic workloads
+
+-- 1. Optimized indices for blog_posts
+CREATE INDEX IF NOT EXISTS idx_blog_posts_status_created_at 
+ON blog_posts (status, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_blog_posts_destination 
+ON blog_posts (destination);
+
+-- 2. Optimized indices for destinations
+CREATE INDEX IF NOT EXISTS idx_destinations_slug_status 
+ON destinations (slug, status);
+
+-- 3. Optimized indices for tours
+CREATE INDEX IF NOT EXISTS idx_tours_destination_status 
+ON tours (destination, status);
+
+

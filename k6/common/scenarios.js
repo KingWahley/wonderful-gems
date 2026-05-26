@@ -75,7 +75,7 @@ export function browseBlogs() {
   const res = http.get(`${BASE_URL}/blog`, { headers: HEADERS });
   check(res, {
     'blog status is 200': (r) => r.status === 200,
-    'blog has listing container': (r) => r.body && r.body.includes('Stories from the road') || r.body.includes('Latest Posts'),
+    'blog has listing container': (r) => r.body && (r.body.includes('All posts') || r.body.includes('The Journal')),
   });
   sleep(randomSleep());
 }

@@ -2,6 +2,7 @@ export const revalidate = 60;
 
 import { fetchMiniGuides, fetchBlogs, fetchDestinations, fetchTours } from "@/lib/db";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Star, Sparkle, Utensils, Share2, Mail, Copy } from "lucide-react";
 
@@ -299,19 +300,25 @@ export default async function MiniGuideDetails({ params }) {
             {guide.type === "itinerary" ? (
               <div className="border-[3px] border-charcoal-900 rounded-[32px] p-5 bg-[#FAF6EE] shadow-lg mb-16">
                 <div className="rounded-[20px] overflow-hidden border-[2px] border-charcoal-900/60 aspect-[16/10] relative">
-                  <img 
+                  <Image 
                     src={guide.heroImage} 
                     alt={guide.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 1200px) 100vw, 800px"
+                    priority
+                    className="object-cover"
                   />
                 </div>
               </div>
             ) : (
               <div className="relative h-[360px] md:h-[480px] rounded-[24px] overflow-hidden shadow-md mb-16">
-                <img 
+                <Image 
                   src={guide.heroImage} 
                   alt={guide.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 1200px) 100vw, 800px"
+                  priority
+                  className="object-cover"
                 />
                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase text-charcoal-900 shadow-sm border border-charcoal-900/5">
                   {currentFlag} {guide.destination.toUpperCase()}
@@ -1093,10 +1100,12 @@ export default async function MiniGuideDetails({ params }) {
                   className="group flex gap-4 bg-white border border-charcoal-900/5 p-4 rounded-[16px] shadow-sm hover:shadow-md transition-all duration-300"
                 >
                   <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 relative bg-cream-200">
-                    <img 
+                    <Image 
                       src={blog.coverImage} 
                       alt={blog.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      fill
+                      sizes="80px"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
                   <div className="flex flex-col justify-between py-0.5 flex-1 min-w-0">
