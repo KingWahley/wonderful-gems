@@ -21,12 +21,14 @@ export default async function BlogPage() {
 
   const pills = [
     { label: "All", count: blogPosts.length },
-    ...destinationsList.map(d => {
-      const count = blogPosts.filter(
-        p => p.destination?.toLowerCase() === d.country?.toLowerCase()
-      ).length;
-      return { label: d.country, count };
-    })
+    ...destinationsList
+      .map(d => {
+        const count = blogPosts.filter(
+          p => p.destination?.toLowerCase() === d.country?.toLowerCase()
+        ).length;
+        return { label: d.country, count };
+      })
+      .filter(p => p.count > 0)
   ];
 
   return (
@@ -48,16 +50,25 @@ export default async function BlogPage() {
 
           {/* Pills */}
           <div className="flex flex-wrap gap-2">
-            {pills.map((pill, idx) => (
-              <span key={idx} className="border border-charcoal-900/10 bg-white px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest text-charcoal-900 uppercase shadow-sm">
-                {pill.label} ({pill.count})
-              </span>
-            ))}
+            {pills.map((pill, idx) => {
+              const targetId = pill.label.toLowerCase() === "all"
+                ? "all-sections"
+                : pill.label.toLowerCase().replace(/\s+/g, "-");
+              return (
+                <a
+                  key={idx}
+                  href={`#${targetId}`}
+                  className="border border-charcoal-900/10 bg-white hover:border-charcoal-900/30 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest text-charcoal-900 uppercase shadow-sm transition-colors cursor-pointer"
+                >
+                  {pill.label} ({pill.count})
+                </a>
+              );
+            })}
           </div>
         </div>
 
         {/* Content sections grouped by destination */}
-        <div className="space-y-16 mt-16">
+        <div id="all-sections" className="space-y-16 mt-16 scroll-mt-24">
           {destinationsList.map((dest) => {
             const posts = blogPosts.filter(
               p => p.destination?.toLowerCase() === dest.country?.toLowerCase()
@@ -65,7 +76,7 @@ export default async function BlogPage() {
             if (posts.length === 0) return null;
 
             return (
-              <div key={dest.id}>
+              <div key={dest.id} id={dest.country.toLowerCase().replace(/\s+/g, "-")} className="scroll-mt-24">
                 <div className="flex items-baseline justify-between border-b border-charcoal-900/10 pb-3 mb-6">
                   <h2 className="flex items-baseline gap-2 text-charcoal-900">
                     <span className="text-sm font-sans font-bold uppercase">{dest.code}</span>

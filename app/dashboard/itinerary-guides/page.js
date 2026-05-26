@@ -708,6 +708,52 @@ export default function ItineraryGuidesCMS() {
     }
   };
 
+  const handlePreview = async () => {
+    if (!formData.title || !formData.slug || !formData.destination) {
+      alert("Title, slug, and destination are required.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const generatedSlug = formData.slug.toLowerCase().trim().replace(/\s+/g, "-");
+      const computedCountry = formData.details.country || formData.destination || "";
+      const computedDays = formData.details.days?.length || parseInt(formData.details.noOfDays) || 7;
+
+      const payload = {
+        type: "itinerary",
+        slug: generatedSlug,
+        destination: formData.destination,
+        countryCode: formData.countryCode.toUpperCase(),
+        title: formData.title,
+        excerpt: formData.excerpt,
+        status: formData.status || "draft",
+        heroImage: formData.heroImage || "https://images.unsplash.com/photo-1555881400-74d7acaacd8b?q=80&w=2000&auto=format&fit=crop",
+        details: {
+          ...formData.details,
+          pocketTitle: formData.details.pocketTitle || `${computedCountry.toUpperCase()} MINI GUIDE • POCKET VERSION`,
+          itineraryTitle: formData.details.itineraryTitle || `${computedDays} DAYS IN ${computedCountry.toUpperCase()} • FULL ITINERARY`,
+          blogCountText: formData.details.blogCountText || `3 POSTS FROM ${computedCountry.toUpperCase()}`,
+          introText: formData.details.introText || "",
+          routeTitle: formData.details.routeTitle || `${computedDays}-day route`,
+          routeFlow: formData.details.routeFlow || formData.details.days?.map(d => d.city).filter(Boolean).join(", ") || ""
+        }
+      };
+
+      if (formData.id) {
+        payload.id = formData.id;
+      }
+
+      await saveMiniGuide(payload);
+      await loadData();
+      window.open(`/mini-guides/${generatedSlug}`, '_blank');
+    } catch (err) {
+      alert("Failed to save and preview itinerary guide: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filtered = guides
     .filter(g => {
       const matchSearch = `${g.title} ${g.destination} ${g.excerpt} ${g.details?.routeFlow}`.toLowerCase().includes(searchQuery.toLowerCase());
@@ -2267,11 +2313,12 @@ export default function ItineraryGuidesCMS() {
                     {/* Action buttons mirroring live page preview links */}
                     <div className="pt-2 space-y-2.5">
                       <button 
-                        type="submit"
+                        type="button"
+                        onClick={handlePreview}
                         disabled={saving}
-                        className="w-full py-3 bg-brand-mustard text-white text-[10px] font-bold tracking-widest uppercase rounded-full hover:bg-brand-ink transition-all duration-300 shadow-sm cursor-pointer border-0 flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-brand-mustard text-white text-[10px] font-bold tracking-widest uppercase rounded-full hover:bg-brand-ink transition-all duration-300 shadow-sm cursor-pointer border-0 flex items-center justify-center gap-2 disabled:opacity-50"
                       >
-                        {saving && <Loader2 className="animate-spin" size={12} />}
+                        {saving && <Loader2 className="animate-spin w-3.5 h-3.5" />}
                         Preview Itinerary
                       </button>
                       <button 

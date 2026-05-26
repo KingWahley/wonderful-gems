@@ -557,6 +557,56 @@ export default function BlogCMS() {
     }
   };
 
+  const handlePreview = async () => {
+    if (!formData.title || !formData.slug || !formData.destination) {
+      alert("Title, slug, and destination are required.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const generatedSlug = formData.slug.toLowerCase().replace(/\s+/g, "-");
+      const payload = {
+        title: formData.title,
+        slug: generatedSlug,
+        destination: formData.destination,
+        countryCode: formData.countryCode.toUpperCase(),
+        country_code: formData.countryCode.toUpperCase(),
+        category: formData.category || `TRAVEL • ${formData.destination.toUpperCase()}`,
+        excerpt: formData.excerpt,
+        coverImage: formData.coverImage || "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
+        hero_image: formData.coverImage || "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2000&auto=format&fit=crop",
+        isFresh: formData.isFresh,
+        is_fresh: formData.isFresh,
+        date: formData.date,
+        status: formData.status || "Draft",
+        content: {
+          body: formData.content || "",
+          city: formData.city || "Kyoto",
+          readTime: formData.readTime || "8 min",
+          cityMiniGuide: formData.cityMiniGuide || "",
+          cityMiniGuideCta: formData.cityMiniGuideCta || "Open the guide",
+          imageAltText: formData.imageAltText || "",
+          tags: formData.tags || "slow travel, temples, food",
+          seoTitle: formData.seoTitle || "",
+          seoDescription: formData.seoDescription || ""
+        }
+      };
+
+      if (formData.id) {
+        payload.id = formData.id;
+      }
+
+      await saveBlog(payload);
+      await loadData();
+      window.open(`/blog/${generatedSlug}`, '_blank');
+    } catch (err) {
+      alert("Failed to save and preview blog post: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const filtered = blogs
     .filter(b => {
       const matchSearch = 
@@ -1488,9 +1538,12 @@ export default function BlogCMS() {
                     {/* Action buttons mirroring live page preview links */}
                     <div className="pt-2 space-y-2">
                       <button 
-                        type="submit"
-                        className="w-full py-3 bg-brand-mustard text-white text-xs font-bold tracking-widest uppercase rounded-xl hover:bg-brand-ink transition-all duration-300 shadow-sm cursor-pointer"
+                        type="button"
+                        onClick={handlePreview}
+                        disabled={saving}
+                        className="w-full py-3 bg-brand-mustard text-white text-xs font-bold tracking-widest uppercase rounded-xl hover:bg-brand-ink transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                       >
+                        {saving && <Loader2 className="animate-spin w-4 h-4" />}
                         Preview Blog Post
                       </button>
                       <button 

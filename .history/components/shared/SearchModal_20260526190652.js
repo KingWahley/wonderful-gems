@@ -234,7 +234,7 @@ export default function SearchModal({ isOpen, onClose }) {
               <div className="brand-loader mx-auto" style={{ '--s': '14px' }} />
             </div>
             <p className="font-serif text-charcoal-900 text-lg font-bold mb-1">Setting off...</p>
-            <p className="text-xs text-charcoal-700/60 font-light">Taking you there</p>
+            <p className="text-xs text-charcoal-700/60 font-light">Ta</p>
           </div>
         )}
         

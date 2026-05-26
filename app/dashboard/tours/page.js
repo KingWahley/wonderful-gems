@@ -417,6 +417,60 @@ export default function ToursCMS() {
       setSaving(false);
     }
   };
+
+  const handlePreview = async () => {
+    if (!formData.title || !formData.destination || !formData.duration) {
+      alert("Title, Destination, and Duration are required.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const generatedSlug = formData.slug || formData.title.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      const statusToSave = formData.status || "published";
+
+      const payload = {
+        title: formData.title,
+        destination: formData.destination,
+        countryCode: formData.countryCode.toUpperCase(),
+        category: formData.category,
+        description: formData.description,
+        badge: formData.badge,
+        status: statusToSave,
+        slug: generatedSlug,
+        heroImage: formData.heroImage,
+        shortDescription: formData.shortDescription,
+        price: formData.price,
+        duration: formData.duration,
+        availability: formData.availability,
+        city: formData.city,
+        bookingLink: formData.bookingLink,
+        partnerNote: formData.partnerNote,
+        imageAltText: formData.imageAltText,
+        pocketGuideId: formData.pocketGuideId,
+        itineraryGuideId: formData.itineraryGuideId,
+        featureOnHomepage: formData.featureOnHomepage,
+        featureOnDestination: formData.featureOnDestination,
+        sortOrder: formData.sortOrder,
+        seoTitle: formData.seoTitle,
+        metaDescription: formData.metaDescription,
+        included: formData.included.filter(Boolean),
+        gallery: formData.gallery.filter(Boolean)
+      };
+
+      if (formData.id) {
+        payload.id = formData.id;
+      }
+
+      await saveTour(payload);
+      await loadData();
+      window.open(`/tours/${generatedSlug}`, '_blank');
+    } catch (err) {
+      alert("Failed to save and preview tour: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
   const filtered = tours
     .filter(t => {
       const matchSearch = `${t.title} ${t.destination} ${t.category} ${t.shortDescription} ${t.city || ""}`.toLowerCase().includes(searchQuery.toLowerCase());
@@ -1415,9 +1469,11 @@ export default function ToursCMS() {
                       <div className="pt-2 space-y-2">
                         <button 
                           type="button" 
-                          onClick={() => handleSave("published")}
-                          className="w-full bg-brand-mustard text-white text-xs font-bold py-2.5 px-4 rounded-xl uppercase tracking-wider hover:bg-brand-ink transition-colors cursor-pointer shadow-2xs"
+                          onClick={handlePreview}
+                          disabled={saving}
+                          className="w-full bg-brand-mustard text-white text-xs font-bold py-2.5 px-4 rounded-xl uppercase tracking-wider hover:bg-brand-ink transition-colors cursor-pointer shadow-2xs disabled:opacity-50 flex items-center justify-center gap-2"
                         >
+                          {saving && <Loader2 className="animate-spin w-3.5 h-3.5" />}
                           Preview Tour
                         </button>
                         <button 

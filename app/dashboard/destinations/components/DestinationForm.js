@@ -115,6 +115,52 @@ export default function DestinationForm({ initialData }) {
     }
   };
 
+  const handlePreview = async () => {
+    if (!formData.country) {
+      alert("Country is required to preview.");
+      return;
+    }
+    try {
+      setSaving(true);
+      const generatedSlug = formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-');
+      const countryCode = formData.code || "XX";
+
+      const extras = {
+        flag: formData.flag,
+        whyILoveItTitle: formData.whyILoveItTitle,
+        featureOnHomepage: formData.featureOnHomepage,
+        sortOrder: formData.sortOrder,
+        seoTitle: formData.seoTitle,
+        metaDescription: formData.metaDescription || formData.excerpt || ""
+      };
+
+      const payload = {
+        country: formData.country,
+        code: countryCode.toUpperCase(),
+        slug: generatedSlug,
+        region: formData.region,
+        excerpt: formData.excerpt || formData.metaDescription || "",
+        description: formData.description,
+        description_json: JSON.stringify(extras),
+        whyILoveIt: formData.whyILoveIt,
+        moments: formData.moments.filter(m => m.trim().length > 0),
+        coverImage: formData.coverImage,
+        status: formData.status === "Published" ? "published" : "draft"
+      };
+
+      if (formData.id) {
+        payload.id = formData.id;
+      }
+
+      await saveDestination(payload);
+      window.open(`/destinations/${generatedSlug}`, '_blank');
+    } catch (e) {
+      alert("Failed to save and preview: " + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="font-sans text-brand-ink">
       {/* Fake Topbar just for the visual match if desired, though layout has sidebar */}
@@ -473,7 +519,13 @@ export default function DestinationForm({ initialData }) {
               </div>
             </div>
             
-            <button className="w-full mt-4 px-4 py-2 bg-brand-mustard text-white rounded-lg font-bold text-sm hover:bg-[#b88a29] transition-colors">
+            <button 
+              type="button"
+              onClick={handlePreview}
+              disabled={saving}
+              className="w-full mt-4 px-4 py-2 bg-brand-mustard text-white rounded-lg font-bold text-sm hover:bg-[#b88a29] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {saving && <Loader2 className="animate-spin w-4 h-4" />}
               Preview Destination Page
             </button>
             <Link href="/dashboard/destinations" className="block text-center w-full mt-2 px-4 py-2 border border-brand-border bg-white text-brand-ink rounded-lg font-bold text-sm hover:bg-gray-50 transition-colors">

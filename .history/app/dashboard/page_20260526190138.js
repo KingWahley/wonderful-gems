@@ -456,6 +456,7 @@ export default function DashboardOverview() {
             <div>
               <div className="flex justify-between items-center mb-5 px-1">
                 <h3 className="font-bold text-[1.1rem] text-brand-ink">CMS Modules</h3>
+                <button className="text-[13px] font-bold text-brand-mustard hover:opacity-80">Open sitemap</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 {modules.map((mod, i) => (

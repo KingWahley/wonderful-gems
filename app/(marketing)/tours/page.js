@@ -109,9 +109,16 @@ export default async function ToursPage() {
                       <span className="text-[11px] text-charcoal-900/60 font-light">
                         {tour.duration}
                       </span>
-                      <Link href={`/tours/${tour.slug || tour.id}`} className="text-coral-500 text-[11px] font-bold uppercase tracking-widest hover:text-coral-600 transition-colors">
-                        Book it &rarr;
-                      </Link>
+                      {tour.bookingLink && tour.bookingLink.trim() !== "" && (
+                        <a 
+                          href={tour.bookingLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-coral-500 text-[11px] font-bold uppercase tracking-widest hover:text-coral-600 transition-colors"
+                        >
+                          Book it &rarr;
+                        </a>
+                      )}
                     </div>
 
                   </div>
