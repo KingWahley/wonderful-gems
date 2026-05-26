@@ -33,39 +33,7 @@ export default function BlogCMS() {
   // Highlighting and Scroll-To logic for searches
   const [highlightedRowId, setHighlightedRowId] = useState(null);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || blogs.length === 0) return;
-    const searchParams = new URLSearchParams(window.location.search);
-    const highlight = searchParams.get("highlight");
-    if (!highlight) return;
 
-    // Find the item index in filtered
-    const index = filtered.findIndex(b => String(b.id) === String(highlight));
-    if (index === -1) return;
-
-    // Determine page (max 15 rows/page)
-    const itemPage = Math.ceil((index + 1) / 15);
-    setCurrentPage(itemPage);
-    setHighlightedRowId(highlight);
-
-    // Perform smooth scroll & flash after a short render delay
-    setTimeout(() => {
-      const el = document.getElementById(`row-${highlight}`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 450);
-
-    // Clean up parameter from URL
-    const newUrl = window.location.pathname;
-    window.history.replaceState({}, document.title, newUrl);
-
-    // Remove flash highlight class
-    const timer = setTimeout(() => {
-      setHighlightedRowId(null);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [blogs, filtered]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -618,6 +586,41 @@ export default function BlogCMS() {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const displayedBlogs = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // Highlighting and Scroll-To logic for searches
+  useEffect(() => {
+    if (typeof window === "undefined" || blogs.length === 0) return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const highlight = searchParams.get("highlight");
+    if (!highlight) return;
+
+    // Find the item index in filtered
+    const index = filtered.findIndex(b => String(b.id) === String(highlight));
+    if (index === -1) return;
+
+    // Determine page (max 15 rows/page)
+    const itemPage = Math.ceil((index + 1) / 15);
+    setCurrentPage(itemPage);
+    setHighlightedRowId(highlight);
+
+    // Perform smooth scroll & flash after a short render delay
+    setTimeout(() => {
+      const el = document.getElementById(`row-${highlight}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 450);
+
+    // Clean up parameter from URL
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+
+    // Remove flash highlight class
+    const timer = setTimeout(() => {
+      setHighlightedRowId(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [blogs, filtered]);
+
   const tagsArray = formData.tags
     ? formData.tags.split(",").map(t => t.trim()).filter(Boolean)
     : ["slow travel", "temples", "food"];
@@ -844,13 +847,13 @@ export default function BlogCMS() {
                           id={`row-${blog.id}`}
                           key={blog.id} 
                           className={`transition-colors duration-200 ${
-                            String(blog.id) === String(highlightedRowId)
-                              ? "animate-row-flash"
-                              : isSelected 
-                                ? "bg-brand-mustard/10" 
-                                : isDraft 
-                                  ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50" 
-                                  : "hover:bg-[#FAF8F5]/30 bg-white"
+                            String(blog.id) === String(highlightedRowId) ? "animate-row-flash" : ""
+                          } ${
+                            isSelected 
+                              ? "bg-brand-mustard/10" 
+                              : isDraft 
+                                ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50" 
+                                : "hover:bg-[#FAF8F5]/30 bg-white"
                           }`}
                         >
                           <td className="p-3 pl-3">

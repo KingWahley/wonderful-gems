@@ -26,6 +26,9 @@ export default function DestinationsCMS() {
   const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Highlighting and Scroll-To logic for searches
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedStatus, selectedSort]);
@@ -183,6 +186,41 @@ export default function DestinationsCMS() {
   const itemsPerPage = 15;
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const displayedDestinations = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Highlighting and Scroll-To logic for searches
+  useEffect(() => {
+    if (typeof window === "undefined" || destinations.length === 0) return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const highlight = searchParams.get("highlight");
+    if (!highlight) return;
+
+    // Find the item index in filtered
+    const index = filtered.findIndex(dest => String(dest.id) === String(highlight));
+    if (index === -1) return;
+
+    // Determine page (max 15 rows/page)
+    const itemPage = Math.ceil((index + 1) / 15);
+    setCurrentPage(itemPage);
+    setHighlightedRowId(highlight);
+
+    // Perform smooth scroll & flash after a short render delay
+    setTimeout(() => {
+      const el = document.getElementById(`row-${highlight}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 450);
+
+    // Clean up parameter from URL
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+
+    // Remove flash highlight class
+    const timer = setTimeout(() => {
+      setHighlightedRowId(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [destinations, filtered]);
 
   // Metric Totals
   const totalCount = destinations.length;
@@ -386,8 +424,11 @@ export default function DestinationsCMS() {
 
                     return (
                       <tr 
+                        id={`row-${item.id}`}
                         key={item.id}
                         className={`transition-colors cursor-pointer ${
+                          String(item.id) === String(highlightedRowId) ? "animate-row-flash" : ""
+                        } ${
                           selectedIds.includes(item.id) 
                             ? "bg-brand-mustard/10" 
                             : isDraft 

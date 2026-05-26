@@ -29,7 +29,14 @@ export default function DashboardOverview() {
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchData, setSearchData] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [routingLoading, setRoutingLoading] = useState(false);
   const searchContainerRef = useRef(null);
+
+  // Reset routing loader on mount/focus (handles browser back actions gracefully)
+  useEffect(() => {
+    setRoutingLoading(false);
+  }, []);
 
   // Click outside listener for search suggestions
   useEffect(() => {
@@ -42,18 +49,27 @@ export default function DashboardOverview() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter search database dynamically
+  // Filter search database dynamically with a premium loading experience
   useEffect(() => {
     if (!dashboardSearchQuery.trim()) {
       setSearchResults([]);
+      setSearchLoading(false);
       return;
     }
-    const query = dashboardSearchQuery.toLowerCase();
-    const filtered = searchData.filter(item => 
-      item.name.toLowerCase().includes(query) || 
-      item.category.toLowerCase().includes(query)
-    );
-    setSearchResults(filtered.slice(0, 8));
+
+    setSearchLoading(true);
+
+    const timer = setTimeout(() => {
+      const query = dashboardSearchQuery.toLowerCase();
+      const filtered = searchData.filter(item => 
+        item.name.toLowerCase().includes(query) || 
+        item.category.toLowerCase().includes(query)
+      );
+      setSearchResults(filtered.slice(0, 8));
+      setSearchLoading(false);
+    }, 280); // Luxury debounce to simulate a live directory indexing lookup
+
+    return () => clearTimeout(timer);
   }, [dashboardSearchQuery, searchData]);
 
   useEffect(() => {
@@ -202,6 +218,13 @@ export default function DashboardOverview() {
 
   return (
     <div className="w-full pb-10">
+      {routingLoading && (
+        <div className="fixed inset-0 bg-[#FAF8F5]/85 backdrop-blur-xs flex flex-col items-center justify-center z-[9999] animate-in fade-in duration-300 font-sans">
+          <div className="brand-loader mb-5" style={{ '--s': '15px' }} />
+          <span className="text-brand-ink font-serif font-bold text-sm tracking-wide">Navigating to content...</span>
+          <span className="text-brand-muted text-[10px] mt-1.5 font-medium tracking-tight">Preparing your workspace directory</span>
+        </div>
+      )}
       {/* Top Navigation Bar */}
       <div className="flex items-center justify-between mb-10 pb-5 border-b border-brand-border">
         <div className="flex items-center gap-4">
@@ -221,40 +244,60 @@ export default function DashboardOverview() {
             }}
             onFocus={() => setShowSearchDropdown(true)}
             placeholder="Search posts, guides, destinations..." 
-            className="w-full bg-white border border-brand-border rounded-lg py-2.5 pl-11 pr-4 text-sm focus:outline-none focus:border-brand-mustard transition-colors shadow-sm" 
+            className="w-full bg-white border border-brand-border rounded-lg py-2.5 py-2.5 pl-11 pr-10 text-sm focus:outline-none focus:border-brand-mustard transition-colors shadow-sm" 
           />
+          {searchLoading && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <div className="brand-loader" style={{ '--s': '7px' }} />
+            </div>
+          )}
 
-          {showSearchDropdown && searchResults.length > 0 && (
+          {showSearchDropdown && dashboardSearchQuery.trim() !== "" && (
             <div className="absolute left-0 right-0 mt-2 bg-white border border-brand-border rounded-xl shadow-lg z-50 overflow-hidden font-sans text-xs animate-in fade-in zoom-in-95 duration-100">
-              <div className="p-2 border-b border-brand-border/40 bg-brand-bg/10 text-brand-muted text-[10px] uppercase font-bold tracking-wider">
-                Search Results ({searchResults.length})
-              </div>
-              <div className="max-h-60 overflow-y-auto divide-y divide-brand-border/40">
-                {searchResults.map((item, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      router.push(item.url);
-                      setShowSearchDropdown(false);
-                      setDashboardSearchQuery("");
-                    }}
-                    className="w-full text-left px-4 py-2.5 hover:bg-[#FAF8F5]/80 transition-colors flex items-center justify-between cursor-pointer group"
-                  >
-                    <div>
-                      <div className="font-semibold text-brand-ink group-hover:text-[#c7962d] transition-colors">
-                        {item.name}
-                      </div>
-                      <div className="text-[10px] text-brand-muted mt-0.5 font-mono">
-                        {item.url}
-                      </div>
-                    </div>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#f6ead0]/30 text-[#8C764D] uppercase tracking-wider shrink-0 ml-2">
-                      {item.category}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              {searchLoading ? (
+                <div className="p-8 flex flex-col items-center justify-center text-center">
+                  <div className="brand-loader mb-4 mx-auto" style={{ '--s': '10px' }} />
+                  <span className="text-brand-muted text-[11px] font-medium">Searching directory...</span>
+                </div>
+              ) : searchResults.length > 0 ? (
+                <>
+                  <div className="p-2 border-b border-brand-border/40 bg-brand-bg/10 text-brand-muted text-[10px] uppercase font-bold tracking-wider">
+                    Search Results ({searchResults.length})
+                  </div>
+                  <div className="max-h-60 overflow-y-auto divide-y divide-brand-border/40">
+                    {searchResults.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setRoutingLoading(true);
+                          router.push(item.url);
+                          setShowSearchDropdown(false);
+                          setDashboardSearchQuery("");
+                        }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-[#FAF8F5]/80 transition-colors flex items-center justify-between cursor-pointer group"
+                      >
+                        <div>
+                          <div className="font-semibold text-brand-ink group-hover:text-[#c7962d] transition-colors">
+                            {item.name}
+                          </div>
+                          <div className="text-[10px] text-brand-muted mt-0.5 font-mono">
+                            {item.url}
+                          </div>
+                        </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#f6ead0]/30 text-[#8C764D] uppercase tracking-wider shrink-0 ml-2">
+                          {item.category}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="p-8 flex flex-col items-center justify-center text-center">
+                  <span className="text-brand-muted font-bold text-[11px] mb-1">No matching items found</span>
+                  <span className="text-brand-muted/70 text-[10px]">Try typing destinations, guides, or blog titles</span>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -129,12 +129,46 @@
 }
 
 @keyframes row-flash {
-  0% { background-color: rgba(199, 150, 45, 0.45); }
-  35% { background-color: rgba(199, 150, 45, 0.2); }
+  0% { background-color: rgba(220, 160, 40, 0.75); }
+  35% { background-color: rgba(220, 160, 40, 0.35); }
   100% { background-color: transparent; }
 }
 
-@utility animate-row-flash {
-  animation: row-flash 2.5s ease-in-out forwards;
+.animate-row-flash,
+tr.animate-row-flash td {
+  animation: row-flash 2.5s ease-in-out forwards !important;
+}
+
+/* Premium brand custom CSS loader */
+.brand-loader {
+  --s: 10px; /* Delicate premium size */
+  width: calc(var(--s) * 2.33);
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: space-between;
+  animation: brand-l0 1.2s infinite ease-in-out;
+}
+.brand-loader::before,
+.brand-loader::after {
+  content: "";
+  width: var(--s);
+  height: 100%; /* Explicitly set height for rendering resilience */
+  --_g: no-repeat radial-gradient(farthest-side, #c7962d 94%, transparent); /* Used transparent for universal compatibility */
+  background:
+    var(--_g) top,
+    var(--_g) bottom;
+  background-size: 100% var(--s);
+  transform-origin: 50% calc(100% - var(--s)/2);
+  animation: inherit;
+  animation-name: brand-l1;
+}
+.brand-loader::after {
+  --_s: -1;
+}
+@keyframes brand-l0 {
+  100% { transform: translateY(calc(var(--s) - 100%)); }
+}
+@keyframes brand-l1 {
+  100% { transform: rotate(calc(var(--_s, 1) * -180deg)); }
 }
 

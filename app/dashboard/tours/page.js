@@ -41,6 +41,9 @@ export default function ToursCMS() {
   const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Highlighting and Scroll-To logic for searches
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedDestination, selectedCategory, selectedStatus]);
@@ -442,6 +445,41 @@ export default function ToursCMS() {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const displayedTours = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // Highlighting and Scroll-To logic for searches
+  useEffect(() => {
+    if (typeof window === "undefined" || tours.length === 0) return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const highlight = searchParams.get("highlight");
+    if (!highlight) return;
+
+    // Find the item index in filtered
+    const index = filtered.findIndex(t => String(t.id) === String(highlight));
+    if (index === -1) return;
+
+    // Determine page (max 15 rows/page)
+    const itemPage = Math.ceil((index + 1) / 15);
+    setCurrentPage(itemPage);
+    setHighlightedRowId(highlight);
+
+    // Perform smooth scroll & flash after a short render delay
+    setTimeout(() => {
+      const el = document.getElementById(`row-${highlight}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 450);
+
+    // Clean up parameter from URL
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+
+    // Remove flash highlight class
+    const timer = setTimeout(() => {
+      setHighlightedRowId(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [tours, filtered]);
+
   const pocketGuides = miniGuides.filter(g => g.type === "pocket");
   const itineraryGuides = miniGuides.filter(g => g.type === "itinerary");
 
@@ -655,8 +693,11 @@ export default function ToursCMS() {
                       const isDraft = (tour.status || "draft").toLowerCase() === "draft" || (tour.status || "draft").toLowerCase() === "new";
                       return (
                         <tr 
+                          id={`row-${tour.id}`}
                           key={tour.id} 
                           className={`transition-colors duration-200 ${
+                            String(tour.id) === String(highlightedRowId) ? "animate-row-flash" : ""
+                          } ${
                             selectedIds.includes(tour.id)
                               ? "bg-brand-mustard/10"
                               : isDraft

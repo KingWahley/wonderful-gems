@@ -143,6 +143,9 @@ export default function ItineraryGuidesCMS() {
   const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Highlighting and Scroll-To logic for searches
+  const [highlightedRowId, setHighlightedRowId] = useState(null);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedDestination, selectedStatus, selectedSort]);
@@ -738,6 +741,41 @@ export default function ItineraryGuidesCMS() {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const displayedGuides = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // Highlighting and Scroll-To logic for searches
+  useEffect(() => {
+    if (typeof window === "undefined" || guides.length === 0) return;
+    const searchParams = new URLSearchParams(window.location.search);
+    const highlight = searchParams.get("highlight");
+    if (!highlight) return;
+
+    // Find the item index in filtered
+    const index = filtered.findIndex(g => String(g.id) === String(highlight));
+    if (index === -1) return;
+
+    // Determine page (max 15 rows/page)
+    const itemPage = Math.ceil((index + 1) / 15);
+    setCurrentPage(itemPage);
+    setHighlightedRowId(highlight);
+
+    // Perform smooth scroll & flash after a short render delay
+    setTimeout(() => {
+      const el = document.getElementById(`row-${highlight}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 450);
+
+    // Clean up parameter from URL
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
+
+    // Remove flash highlight class
+    const timer = setTimeout(() => {
+      setHighlightedRowId(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [guides, filtered]);
+
   return (
     <div className="space-y-10 min-h-screen">
       {!isFormOpen ? (
@@ -940,8 +978,11 @@ export default function ItineraryGuidesCMS() {
                       const isDraft = (guide.status || "draft").toLowerCase() === "draft" || (guide.status || "draft").toLowerCase() === "new";
                       return (
                         <tr 
+                          id={`row-${guide.id}`}
                           key={guide.id} 
                           className={`transition-colors duration-200 ${
+                            String(guide.id) === String(highlightedRowId) ? "animate-row-flash" : ""
+                          } ${
                             selectedIds.includes(guide.id)
                               ? "bg-brand-mustard/10"
                               : isDraft
