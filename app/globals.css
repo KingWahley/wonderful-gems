@@ -128,3 +128,13 @@
   background: #d0a33c;
 }
 
+@keyframes row-flash {
+  0% { background-color: rgba(199, 150, 45, 0.45); }
+  35% { background-color: rgba(199, 150, 45, 0.2); }
+  100% { background-color: transparent; }
+}
+
+@utility animate-row-flash {
+  animation: row-flash 2.5s ease-in-out forwards;
+}
+

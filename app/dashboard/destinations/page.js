@@ -382,10 +382,18 @@ export default function DestinationsCMS() {
                     // Moments Count from Database Array
                     const momentsCount = Array.isArray(item.moments) ? item.moments.length : 0;
 
+                    const isDraft = (item.status || "").toLowerCase() === "draft" || (item.status || "").toLowerCase() === "new";
+
                     return (
                       <tr 
                         key={item.id}
-                        className="hover:bg-[#FAF8F5]/60 transition-colors cursor-pointer"
+                        className={`transition-colors cursor-pointer ${
+                          selectedIds.includes(item.id) 
+                            ? "bg-brand-mustard/10" 
+                            : isDraft 
+                              ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50" 
+                              : "hover:bg-[#FAF8F5]/60 bg-white"
+                        }`}
                       >
                         {/* Checkbox */}
                         <td className="p-3 pr-1" onClick={(e) => e.stopPropagation()}>

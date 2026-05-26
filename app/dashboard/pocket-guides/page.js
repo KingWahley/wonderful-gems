@@ -819,8 +819,19 @@ export default function PocketGuidesCMS() {
                         const countryColor = getCountryColor(countryCode);
                         const countryInitials = countryCode.toUpperCase().slice(0, 2);
 
+                        const isDraft = (guide.status || "published").toLowerCase() !== "published";
+
                         return (
-                          <tr key={guide.id} className={`hover:bg-[#FAF8F5]/30 transition-colors duration-200 ${isSelected ? "bg-brand-mustard/5" : ""}`}>
+                          <tr 
+                            key={guide.id} 
+                            className={`transition-colors duration-200 ${
+                              isSelected 
+                                ? "bg-brand-mustard/10" 
+                                : isDraft 
+                                  ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50" 
+                                  : "hover:bg-[#FAF8F5]/30 bg-white"
+                            }`}
+                          >
                             <td className="p-3 pl-3">
                               <input 
                                 type="checkbox" 

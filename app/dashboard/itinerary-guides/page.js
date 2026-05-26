@@ -937,8 +937,18 @@ export default function ItineraryGuidesCMS() {
                     {displayedGuides.map((guide) => {
                       const daysCount = guide.details?.days?.length || parseInt(guide.details?.noOfDays) || 7;
                       const colorStyle = getCountryColor(guide.countryCode || "PT");
+                      const isDraft = (guide.status || "draft").toLowerCase() === "draft" || (guide.status || "draft").toLowerCase() === "new";
                       return (
-                        <tr key={guide.id} className="hover:bg-[#fcfbf9]/40 transition-colors duration-200">
+                        <tr 
+                          key={guide.id} 
+                          className={`transition-colors duration-200 ${
+                            selectedIds.includes(guide.id)
+                              ? "bg-brand-mustard/10"
+                              : isDraft
+                                ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50"
+                                : "hover:bg-[#fcfbf9]/40 bg-white"
+                          }`}
+                        >
                           <td className="p-4 align-middle">
                             <input 
                               type="checkbox" 

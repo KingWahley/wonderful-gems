@@ -44,17 +44,17 @@ export default function DashboardLayout({ children }) {
   };
 
   const sidebarLinks = [
-    { name: "Overview", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
+    { name: "Dashboard", path: "/dashboard", icon: <LayoutDashboard size={18} /> },
+    { name: "Homepage Manager", path: "/dashboard/homepage", icon: <Home size={18} /> },
     { name: "Destinations", path: "/dashboard/destinations", icon: <MapPin size={18} /> },
     { name: "Blog Posts", path: "/dashboard/blog", icon: <FileText size={18} /> },
     { name: "Pocket Guides", path: "/dashboard/pocket-guides", icon: <BookOpen size={18} /> },
     { name: "Itinerary Guides", path: "/dashboard/itinerary-guides", icon: <Compass size={18} /> },
     { name: "Tours", path: "/dashboard/tours", icon: <Map size={18} /> },
     { name: "Packages", path: "/dashboard/packages", icon: <Briefcase size={18} /> },
-    { name: "Media Library", path: "/dashboard/media-library", icon: <ImageIcon size={18} /> },
     { name: "Inquiries", path: "/dashboard/inquiries", icon: <MessageSquare size={18} /> },
     { name: "Bookings", path: "/dashboard/bookings", icon: <CalendarCheck size={18} /> },
-    { name: "Homepage", path: "/dashboard/homepage", icon: <Home size={18} /> },
+    { name: "Media Library", path: "/dashboard/media-library", icon: <ImageIcon size={18} /> },
   ];
 
   return (

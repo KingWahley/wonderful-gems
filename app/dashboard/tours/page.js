@@ -652,8 +652,18 @@ export default function ToursCMS() {
                   </thead>
                   <tbody className="divide-y divide-brand-border">
                     {displayedTours.map((tour) => {
+                      const isDraft = (tour.status || "draft").toLowerCase() === "draft" || (tour.status || "draft").toLowerCase() === "new";
                       return (
-                        <tr key={tour.id} className="hover:bg-[#fcfbf9]/40 transition-colors duration-200">
+                        <tr 
+                          key={tour.id} 
+                          className={`transition-colors duration-200 ${
+                            selectedIds.includes(tour.id)
+                              ? "bg-brand-mustard/10"
+                              : isDraft
+                                ? "bg-[#f6ead0]/35 hover:bg-[#f6ead0]/50"
+                                : "hover:bg-[#fcfbf9]/40 bg-white"
+                          }`}
+                        >
                           <td className="p-4 align-middle">
                             <input 
                               type="checkbox" 

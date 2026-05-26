@@ -131,36 +131,26 @@ export default function DashboardOverview() {
         b.forEach(item => searchArr.push({
           name: item.title || "Untitled Blog",
           category: "Blog Post",
-          url: `/dashboard/blog?highlight=${item.id}`
+          url: `/dashboard/blog?search=${encodeURIComponent(item.title || "")}`
         }));
         
         d.forEach(item => searchArr.push({
           name: item.country || "Untitled Destination",
           category: "Destination",
-          url: `/dashboard/destinations?highlight=${item.id}`
+          url: `/dashboard/destinations/edit/${item.id}`
         }));
         
         t.forEach(item => searchArr.push({
           name: item.title || "Untitled Tour",
           category: "Tour",
-          url: `/dashboard/tours?highlight=${item.id}`
+          url: `/dashboard/tours?search=${encodeURIComponent(item.title || "")}`
         }));
         
-        g.forEach(item => {
-          if (item.type === "pocket") {
-            searchArr.push({
-              name: item.title || "Untitled Guide",
-              category: "Pocket Guide",
-              url: `/dashboard/pocket-guides?highlight=${item.id}`
-            });
-          } else {
-            searchArr.push({
-              name: item.title || "Untitled Guide",
-              category: "Itinerary Guide",
-              url: `/dashboard/itinerary-guides?highlight=${item.id}`
-            });
-          }
-        });
+        g.forEach(item => searchArr.push({
+          name: item.title || "Untitled Guide",
+          category: "Itinerary / Mini Guide",
+          url: `/dashboard/itinerary-guides?search=${encodeURIComponent(item.title || "")}`
+        }));
         
         setSearchData(searchArr);
         
@@ -207,6 +197,7 @@ export default function DashboardOverview() {
         <div className="flex items-center gap-4">
           <Menu className="text-brand-ink md:hidden cursor-pointer" size={24} />
           <h1 className="text-lg md:text-xl font-bold text-brand-ink flex items-center gap-3">
+            <Menu size={20} className="hidden md:block text-brand-ink cursor-pointer" /> 
             Dashboard Overview
           </h1>
         </div>
