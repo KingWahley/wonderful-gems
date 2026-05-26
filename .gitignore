@@ -39,3 +39,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local history backups (VS Code)
+.history/
+
+# temporary and scratch files
+diff.txt
+/scratch/
+
+# k6 test results & analysis reports
+*.html
+/k6/reports/
