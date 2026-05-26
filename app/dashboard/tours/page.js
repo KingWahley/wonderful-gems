@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 import { fetchTours, saveTour, deleteTour, fetchDestinations, fetchMiniGuides, uploadImage } from "@/lib/db";
 import { Plus, Edit, Eye, Trash2, Search, X, Loader2, ArrowLeft, ChevronDown, Bell, Upload, Calendar, Compass, Clock, Tag, Download } from "lucide-react";
-import LocationAutocomplete from "@/components/dashboard/LocationAutocomplete";
+import dynamic from "next/dynamic";
+const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
+  loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
+  ssr: false
+});
+
 
 const cityMapping = {
   "Japan": ["Kyoto", "Tokyo", "Osaka", "Nara"],

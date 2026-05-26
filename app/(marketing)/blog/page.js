@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { fetchDestinations, fetchBlogs } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function BlogPage() {
   let destinationsList = [];
@@ -82,10 +83,12 @@ export default async function BlogPage() {
                       {/* Image Container */}
                       <div className="relative h-[200px] md:h-[220px] w-full overflow-hidden shrink-0 bg-cream-200">
                         {post.coverImage && (
-                          <img 
+                          <Image 
                             src={post.coverImage} 
                             alt={post.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                         )}
                         {/* Pill */}

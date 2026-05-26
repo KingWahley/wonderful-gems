@@ -1,6 +1,6 @@
 import { fetchSettings } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function AboutPage() {
   const about = await fetchSettings("about_page");

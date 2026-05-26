@@ -1,7 +1,8 @@
 import { fetchDestinations, fetchBlogs, fetchMiniGuides } from "@/lib/db";
 import Link from "next/link";
+import Image from "next/image";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const flagMap = {
   "japan": "🇯🇵",
@@ -96,10 +97,12 @@ export default async function DestinationDetails({ params }) {
 
           <div className="relative w-full h-[320px] md:h-[420px] rounded-[24px] overflow-hidden shadow-md bg-cream-200">
             {destination.coverImage && (
-              <img 
+              <Image 
                 src={destination.coverImage} 
                 alt={destination.country}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 1200px) 100vw, 800px"
+                className="object-cover"
               />
             )}
           </div>
@@ -187,10 +190,12 @@ export default async function DestinationDetails({ params }) {
                 <Link key={blog.id} href={`/blog/${blog.slug}`} className="group block bg-white rounded-[24px] overflow-hidden border border-charcoal-900/10 hover:shadow-md transition-shadow">
                   <div className="relative h-[220px] md:h-[260px] w-full overflow-hidden bg-cream-200">
                     {blog.coverImage && (
-                      <img 
+                      <Image 
                         src={blog.coverImage} 
                         alt={blog.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     )}
                     <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3.5 py-1.5 rounded-full text-[9px] font-bold tracking-widest uppercase text-charcoal-900 shadow-sm flex items-center gap-1.5 border border-charcoal-900/5">

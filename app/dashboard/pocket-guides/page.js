@@ -8,7 +8,12 @@ import {
   ChevronDown, Calendar, Clock, Compass, MapPin, Sparkle, Download
 } from "lucide-react";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
-import LocationAutocomplete from "@/components/dashboard/LocationAutocomplete";
+import dynamic from "next/dynamic";
+const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
+  loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
+  ssr: false
+});
+
 
 const defaultDetails = {
   pocketTitle: "",

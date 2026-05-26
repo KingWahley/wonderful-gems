@@ -3,7 +3,12 @@
 import { useState, useEffect } from "react";
 import { fetchMiniGuides, saveMiniGuide, deleteMiniGuide, fetchDestinations, uploadImage } from "@/lib/db";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
-import LocationAutocomplete from "@/components/dashboard/LocationAutocomplete";
+import dynamic from "next/dynamic";
+const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
+  loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
+  ssr: false
+});
+
 import { 
   Plus, Edit, Eye, Trash2, Search, X, Loader2, Image as ImageIcon,
   Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,

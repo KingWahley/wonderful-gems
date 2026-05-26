@@ -1,7 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import { fetchDestinations, fetchBlogs, fetchTours } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function DestinationsPage() {
   let destinationsWithCounts = [];
@@ -52,10 +53,12 @@ export default async function DestinationsPage() {
                 {/* Image Container */}
                 <div className="relative h-[220px] md:h-[240px] w-full overflow-hidden bg-cream-200">
                   {dest.coverImage && (
-                    <img 
+                    <Image 
                       src={dest.coverImage} 
                       alt={dest.country}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   )}
                   

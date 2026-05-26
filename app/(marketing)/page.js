@@ -1,13 +1,17 @@
 import Hero from "@/components/home/Hero";
 import FeaturedBlogs from "@/components/home/FeaturedBlogs";
-import FeaturedDestinations from "@/components/home/FeaturedDestinations";
+import dynamic from "next/dynamic";
+const FeaturedDestinations = dynamic(() => import("@/components/home/FeaturedDestinations"), {
+  loading: () => <div className="animate-pulse bg-mustard-500 h-[400px]"></div>
+});
+
 import FreshOffTheRoad from "@/components/home/FreshOffTheRoad";
 import WhyTravelWithMe from "@/components/home/WhyTravelWithMe";
 import Testimonials from "@/components/home/Testimonials";
 import FeaturedTours from "@/components/home/FeaturedTours";
 import { fetchDestinations, fetchBlogs, fetchMiniGuides, fetchSettings, fetchTours } from "@/lib/db";
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function Home() {
   let destinations = [];

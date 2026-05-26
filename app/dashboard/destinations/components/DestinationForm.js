@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { saveDestination, uploadImage } from "@/lib/db";
 import { ChevronRight, Loader2, X, Plus, Search, Bell } from "lucide-react";
-import LocationAutocomplete, { getFlagEmoji } from "@/components/dashboard/LocationAutocomplete";
+import { getFlagEmoji } from "@/components/dashboard/LocationAutocomplete";
+import dynamic from "next/dynamic";
+const LocationAutocomplete = dynamic(() => import("@/components/dashboard/LocationAutocomplete"), {
+  loading: () => <div className="animate-pulse bg-gray-100 border border-gray-300 h-[38px] rounded-[8px]"></div>,
+  ssr: false
+});
+
 
 export default function DestinationForm({ initialData }) {
   const router = useRouter();

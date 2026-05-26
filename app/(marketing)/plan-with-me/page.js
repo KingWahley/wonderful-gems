@@ -1,7 +1,11 @@
 import { fetchSettings, fetchPackages } from "@/lib/db";
-import InquiryForm from "@/components/marketing/InquiryForm";
+import dynamic from "next/dynamic";
+const InquiryForm = dynamic(() => import("@/components/marketing/InquiryForm"), {
+  loading: () => <div className="animate-pulse bg-white p-8 rounded-[24px] h-[400px] border border-cream-200"></div>
+});
 
-export const revalidate = 0;
+
+export const revalidate = 60;
 
 export default async function PlanWithMePage() {
   let settings = null;

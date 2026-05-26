@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:load:light": "k6 run k6/scripts/light_load.js",
+    "test:load:medium": "k6 run k6/scripts/medium_load.js",
+    "test:load:stress": "k6 run k6/scripts/stress_test.js",
+    "test:load:spike": "k6 run k6/scripts/spike_test.js",
+    "test:load:endurance": "k6 run k6/scripts/endurance_test.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

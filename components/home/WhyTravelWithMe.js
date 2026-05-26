@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function PlanYourTripCTA({ settings }) {
   if (!settings) return null;
@@ -11,8 +12,9 @@ export default function PlanYourTripCTA({ settings }) {
         <div className="relative bg-mustard-500 rounded-3xl p-10 md:p-14 lg:p-16 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-12 overflow-hidden">
           
           {settings.coverImage && (
-            <img src={settings.coverImage} alt="CTA background" className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40 pointer-events-none" />
+            <Image src={settings.coverImage} alt="CTA background" fill className="object-cover mix-blend-multiply opacity-40 pointer-events-none" />
           )}
+
           
           {/* NOW BOOKING Badge */}
           <div className="absolute top-8 right-8 inline-flex bg-white px-5 py-2 rounded-full border border-charcoal-900 items-center justify-center">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { fetchMiniGuides } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function MiniGuidesPage() {
   let guides = [];

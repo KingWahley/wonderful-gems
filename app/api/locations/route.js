@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
+
 let cachedData = null;
 
 export async function GET() {

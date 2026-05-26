@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { fetchTours } from "@/lib/db";
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function ToursPage() {
   let tours = [];

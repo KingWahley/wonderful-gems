@@ -3,7 +3,9 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Menu, X, Search } from "lucide-react";
-import SearchModal from "./SearchModal";
+import dynamic from "next/dynamic";
+const SearchModal = dynamic(() => import("./SearchModal"), { ssr: false });
+
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);

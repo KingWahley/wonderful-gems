@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 import { fetchMiniGuides, fetchBlogs, fetchDestinations, fetchTours } from "@/lib/db";
 import Link from "next/link";

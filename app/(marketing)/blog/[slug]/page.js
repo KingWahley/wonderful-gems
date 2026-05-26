@@ -1,8 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import { fetchBlogs, fetchDestinations, fetchMiniGuides } from "@/lib/db";
 import { notFound } from "next/navigation";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const renderParagraphWithDropcap = (text, key) => {
   if (!text) return null;
@@ -219,10 +220,13 @@ export default async function BlogPost({ params }) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 animate-in fade-in zoom-in-95 duration-500">
         <div className="relative w-full h-[400px] md:h-[600px] rounded-[2rem] overflow-hidden bg-[#FAF7F1] shadow-lg border border-charcoal-900/5">
           {post.coverImage && (
-            <img 
+            <Image 
               src={post.coverImage} 
               alt={imageAltText || post.title}
-              className="w-full h-full object-cover"
+              fill
+              sizes="(max-width: 1200px) 100vw, 1100px"
+              priority
+              className="object-cover"
             />
           )}
         </div>
@@ -331,10 +335,12 @@ export default async function BlogPost({ params }) {
                     <Link href={`/blog/${latest.slug}`} key={latest.id} className="group block border-b border-charcoal-900/5 pb-6 last:border-b-0 last:pb-0">
                       <div className="w-full h-[140px] rounded-[12px] overflow-hidden mb-4 bg-[#FAF7F1] border border-charcoal-900/5 relative shadow-xs">
                         {latest.coverImage && (
-                          <img 
+                          <Image 
                             src={latest.coverImage} 
                             alt={latest.title}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 30vw"
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
                           />
                         )}
                       </div>
@@ -370,10 +376,12 @@ export default async function BlogPost({ params }) {
                 <Link key={related.id} href={`/blog/${related.slug}`} className="group block bg-white rounded-[20px] overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-charcoal-900/5">
                   <div className="relative h-[200px] w-full overflow-hidden bg-cream-200">
                     {related.coverImage && (
-                      <img 
+                      <Image 
                         src={related.coverImage} 
                         alt={related.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 30vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     )}
                     <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
