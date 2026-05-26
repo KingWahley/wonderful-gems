@@ -53,11 +53,28 @@ export default function LoginPage() {
       <div className="w-full max-w-[440px] z-10 space-y-8">
         {/* Brand Logo Header */}
         <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <img src="/images/logo.png" alt="The Long Way" className="h-16 w-auto object-contain" />
+          <div
+            className={`transition-all duration-300 overflow-hidden flex flex-col items-center ${isCollapsed ? "max-h-0 opacity-0 pointer-events-none hidden" : "max-h-24 opacity-100"}`}
+          >
+            <Link
+              href="/"
+              className="block hover:opacity-80 transition-opacity"
+            >
+              <img
+                src="/images/logo.png"
+                alt="The Long Way"
+                className="h-10 w-auto object-contain rounded-md"
+              />
+            </Link>
+            <span className="block text-[9px] text-brand-muted mt-3 uppercase tracking-[0.3em] font-semibold">
+              CMS Panel
+            </span>
           </div>
+          <h2 className="text-3xl md:text-[2.25rem] font-serif text-brand-ink font-bold leading-tight">
+            The Long Way
+          </h2>
           <p className="text-brand-muted text-xs uppercase tracking-[0.2em] font-semibold mt-2.5">
-            Login here to access the cms dashboard 
+            Login here to access the cms dashboard
           </p>
         </div>
 
@@ -76,11 +93,14 @@ export default function LoginPage() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" size={16} />
+                <Mail
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted"
+                  size={16}
+                />
                 <input
                   type="email"
                   required
-                  placeholder="admin@travelwithtejiri.com"
+                  placeholder="admin@thelongway.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -97,7 +117,10 @@ export default function LoginPage() {
                 </label>
               </div>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted" size={16} />
+                <Lock
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-muted"
+                  size={16}
+                />
                 <input
                   type="password"
                   required

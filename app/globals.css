@@ -153,7 +153,7 @@ tr.animate-row-flash td {
   content: "";
   width: var(--s);
   height: 100%; /* Explicitly set height for rendering resilience */
-  --_g: no-repeat radial-gradient(farthest-side, #c7962d 94%, transparent); /* Used transparent for universal compatibility */
+  --_g: no-repeat radial-gradient(farthest-side, var(--color-brand-mustard) 94%, transparent); /* Dynamic theme variable */
   background:
     var(--_g) top,
     var(--_g) bottom;
@@ -170,5 +170,51 @@ tr.animate-row-flash td {
 }
 @keyframes brand-l1 {
   100% { transform: rotate(calc(var(--_s, 1) * -180deg)); }
+}
+
+/* Color Themes Override System */
+.theme-default {
+  --color-brand-mustard: #c7962d !important;
+  --color-brand-mustard-soft: #f6ead0 !important;
+  --color-brand-bg: #faf7f1 !important;
+  --color-brand-sidebar: #111312 !important;
+  --color-brand-border: #e7dfd2 !important;
+  --color-brand-coral: #d95f43 !important;
+}
+
+.theme-rose {
+  --color-brand-mustard: #c05a46 !important;
+  --color-brand-mustard-soft: #fbf0ee !important;
+  --color-brand-bg: #fdfaf9 !important;
+  --color-brand-sidebar: #22120e !important;
+  --color-brand-border: #f0e2df !important;
+  --color-brand-coral: #d46f5b !important;
+}
+
+.theme-emerald {
+  --color-brand-mustard: #2e6f40 !important;
+  --color-brand-mustard-soft: #edf5ee !important;
+  --color-brand-bg: #fafcfb !important;
+  --color-brand-sidebar: #0e1511 !important;
+  --color-brand-border: #dee8df !important;
+  --color-brand-coral: #ea5849 !important;
+}
+
+.theme-cobalt {
+  --color-brand-mustard: #2f5c9e !important;
+  --color-brand-mustard-soft: #edf3fa !important;
+  --color-brand-bg: #f9fbfd !important;
+  --color-brand-sidebar: #0b111a !important;
+  --color-brand-border: #dee5f0 !important;
+  --color-brand-coral: #da6b55 !important;
+}
+
+.theme-charcoal {
+  --color-brand-mustard: #444444 !important;
+  --color-brand-mustard-soft: #f2f2f2 !important;
+  --color-brand-bg: #fafafa !important;
+  --color-brand-sidebar: #181818 !important;
+  --color-brand-border: #e8e8e8 !important;
+  --color-brand-coral: #555555 !important;
 }
 

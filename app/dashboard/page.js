@@ -32,6 +32,19 @@ export default function DashboardOverview() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [routingLoading, setRoutingLoading] = useState(false);
   const searchContainerRef = useRef(null);
+  
+  // Profile settings state
+  const [profile, setProfile] = useState({ name: "Ava Wright", role: "Administrator" });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedName = localStorage.getItem("dashboard-profile-name");
+      const savedRole = localStorage.getItem("dashboard-profile-role");
+      setProfile({
+        name: savedName || "Ava Wright",
+        role: savedRole || "Administrator"
+      });
+    }
+  }, []);
 
   // Reset routing loader on mount/focus (handles browser back actions gracefully)
   useEffect(() => {
@@ -307,12 +320,12 @@ export default function DashboardOverview() {
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-brand-mustard rounded-full"></span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#f6ead0] text-[#c7962d] flex items-center justify-center font-bold text-sm shrink-0">
-              AW
+            <div className="w-10 h-10 rounded-full bg-brand-mustard-soft text-brand-mustard flex items-center justify-center font-bold text-sm shrink-0">
+              {profile.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2) || "AW"}
             </div>
             <div className="hidden md:block text-sm">
-              <div className="font-bold text-brand-ink leading-tight">Ava Wright</div>
-              <div className="text-brand-muted text-xs">Administrator</div>
+              <div className="font-bold text-brand-ink leading-tight">{profile.name}</div>
+              <div className="text-brand-muted text-xs">{profile.role}</div>
             </div>
           </div>
         </div>
@@ -330,7 +343,7 @@ export default function DashboardOverview() {
           <Link href="/" target="_blank" className="w-full md:w-auto px-6 py-2.5 bg-white border border-brand-border rounded-lg text-sm font-bold text-brand-ink hover:bg-gray-50 transition-colors shadow-sm text-center">
             View Website
           </Link>
-          <Link href="/dashboard/destinations" className="w-full md:w-auto px-6 py-2.5 bg-[#c7962d] text-white rounded-lg text-sm font-bold hover:bg-[#b58522] transition-colors shadow-sm text-center">
+          <Link href="/dashboard/destinations" className="w-full md:w-auto px-6 py-2.5 bg-brand-mustard text-white rounded-lg text-sm font-bold hover:bg-brand-mustard/90 transition-colors shadow-sm text-center">
             + Create Content
           </Link>
         </div>

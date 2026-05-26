@@ -28,6 +28,7 @@ export default function DashboardLayout({ children }) {
   const router = useRouter();
   const supabase = createClient();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [theme, setTheme] = useState("default");
 
   // Load from localStorage on mount to prevent layout shifts/reset on refresh
   useEffect(() => {
@@ -35,6 +36,22 @@ export default function DashboardLayout({ children }) {
     if (saved !== null) {
       setIsCollapsed(saved === "true");
     }
+
+    const savedTheme = localStorage.getItem("dashboard-theme") || "default";
+    setTheme(savedTheme);
+
+    // Listen for storage events to update the layout theme in real time
+    const handleStorageChange = () => {
+      const currentTheme = localStorage.getItem("dashboard-theme") || "default";
+      setTheme(currentTheme);
+    };
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("theme-changed", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("theme-changed", handleStorageChange);
+    };
   }, []);
 
   const toggleSidebar = () => {
@@ -55,10 +72,11 @@ export default function DashboardLayout({ children }) {
     { name: "Inquiries", path: "/dashboard/inquiries", icon: <MessageSquare size={18} /> },
     { name: "Bookings", path: "/dashboard/bookings", icon: <CalendarCheck size={18} /> },
     { name: "Media Library", path: "/dashboard/media-library", icon: <ImageIcon size={18} /> },
+    { name: "Settings", path: "/dashboard/settings", icon: <Settings size={18} /> },
   ];
 
   return (
-    <div className="flex h-screen bg-brand-bg overflow-hidden font-sans text-brand-ink">
+    <div className={`flex h-screen bg-brand-bg overflow-hidden font-sans text-brand-ink theme-${theme}`}>
       {/* Sidebar */}
       <aside 
         className={`bg-brand-sidebar text-white flex flex-col h-full hidden md:flex border-r border-white/5 transition-all duration-300 ease-in-out relative ${
@@ -79,8 +97,7 @@ export default function DashboardLayout({ children }) {
         </button>
 
         {/* Brand Header */}
-        <div className={`text-center border-b border-white/5 relative transition-all duration-300 flex flex-col items-center justify-center ${isCollapsed ? "p-4 py-6" : "p-6"}`}>
-          <div className={`text-brand-mustard font-serif text-3xl font-extrabold mb-1 tracking-wider ${isCollapsed ? "" : "hidden"}`}>T</div>
+        <div className={`text-center border-b border-white/5 relative transition-all duration-300 flex flex-col items-center justify-center ${isCollapsed ? "p-0 h-0 overflow-hidden border-b-0" : "p-6"}`}>
           <div className={`transition-all duration-300 overflow-hidden flex flex-col items-center ${isCollapsed ? "max-h-0 opacity-0 pointer-events-none hidden" : "max-h-24 opacity-100"}`}>
             <Link href="/" className="block hover:opacity-80 transition-opacity">
               <img src="/images/logo.png" alt="The Long Way" className="h-10 w-auto object-contain rounded-md" />

@@ -80,7 +80,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder="admin@travelwithtejiri.com"
+                  placeholder="admin@travel.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}

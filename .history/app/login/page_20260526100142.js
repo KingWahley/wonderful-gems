@@ -54,7 +54,7 @@ export default function LoginPage() {
         {/* Brand Logo Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <img src="/images/logo.png" alt="The Long Way" className="h-16 w-auto object-contain" />
+            <img src="/images/logo.png" alt="The Long Way" className="h-16 w-auto object-contain rounded-xl " />
           </div>
           <p className="text-brand-muted text-xs uppercase tracking-[0.2em] font-semibold mt-2.5">
             Login here to access the cms dashboard 
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
-                  placeholder="admin@travelwithtejiri.com"
+                  placeholder="admin@thelongway.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
