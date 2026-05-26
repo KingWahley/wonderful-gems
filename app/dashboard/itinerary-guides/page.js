@@ -762,7 +762,28 @@ export default function ItineraryGuidesCMS() {
           setIsFormOpen(false);
           setConfirmConfig(prev => ({ ...prev, isOpen: false }));
         } catch (err) {
-          alert("Failed to save itinerary guide: " + err.message);
+          let errorTitle = "Save Failed 🚨";
+          let errorMessage = err.message;
+          let errorEmoji = "🚨";
+
+          if (err.message.includes("mini_guides_slug_key") || err.message.toLowerCase().includes("unique constraint") || err.message.toLowerCase().includes("duplicate key")) {
+            errorTitle = "Duplicate Address / Title!";
+            errorMessage = "Oh no! An itinerary guide with this same title or slug already exists for this destination. Please try giving it a slightly different name to make it unique! 🗺️";
+            errorEmoji = "👯";
+          }
+
+          setConfirmConfig({
+            isOpen: true,
+            title: errorTitle,
+            message: errorMessage,
+            confirmLabel: "Got it",
+            cancelLabel: null,
+            onConfirm: () => setConfirmConfig(prev => ({ ...prev, isOpen: false })),
+            onCancel: null,
+            emoji: errorEmoji,
+            variant: "danger",
+            loading: false
+          });
         } finally {
           setSaving(false);
           setConfirmConfig(prev => ({ ...prev, loading: false }));

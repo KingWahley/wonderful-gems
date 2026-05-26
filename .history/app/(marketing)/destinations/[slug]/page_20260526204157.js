@@ -23,7 +23,7 @@ export default async function DestinationDetails({ params }) {
   let destination = null;
   let relatedBlogs = [];
   let otherCountries = [];
-  let companionGuides = [];
+  let companionGuide = null;
 
   try {
     const [destData, blogData, guidesData] = await Promise.all([
@@ -38,7 +38,7 @@ export default async function DestinationDetails({ params }) {
       relatedBlogs = blogData.filter(
         b => b.destination.toLowerCase() === destination.country.toLowerCase() && (b.status || "Draft").toLowerCase() === "published"
       );
-      companionGuides = guidesData.filter(
+      companionGuide = guidesData.find(
         g => g.destination.toLowerCase() === destination.country.toLowerCase() && (g.status || "published").toLowerCase() === "published"
       );
     }
@@ -164,7 +164,7 @@ export default async function DestinationDetails({ params }) {
           <a href="#blog-posts" className="px-4 py-1.5 border border-charcoal-900/10 bg-[#EFEBE4] text-[9px] font-bold tracking-widest uppercase rounded-full hover:bg-charcoal-900 hover:text-white hover:border-charcoal-900 transition-all shadow-sm">
             BLOG POSTS
           </a>
-          {companionGuides && companionGuides.length > 0 && (
+          {companionGuide && (
             <a href="#mini-guides" className="px-4 py-1.5 border border-charcoal-900/10 bg-[#EFEBE4] text-[9px] font-bold tracking-widest uppercase rounded-full hover:bg-charcoal-900 hover:text-white hover:border-charcoal-900 transition-all shadow-sm">
               MINI GUIDES
             </a>
@@ -220,133 +220,64 @@ export default async function DestinationDetails({ params }) {
         </div>
 
         {/* Mini Guides Section */}
-        {companionGuides && companionGuides.length > 0 && (
+        {companionGuide && (
           <div id="mini-guides" className="mb-24 scroll-mt-24">
             <span className="text-[10px] font-bold tracking-widest text-[#DCAE1D] uppercase block mb-3">
-              ⚡ COMPANION GUIDES
+              ⚡ COMPANION GUIDE
             </span>
             <h2 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 mb-8 tracking-tight">
               Mini guides for {destination.country}
             </h2>
 
-            {companionGuides.length === 1 ? (
-              // Original beautiful single guide layout
-              (() => {
-                const singleGuide = companionGuides[0];
-                return (
-                  <div className="bg-white rounded-[24px] border border-charcoal-900/10 overflow-hidden shadow-sm flex flex-col md:flex-row">
-                    
-                    {/* Left Block */}
-                    <div className="bg-[#E9C46A] p-8 md:p-12 md:w-[60%] flex flex-col justify-between min-h-[320px]">
-                      <div>
-                        <span className="text-[9px] font-bold tracking-widest text-charcoal-800/60 uppercase block mb-4">
-                          ⚡ COMPANION GUIDE
-                        </span>
-                        <h3 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 leading-tight mb-4 tracking-tight">
-                          {singleGuide.title}
-                        </h3>
-                        <p className="text-charcoal-800 text-sm md:text-[15px] leading-relaxed mb-8 max-w-lg font-medium">
-                          {singleGuide.excerpt || `${destination.country} rewards a slower pace. This companion guide pulls together where to stay, what to eat, and core active activities.`}
-                        </p>
-                      </div>
-                      <Link 
-                        href={`/mini-guides/${singleGuide.slug}`} 
-                        className="inline-flex items-center gap-1.5 text-charcoal-900 font-bold text-sm uppercase tracking-widest hover:text-black transition-colors"
-                      >
-                        Open the guide <span className="text-coral-500 text-lg">→</span>
-                      </Link>
-                    </div>
-
-                    {/* Right Block */}
-                    <div className="bg-[#F6E3B3] p-8 md:p-12 md:w-[40%] flex flex-col justify-center border-t md:border-t-0 md:border-l border-charcoal-900/5">
-                      <span className="font-serif italic text-coral-500 text-[26px] block mb-6 font-bold">inside →</span>
-                      <ul className="space-y-3.5 text-charcoal-900 font-bold text-[11px] tracking-widest uppercase">
-                        <li className="flex items-center gap-2">
-                          <span className="text-[#DCAE1D] text-xs">◆</span> TOP SIGHTS
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <span className="text-[#DCAE1D] text-xs">◆</span> WHERE TO STAY
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <span className="text-[#DCAE1D] text-xs">◆</span> WHAT TO EAT & DRINK
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <span className="text-[#DCAE1D] text-xs">◆</span> BEST RESTAURANTS
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <span className="text-[#DCAE1D] text-xs">◆</span> TOURS & ACTIVITIES
-                        </li>
-                        <li className="flex items-center gap-2">
-                          <span className="text-[#DCAE1D] text-xs">◆</span> BEST DAY TRIPS
-                        </li>
-                      </ul>
-                    </div>
-
-                  </div>
-                );
-              })()
-            ) : (
-              // Multi guide layout
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {companionGuides.map((guide) => {
-                  const isPocket = guide.type === "pocket";
-                  const badgeColor = isPocket ? "bg-[#E9C46A]" : "bg-[#F4A261]";
-                  const badgeText = isPocket ? "⚡ COMPANION GUIDE" : "🗓️ ITINERARY GUIDE";
-                  const insideList = isPocket ? [
-                    "TOP SIGHTS",
-                    "WHERE TO STAY",
-                    "WHAT TO EAT & DRINK",
-                    "BEST RESTAURANTS",
-                    "TOURS & ACTIVITIES",
-                    "BEST DAY TRIPS"
-                  ] : [
-                    "DAY-BY-DAY ROUTE",
-                    "HOTELS & STAY BASES",
-                    "LOCAL RESTAURANTS",
-                    "SIGHTS & INTERESTS",
-                    "ROUTE TRAVEL FLOW",
-                    "PRACTICAL TRIPS"
-                  ];
-
-                  return (
-                    <div key={guide.id} className="bg-white rounded-[24px] border border-charcoal-900/10 overflow-hidden shadow-sm flex flex-col group h-full">
-                      {/* Upper Block */}
-                      <div className={`${badgeColor} p-8 flex flex-col justify-between flex-grow min-h-[220px]`}>
-                        <div>
-                          <span className="text-[9px] font-bold tracking-widest text-charcoal-800/60 uppercase block mb-3">
-                            {badgeText}
-                          </span>
-                          <h3 className="font-serif text-[24px] md:text-[28px] font-bold text-charcoal-900 leading-tight mb-3 tracking-tight">
-                            {guide.title}
-                          </h3>
-                          <p className="text-charcoal-800 text-xs md:text-sm leading-relaxed mb-6 font-medium line-clamp-3">
-                            {guide.excerpt || `${destination.country} rewards a slower pace. This guide pulls together key accommodations, dining, and core activities.`}
-                          </p>
-                        </div>
-                        <Link 
-                          href={`/mini-guides/${guide.slug}`} 
-                          className="inline-flex items-center gap-1.5 text-charcoal-900 font-bold text-xs uppercase tracking-widest hover:text-black transition-colors"
-                        >
-                          Open the guide <span className="text-coral-500 text-sm">→</span>
-                        </Link>
-                      </div>
-
-                      {/* Lower Features Block */}
-                      <div className="bg-[#FAF6EC] p-6 border-t border-charcoal-900/5">
-                        <span className="font-serif italic text-coral-500 text-sm block mb-3 font-bold">inside →</span>
-                        <ul className="grid grid-cols-2 gap-2 text-charcoal-900 font-bold text-[9px] tracking-widest uppercase">
-                          {insideList.map((item, idx) => (
-                            <li key={idx} className="flex items-center gap-1.5 line-clamp-1">
-                              <span className="text-[#DCAE1D] text-xs">◆</span> {item}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="bg-white rounded-[24px] border border-charcoal-900/10 overflow-hidden shadow-sm flex flex-col md:flex-row">
+              
+              {/* Left Block */}
+              <div className="bg-[#E9C46A] p-8 md:p-12 md:w-[60%] flex flex-col justify-between min-h-[320px]">
+                <div>
+                  <span className="text-[9px] font-bold tracking-widest text-charcoal-800/60 uppercase block mb-4">
+                    ⚡ COMPANION GUIDE
+                  </span>
+                  <h3 className="font-serif text-[32px] md:text-[38px] font-bold text-charcoal-900 leading-tight mb-4 tracking-tight">
+                    {companionGuide.title}
+                  </h3>
+                  <p className="text-charcoal-800 text-sm md:text-[15px] leading-relaxed mb-8 max-w-lg font-medium">
+                    {companionGuide.excerpt || `${destination.country} rewards a slower pace. This companion guide pulls together where to stay, what to eat, and core active activities.`}
+                  </p>
+                </div>
+                <Link 
+                  href={`/mini-guides/${companionGuide.slug}`} 
+                  className="inline-flex items-center gap-1.5 text-charcoal-900 font-bold text-sm uppercase tracking-widest hover:text-black transition-colors"
+                >
+                  Open the guide <span className="text-coral-500 text-lg">→</span>
+                </Link>
               </div>
-            )}
+
+              {/* Right Block */}
+              <div className="bg-[#F6E3B3] p-8 md:p-12 md:w-[40%] flex flex-col justify-center border-t md:border-t-0 md:border-l border-charcoal-900/5">
+                <span className="font-serif italic text-coral-500 text-[26px] block mb-6 font-bold">inside →</span>
+                <ul className="space-y-3.5 text-charcoal-900 font-bold text-[11px] tracking-widest uppercase">
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> TOP SIGHTS
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> WHERE TO STA
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> WHAT TO EAT & DRINK
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> BEST RESTAURANTS
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> TOURS & ACTIVITIES
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-[#DCAE1D] text-xs">◆</span> BEST DAY TRIPS
+                  </li>
+                </ul>
+              </div>
+
+            </div>
           </div>
         )}
 

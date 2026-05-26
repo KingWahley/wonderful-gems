@@ -42,19 +42,21 @@ export default function ConfirmModal({
 
         {/* Action Buttons */}
         <div className="flex gap-3 justify-center">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={onCancel}
-            className="flex-1 py-3 px-5 bg-white border border-charcoal-900/10 hover:bg-charcoal-900/5 text-charcoal-800 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
-          >
-            {cancelLabel}
-          </button>
+          {onCancel && cancelLabel !== null && (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={onCancel}
+              className="flex-1 py-3 px-5 bg-white border border-charcoal-900/10 hover:bg-charcoal-900/5 text-charcoal-800 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50"
+            >
+              {cancelLabel}
+            </button>
+          )}
           <button
             type="button"
             disabled={loading}
             onClick={onConfirm}
-            className={`flex-1 py-3 px-5 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 ${confirmBtnClass}`}
+            className={`${(onCancel && cancelLabel !== null) ? 'flex-1' : 'px-8 min-w-[140px]'} py-3 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all duration-200 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 ${confirmBtnClass}`}
           >
             {loading && <Loader2 className="animate-spin w-3 h-3" />}
             {confirmLabel}
