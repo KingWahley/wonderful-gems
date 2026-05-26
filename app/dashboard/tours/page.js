@@ -515,7 +515,7 @@ export default function ToursCMS() {
 
       await saveTour(payload);
       await loadData();
-      window.open(`/tours/${generatedSlug}`, '_blank');
+      window.open(formData.bookingLink || '/tours', '_blank');
     } catch (err) {
       alert("Failed to save and preview tour: " + err.message);
     } finally {
@@ -900,7 +900,7 @@ export default function ToursCMS() {
                                 <Edit size={14} />
                               </button>
                               <a 
-                                href={`/tours/${tour.slug || tour.id}`}
+                                href={tour.bookingLink || "/tours"}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="p-1.5 text-brand-muted hover:text-[#c7962d] hover:bg-[#FAF8F5] rounded-md transition-all duration-200 inline-flex items-center justify-center"

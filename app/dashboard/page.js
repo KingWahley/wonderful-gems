@@ -153,7 +153,6 @@ export default function DashboardOverview() {
           { name: "Tours CMS", category: "Navigation Link", url: "/dashboard/tours" },
           { name: "Packages CMS", category: "Navigation Link", url: "/dashboard/packages" },
           { name: "Inquiries CMS", category: "Navigation Link", url: "/dashboard/inquiries" },
-          { name: "Bookings CMS", category: "Navigation Link", url: "/dashboard/bookings" },
           { name: "Media Library CMS", category: "Navigation Link", url: "/dashboard/media-library" },
         ];
         
@@ -209,7 +208,6 @@ export default function DashboardOverview() {
     { title: "New Inquiries", value: stats.inquiries, subtext: stats.inquiries > 0 ? "Awaiting response" : "Up to date", icon: <Mail size={18} /> },
     { title: "Tours", value: stats.tours, subtext: "Active offerings", icon: <Map size={18} /> },
     { title: "Packages", value: stats.packages, subtext: "Active packages", icon: <Plus size={18} /> },
-    { title: "Bookings", value: "-", subtext: "Feature coming soon", icon: <Calendar size={18} /> },
     { title: "Published Pages", value: stats.destinations + stats.blogs + stats.guides + stats.tours, subtext: "Total across sections", icon: <Check size={18} /> }
   ];
 
@@ -225,8 +223,7 @@ export default function DashboardOverview() {
   const workflow = [
     { step: 1, title: "Create destination", desc: "Add country, destination description, why I love it and memorable moments." },
     { step: 2, title: "Attach content", desc: "Connect blog posts, pocket guides, itinerary guides and tours to the destination." },
-    { step: 3, title: "Publish and promote", desc: "Feature selected destinations, guides and tours on the homepage or related pages." },
-    { step: 4, title: "Convert inquiries", desc: "Move Plan with Me inquiries into bookings for consultations, itineraries or concierge planning." }
+    { step: 3, title: "Publish and promote", desc: "Feature selected destinations, guides and tours on the homepage or related pages." }
   ];
 
   return (
@@ -336,7 +333,7 @@ export default function DashboardOverview() {
         <div className="max-w-2xl">
           <h2 className="text-4xl md:text-[2.75rem] font-serif text-brand-ink mb-3 font-bold tracking-tight">Welcome back</h2>
           <p className="text-brand-muted text-sm leading-relaxed max-w-xl">
-            Manage The Long Way's editorial travel content, destination pages, mini guides, tours, packages, inquiries and bookings from one CMS dashboard.
+            Manage The Long Way's editorial travel content, destination pages, mini guides, tours, packages, and inquiries from one CMS dashboard.
           </p>
         </div>
         <div className="flex flex-col gap-3 shrink-0 w-full md:w-auto">

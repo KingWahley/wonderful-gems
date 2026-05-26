@@ -346,7 +346,6 @@ export default function PackagesCMS() {
   
   // Real data from database counts
   const packageInquiries = inquiries.length;
-  const convertedBookings = inquiries.filter(i => i.status === "converted" || i.status === "replied").length;
 
   return (
     <div className="pb-12 text-brand-ink">
@@ -417,7 +416,7 @@ export default function PackagesCMS() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
         <div className="bg-white rounded-2xl p-5 border border-cream-200 shadow-xs hover:shadow-sm transition-shadow">
           <p className="text-xs text-charcoal-500 font-semibold uppercase tracking-wider mb-2">Total Packages</p>
           <p className="font-serif text-4xl font-bold text-charcoal-900">{totalPackages}</p>
@@ -429,10 +428,6 @@ export default function PackagesCMS() {
         <div className="bg-white rounded-2xl p-5 border border-cream-200 shadow-xs hover:shadow-sm transition-shadow">
           <p className="text-xs text-charcoal-500 font-semibold uppercase tracking-wider mb-2">Package Inquiries</p>
           <p className="font-serif text-4xl font-bold text-charcoal-900">{packageInquiries}</p>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-cream-200 shadow-xs hover:shadow-sm transition-shadow">
-          <p className="text-xs text-charcoal-500 font-semibold uppercase tracking-wider mb-2">Converted Bookings</p>
-          <p className="font-serif text-4xl font-bold text-charcoal-900">{convertedBookings}</p>
         </div>
       </div>
 

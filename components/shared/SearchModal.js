@@ -141,7 +141,7 @@ export default function SearchModal({ isOpen, onClose }) {
         title: tour.title,
         subtitle: `Tour & Activity • ${tour.destination}`,
         description: tour.description || "",
-        url: `/tours/${tour.slug || tour.id}`,
+        url: `/tours#${tour.destination ? tour.destination.toLowerCase().replace(/\s+/g, '-') : ""}`,
         flag: "☀️",
         raw: `${tour.title} ${tour.destination} ${tour.description || ""} ${tour.category || ""}`.toLowerCase()
       });

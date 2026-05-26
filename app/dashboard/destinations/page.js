@@ -436,7 +436,20 @@ export default function DestinationsCMS() {
               <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
                 <thead>
                   <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-brand-bg/30">
-                    <th className="p-3 w-8"></th>
+                    <th className="p-3 w-8">
+                      <input 
+                        type="checkbox"
+                        checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                        onChange={() => {
+                          if (selectedIds.length === filtered.length) {
+                            setSelectedIds([]);
+                          } else {
+                            setSelectedIds(filtered.map(item => item.id));
+                          }
+                        }}
+                        className="rounded border-brand-border text-brand-mustard focus:ring-brand-mustard cursor-pointer bg-white"
+                      />
+                    </th>
                     <th className="p-3 pl-1 pb-3 text-[10px]">Country</th>
                     <th className="p-3 pb-3 text-[10px]">Description</th>
                     <th className="p-3 pb-3 text-[10px]">Why I Love It</th>

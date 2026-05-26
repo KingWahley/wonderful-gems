@@ -13,7 +13,6 @@ import {
   Map,
   Briefcase, 
   MessageSquare, 
-  CalendarCheck, 
   Settings, 
   LogOut,
   ChevronLeft,
@@ -70,7 +69,6 @@ export default function DashboardLayout({ children }) {
     { name: "Tours", path: "/dashboard/tours", icon: <Map size={18} /> },
     { name: "Packages", path: "/dashboard/packages", icon: <Briefcase size={18} /> },
     { name: "Inquiries", path: "/dashboard/inquiries", icon: <MessageSquare size={18} /> },
-    { name: "Bookings", path: "/dashboard/bookings", icon: <CalendarCheck size={18} /> },
     { name: "Media Library", path: "/dashboard/media-library", icon: <ImageIcon size={18} /> },
     { name: "Settings", path: "/dashboard/settings", icon: <Settings size={18} /> },
   ];

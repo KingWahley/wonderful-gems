@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchInquiries, updateInquiry, deleteInquiry, saveInquiry } from "@/lib/db";
 import { 
-  Search, Mail, Calendar, MessageSquare, Trash2, CheckCircle2, 
+  Search, Mail, Calendar, MessageSquare, Trash2, 
   Eye, RefreshCw, X, AlertCircle, Inbox, User, MapPin, DollarSign,
   Send, Loader2, Plus, Archive, ChevronDown, Check, UserCheck, 
   Download, FileText, Activity
@@ -258,7 +258,6 @@ export default function InquiriesDashboard() {
   const countNew = inquiries.filter(item => item.status === "new").length;
   const countNeedResponse = inquiries.filter(item => item.status === "new" || item.status === "follow-up").length;
   const countReplied = inquiries.filter(item => item.status === "replied").length;
-  const countConverted = inquiries.filter(item => item.status === "converted" || item.status === "archive").length;
 
   // Filter & Sort Logic
   const filteredInquiries = inquiries
@@ -354,12 +353,11 @@ export default function InquiriesDashboard() {
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         {[
           { label: "New Inquiries", value: countNew },
           { label: "Need Response", value: countNeedResponse },
-          { label: "Replied", value: countReplied },
-          { label: "Converted", value: countConverted }
+          { label: "Replied", value: countReplied }
         ].map((card, idx) => (
           <div key={idx} className="bg-white border border-brand-border/70 rounded-xl p-5 shadow-xs">
             <span className="text-[10px] uppercase font-bold text-brand-muted tracking-widest block mb-1">{card.label}</span>
@@ -457,7 +455,6 @@ export default function InquiriesDashboard() {
                   <option value="All statuses">All statuses</option>
                   <option value="New">New</option>
                   <option value="Replied">Replied</option>
-                  <option value="Converted">Converted</option>
                   <option value="Follow-up">Follow-up</option>
                 </select>
                 <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted pointer-events-none" />
@@ -496,7 +493,20 @@ export default function InquiriesDashboard() {
                   <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
                     <thead>
                       <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
-                        <th className="p-3 w-8"></th>
+                        <th className="p-3 w-8">
+                          <input 
+                            type="checkbox"
+                            checked={filteredInquiries.length > 0 && selectedIds.length === filteredInquiries.length}
+                            onChange={() => {
+                              if (selectedIds.length === filteredInquiries.length) {
+                                setSelectedIds([]);
+                              } else {
+                                setSelectedIds(filteredInquiries.map(item => item.id));
+                              }
+                            }}
+                            className="rounded border-brand-border text-brand-mustard focus:ring-[#c7962d] cursor-pointer bg-white"
+                          />
+                        </th>
                         <th className="p-3 pl-1 pb-3 text-[10px]">Contact</th>
                         <th className="p-3 pb-3 text-[10px]">Package Interest</th>
                         <th className="p-3 pb-3 text-[10px]">Destination</th>
@@ -574,18 +584,7 @@ export default function InquiriesDashboard() {
                                 <Mail size={15} />
                               </a>
 
-                              {/* Convert Booking CheckCircle */}
-                              <button 
-                                onClick={() => handleUpdateField(item.id, "status", "converted")}
-                                title={item.status === "converted" ? "Booking Confirmed" : "Convert to Booking"}
-                                className={`p-1.5 rounded-lg transition-colors ${
-                                  item.status === "converted"
-                                    ? "text-green-600 hover:bg-green-50"
-                                    : "hover:bg-[#FAF8F5] hover:text-[#c7962d]"
-                                }`}
-                              >
-                                <CheckCircle2 size={15} />
-                              </button>
+
 
                               {/* Delete/Archive Trash Icon */}
                               <button 
@@ -662,11 +661,10 @@ export default function InquiriesDashboard() {
           <div className="bg-white border border-brand-border/70 rounded-2xl shadow-xs p-6">
             <h2 className="font-serif font-bold text-lg text-brand-ink mb-5 pb-1">Inquiry Workflow</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 { step: "1. New", desc: "Inquiry submitted through the Plan With Me form and waiting for review." },
-                { step: "2. Replied / Follow-up", desc: "Admin has responded or needs to send another message." },
-                { step: "3. Converted", desc: "Inquiry becomes a confirmed booking attached to a package." }
+                { step: "2. Replied / Follow-up", desc: "Admin has responded or needs to send another message." }
               ].map((step, idx) => (
                 <div key={idx} className="bg-[#FAF8F5]/40 border border-brand-border/40 rounded-xl p-4.5">
                   <h3 className="font-serif font-bold text-xs text-brand-ink mb-1.5">{step.step}</h3>
@@ -810,21 +808,14 @@ export default function InquiriesDashboard() {
                 </div>
               </div>
 
-              {/* Mark Replied & Convert Booking actions */}
-              <div className="flex gap-3 pt-2">
+              {/* Mark Replied action */}
+              <div className="pt-2">
                 <button 
                   disabled={statusUpdating || selectedInquiry.status === "replied"}
                   onClick={() => handleUpdateStatus(selectedInquiry.id, "replied")}
-                  className="flex-1 bg-white border border-brand-border text-brand-ink hover:bg-brand-bg hover:border-brand-ink/35 font-bold py-3.5 rounded-lg text-xs transition-colors disabled:opacity-40 shadow-xs"
+                  className="w-full bg-white border border-brand-border text-brand-ink hover:bg-brand-bg hover:border-brand-ink/35 font-bold py-3.5 rounded-lg text-xs transition-colors disabled:opacity-40 shadow-xs"
                 >
                   Mark Replied
-                </button>
-                <button 
-                  disabled={statusUpdating || selectedInquiry.status === "converted"}
-                  onClick={() => handleUpdateStatus(selectedInquiry.id, "converted")}
-                  className="flex-1 bg-[#c7962d] hover:bg-[#b58522] text-white font-bold py-3.5 rounded-lg text-xs transition-colors disabled:opacity-40 shadow-xs"
-                >
-                  Convert to Booking
                 </button>
               </div>
 
@@ -858,11 +849,6 @@ export default function InquiriesDashboard() {
                         <>
                           <div className="font-bold text-green-700 flex items-center gap-0.5"><Check size={11} /> Replied</div>
                           <div className="text-brand-muted text-[10.5px]">Ava Wright responded to client.</div>
-                        </>
-                      ) : selectedInquiry.status === "converted" ? (
-                        <>
-                          <div className="font-bold text-green-700 flex items-center gap-0.5"><Check size={11} /> Converted!</div>
-                          <div className="text-brand-muted text-[10.5px]">Traveler successfully converted to active booking.</div>
                         </>
                       ) : (
                         <>

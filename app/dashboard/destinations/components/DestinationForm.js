@@ -72,83 +72,99 @@ export default function DestinationForm({ initialData }) {
       const publicUrl = await uploadImage(file);
       setFormData(prev => ({ ...prev, coverImage: publicUrl }));
     } catch (error) {
-      alert("Failed to upload image: " + error.message);
+      setConfirmConfig({
+        isOpen: true,
+        title: "Upload Failed ❌",
+        message: `Failed to upload image: ${error.message}`,
+        emoji: "❌",
+        variant: "danger",
+        confirmLabel: "Okay",
+        cancelLabel: null,
+        onConfirm: () => setConfirmConfig(prev => ({ ...prev, isOpen: false }))
+      });
     } finally {
       setUploadingImage(false);
     }
   };
 
-  const handleSave = async (isDraft) => {
-    if (!formData.country) {
-      alert("Country is required.");
-      return;
-    }
-
-    const actionText = isDraft ? "save this destination as a draft" : "publish this destination page";
-    const emojiIcon = isDraft ? "📝" : "🚀";
-
-    setConfirmConfig({
-      isOpen: true,
-      title: isDraft ? "Save Draft?" : "Publish Destination?",
-      message: `Are you sure you want to ${actionText}?`,
-      emoji: emojiIcon,
-      variant: "primary",
-      confirmLabel: isDraft ? "Save" : "Publish",
-      onConfirm: async () => {
-        try {
-          setConfirmConfig(prev => ({ ...prev, isOpen: false }));
-          setSaving(true);
-          
-          const generatedSlug = formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-');
-          const countryCode = formData.code || "XX"; // fallback
-
-          // Store extra visual fields into description_json if we want to retain them without breaking DB
-          const extras = {
-            flag: formData.flag,
-            whyILoveItTitle: formData.whyILoveItTitle,
-            featureOnHomepage: formData.featureOnHomepage,
-            sortOrder: formData.sortOrder,
-            seoTitle: formData.seoTitle,
-            metaDescription: formData.metaDescription || formData.excerpt || ""
-          };
-
-          const payload = {
-            country: formData.country,
-            code: countryCode.toUpperCase(),
-            slug: generatedSlug,
-            region: formData.region,
-            excerpt: formData.excerpt || formData.metaDescription || "",
-            description: formData.description,
-            description_json: JSON.stringify(extras),
-            whyILoveIt: formData.whyILoveIt,
-            moments: formData.moments.filter(m => m.trim().length > 0),
-            coverImage: formData.coverImage,
-            status: isDraft ? "draft" : "published"
-          };
-
-          if (formData.id) {
-            payload.id = formData.id;
-          }
-
-          await saveDestination(payload);
-          router.push("/dashboard/destinations");
-        } catch (e) {
-          alert("Failed to save: " + e.message);
-        } finally {
-          setSaving(false);
-        }
-      }
-    });
-  };
-
-  const handlePreview = async () => {
-    if (!formData.country) {
-      alert("Country is required to preview.");
-      return;
-    }
+  const executeSave = async (isDraft, customSlug = null) => {
     try {
       setSaving(true);
-      const generatedSlug = formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-');
+      
+      const generatedSlug = customSlug || formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-');
+      const countryCode = formData.code || "XX"; // fallback
+
+      // Store extra visual fields into description_json if we want to retain them without breaking DB
+      const extras = {
+        flag: formData.flag,
+        whyILoveItTitle: formData.whyILoveItTitle,
+        featureOnHomepage: formData.featureOnHomepage,
+        sortOrder: formData.sortOrder,
+        seoTitle: formData.seoTitle,
+        metaDescription: formData.metaDescription || formData.excerpt || ""
+      };
+
+      const payload = {
+        country: formData.country,
+        code: countryCode.toUpperCase(),
+        slug: generatedSlug,
+        region: formData.region,
+        excerpt: formData.excerpt || formData.metaDescription || "",
+        description: formData.description,
+        description_json: JSON.stringify(extras),
+        whyILoveIt: formData.whyILoveIt,
+        moments: formData.moments.filter(m => m.trim().length > 0),
+        coverImage: formData.coverImage,
+        status: isDraft ? "draft" : "published"
+      };
+
+      if (formData.id) {
+        payload.id = formData.id;
+      }
+
+      await saveDestination(payload);
+      router.push("/dashboard/destinations");
+    } catch (e) {
+      if (e.message.includes("destinations_slug_key") || e.message.includes("duplicate key")) {
+        // Show warning confirmation modal
+        setConfirmConfig({
+          isOpen: true,
+          title: "Location Already Exists ⚠️",
+          message: `The location "${formData.country}" already exists. Do you want to proceed creating the destination post with the same name?`,
+          emoji: "⚠️",
+          variant: "danger",
+          confirmLabel: "Yes, Proceed",
+          cancelLabel: "Cancel",
+          onConfirm: async () => {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            // Auto add suffix to string
+            const uniqueSuffix = "-" + Math.floor(100 + Math.random() * 900);
+            const newSlug = (customSlug || formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-')) + uniqueSuffix;
+            setFormData(prev => ({ ...prev, slug: newSlug }));
+            await executeSave(isDraft, newSlug);
+          }
+        });
+      } else {
+        setConfirmConfig({
+          isOpen: true,
+          title: "Error Saving ❌",
+          message: `Failed to save: ${e.message}`,
+          emoji: "❌",
+          variant: "danger",
+          confirmLabel: "Okay",
+          cancelLabel: null,
+          onConfirm: () => setConfirmConfig(prev => ({ ...prev, isOpen: false }))
+        });
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const executePreview = async (customSlug = null) => {
+    try {
+      setSaving(true);
+      const generatedSlug = customSlug || formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-');
       const countryCode = formData.code || "XX";
 
       const extras = {
@@ -181,10 +197,88 @@ export default function DestinationForm({ initialData }) {
       await saveDestination(payload);
       window.open(`/destinations/${generatedSlug}`, '_blank');
     } catch (e) {
-      alert("Failed to save and preview: " + e.message);
+      if (e.message.includes("destinations_slug_key") || e.message.includes("duplicate key")) {
+        // Show warning confirmation modal
+        setConfirmConfig({
+          isOpen: true,
+          title: "Location Already Exists ⚠️",
+          message: `The location "${formData.country}" already exists. Do you want to proceed creating the destination post with the same name?`,
+          emoji: "⚠️",
+          variant: "danger",
+          confirmLabel: "Yes, Proceed",
+          cancelLabel: "Cancel",
+          onConfirm: async () => {
+            setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+            const uniqueSuffix = "-" + Math.floor(100 + Math.random() * 900);
+            const newSlug = (customSlug || formData.slug || formData.country.toLowerCase().replace(/\s+/g, '-')) + uniqueSuffix;
+            setFormData(prev => ({ ...prev, slug: newSlug }));
+            await executePreview(newSlug);
+          }
+        });
+      } else {
+        setConfirmConfig({
+          isOpen: true,
+          title: "Error Saving ❌",
+          message: `Failed to save and preview: ${e.message}`,
+          emoji: "❌",
+          variant: "danger",
+          confirmLabel: "Okay",
+          cancelLabel: null,
+          onConfirm: () => setConfirmConfig(prev => ({ ...prev, isOpen: false }))
+        });
+      }
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSave = async (isDraft) => {
+    if (!formData.country) {
+      setConfirmConfig({
+        isOpen: true,
+        title: "Required Field Missing ⚠️",
+        message: "Country is required.",
+        emoji: "⚠️",
+        variant: "danger",
+        confirmLabel: "Okay",
+        cancelLabel: null,
+        onConfirm: () => setConfirmConfig(prev => ({ ...prev, isOpen: false }))
+      });
+      return;
+    }
+
+    const actionText = isDraft ? "save this destination as a draft" : "publish this destination page";
+    const emojiIcon = isDraft ? "📝" : "🚀";
+
+    setConfirmConfig({
+      isOpen: true,
+      title: isDraft ? "Save Draft?" : "Publish Destination?",
+      message: `Are you sure you want to ${actionText}?`,
+      emoji: emojiIcon,
+      variant: "primary",
+      confirmLabel: isDraft ? "Save" : "Publish",
+      onConfirm: async () => {
+        setConfirmConfig(prev => ({ ...prev, isOpen: false }));
+        await executeSave(isDraft);
+      }
+    });
+  };
+
+  const handlePreview = async () => {
+    if (!formData.country) {
+      setConfirmConfig({
+        isOpen: true,
+        title: "Required Field Missing ⚠️",
+        message: "Country is required to preview.",
+        emoji: "⚠️",
+        variant: "danger",
+        confirmLabel: "Okay",
+        cancelLabel: null,
+        onConfirm: () => setConfirmConfig(prev => ({ ...prev, isOpen: false }))
+      });
+      return;
+    }
+    await executePreview();
   };
 
   return (
