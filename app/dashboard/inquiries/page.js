@@ -38,8 +38,13 @@ export default function InquiriesDashboard() {
   });
   const [addingInquiry, setAddingInquiry] = useState(false);
 
-  // Bulk Actions Selection
   const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedPackage, selectedStatus]);
 
   async function loadInquiries() {
     setLoading(true);
@@ -182,22 +187,47 @@ export default function InquiriesDashboard() {
     document.body.removeChild(link);
   };
 
-  // Archive Selected Inquiries
-  const handleArchiveSelected = () => {
+  // Bulk Actions
+  const handleBulkAction = async (action) => {
     if (selectedIds.length === 0) {
-      alert("Please select one or more rows by checking the checkbox next to contact names.");
+      alert("Please select one or more inquiries first.");
       return;
     }
-    if (confirm(`Archive ${selectedIds.length} selected inquiries?`)) {
-      setInquiries(prev => prev.filter(item => {
-        if (selectedIds.includes(item.id)) {
-          handleUpdateField(item.id, "status", "converted");
-          return false;
+
+    if (action === "delete") {
+      if (confirm(`Are you sure you want to delete the ${selectedIds.length} selected inquiries?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(selectedIds.map(id => deleteInquiry(id)));
+          setSelectedIds([]);
+          await loadInquiries();
+          alert("Selected inquiries successfully deleted.");
+        } catch (e) {
+          alert("Failed to delete selected inquiries: " + e.message);
+        } finally {
+          setLoading(false);
         }
-        return true;
-      }));
-      setSelectedIds([]);
-      alert("Selected inquiries successfully archived and updated to Converted.");
+      }
+    } else if (action === "publish" || action === "draft") {
+      const nextStatus = action === "publish" ? "read" : "new";
+      const nextStatusLabel = action === "publish" ? "Read" : "Unread";
+      if (confirm(`Mark ${selectedIds.length} selected inquiries as ${nextStatusLabel}?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(
+            selectedIds.map(async (id) => {
+              await updateInquiry(id, { status: nextStatus });
+            })
+          );
+          setSelectedIds([]);
+          await loadInquiries();
+          alert(`Selected inquiries successfully marked as ${nextStatusLabel}.`);
+        } catch (e) {
+          alert("Failed to update selected inquiries: " + e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
     }
   };
 
@@ -259,8 +289,11 @@ export default function InquiriesDashboard() {
         const valB = parseInt((b.budget || "").replace(/[^0-9]/g, "")) || 0;
         return valB - valA;
       }
-      return 0;
     });
+
+  const itemsPerPage = 15;
+  const totalPages = Math.ceil(filteredInquiries.length / itemsPerPage);
+  const displayedInquiries = filteredInquiries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
@@ -268,6 +301,8 @@ export default function InquiriesDashboard() {
         return <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-brand-mustard/15 text-[#c7962d] tracking-wide">New</span>;
       case "replied":
         return <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-blue-100/70 text-blue-700 tracking-wide">Replied</span>;
+      case "read":
+        return <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-blue-100/70 text-blue-700 tracking-wide">Read</span>;
       case "converted":
         return <span className="px-2.5 py-1 text-[10px] font-bold rounded-full bg-green-100/70 text-green-700 tracking-wide">Converted</span>;
       case "follow-up":
@@ -309,13 +344,6 @@ export default function InquiriesDashboard() {
             Export CSV
           </button>
           <button 
-            onClick={handleArchiveSelected}
-            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4.5 py-2.5 bg-white border border-brand-border text-xs font-semibold text-brand-ink rounded-lg hover:bg-brand-bg transition-all shadow-xs"
-          >
-            <Archive size={13} />
-            Archive Selected
-          </button>
-          <button 
             onClick={() => setShowAddModal(true)}
             className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-5 py-2.5 bg-[#c7962d] hover:bg-[#b58522] text-white text-xs font-bold rounded-lg shadow-xs transition-colors"
           >
@@ -352,12 +380,41 @@ export default function InquiriesDashboard() {
             {/* Table Header Row */}
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-brand-border/40">
               <h2 className="font-serif font-bold text-lg text-brand-ink">Contact Form Entries</h2>
-              <button 
-                onClick={handleArchiveSelected}
-                className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-semibold text-brand-ink hover:bg-brand-bg shadow-xs transition-all"
-              >
-                Bulk Actions
-              </button>
+              
+              {/* Bulk Actions Button Dropdown */}
+              {selectedIds.length > 1 && (
+                <div className="relative animate-in fade-in duration-200">
+                  <button 
+                    onClick={() => setBulkDropdownOpen(!bulkDropdownOpen)}
+                    className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  >
+                    Bulk Actions <ChevronDown size={12} />
+                  </button>
+                  {bulkDropdownOpen && (
+                    <div className="absolute right-0 mt-1 w-40 bg-white border border-brand-border rounded-lg shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                      <button 
+                        onClick={() => { handleBulkAction("publish"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                      >
+                        Mark as Read
+                      </button>
+                      <button 
+                        onClick={() => { handleBulkAction("draft"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                      >
+                        Mark as Unread
+                      </button>
+                      <hr className="border-brand-border my-1" />
+                      <button 
+                        onClick={() => { handleBulkAction("delete"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                        Delete Selected
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Filter Bar */}
@@ -434,117 +491,158 @@ export default function InquiriesDashboard() {
                 <span className="text-brand-muted text-xs font-semibold">No entries match your filter.</span>
               </div>
             ) : (
-              <div className="overflow-x-auto scrollbar-luxury">
-                <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
-                  <thead>
-                    <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
-                      <th className="p-3 w-8"></th>
-                      <th className="p-3 pl-1 pb-3 text-[10px]">Contact</th>
-                      <th className="p-3 pb-3 text-[10px]">Package Interest</th>
-                      <th className="p-3 pb-3 text-[10px]">Destination</th>
-                      <th className="p-3 pb-3 text-[10px]">Travel Dates</th>
-                      <th className="p-3 pb-3 text-[10px]">Budget</th>
-                      <th className="p-3 pb-3 text-[10px]">Status</th>
-                      <th className="p-3 pb-3 text-[10px]">Received</th>
-                      <th className="p-3 pb-3 text-right text-[10px] pr-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-brand-border/30">
-                    {filteredInquiries.map((item) => (
-                      <tr 
-                        key={item.id}
-                        onClick={() => setSelectedInquiry(item)}
-                        className={`hover:bg-[#FAF8F5]/60 transition-colors cursor-pointer ${
-                          selectedInquiry?.id === item.id ? "bg-[#F5F0E6]/30 font-medium" : ""
-                        }`}
-                      >
-                        {/* Checkbox select */}
-                        <td className="p-3 pr-1" onClick={(e) => e.stopPropagation()}>
-                          <input 
-                            type="checkbox"
-                            checked={selectedIds.includes(item.id)}
-                            onChange={() => toggleSelectRow(item.id)}
-                            className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
-                          />
-                        </td>
-                        
-                        {/* Contact details */}
-                        <td className="p-3 pl-1 flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#F5F0E6] text-[#8C764D] border border-[#c7962d]/10 font-bold flex items-center justify-center shrink-0">
-                            {getAvatarInitials(item.name)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-brand-ink text-[13px]">{item.name}</div>
-                            <div className="text-brand-muted text-[10.5px] font-medium">{item.email}</div>
-                          </div>
-                        </td>
-
-                        <td className="p-3 text-brand-ink">{item.package || "Custom Plan"}</td>
-                        <td className="p-3 text-brand-ink font-semibold">{item.destinations || "—"}</td>
-                        <td className="p-3 text-brand-ink">{item.dates || "—"}</td>
-                        <td className="p-3 text-brand-ink font-semibold">{item.budget || "—"}</td>
-                        <td className="p-3">{getStatusBadge(item.status)}</td>
-                        
-                        <td className="p-3 text-brand-muted text-[11px]">
-                          {getRelativeDateString(item.created_at)}
-                        </td>
-
-                        {/* Uniform Lucide Actions Bar */}
-                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1 text-brand-muted">
-                            
-                            {/* Open Eye Icon */}
-                            <button 
-                              onClick={() => setSelectedInquiry(item)}
-                              title="Open message details"
-                              className={`p-1.5 rounded-lg transition-colors ${
-                                selectedInquiry?.id === item.id 
-                                  ? "bg-[#F5F0E6] text-[#8C764D]" 
-                                  : "hover:bg-[#FAF8F5] hover:text-[#c7962d]"
-                              }`}
-                            >
-                              <Eye size={15} />
-                            </button>
-                            
-                            {/* Send Email Icon */}
-                            <a 
-                              href={`mailto:${item.email}?subject=Re: Your travel inquiry to ${item.destinations || "Wanderlust"}&body=Hi ${item.name},%0D%0A%0D%0AThanks so much for reaching out!`}
-                              onClick={() => handleUpdateField(item.id, "status", "replied")}
-                              title="Reply via Email"
-                              className="p-1.5 rounded-lg hover:bg-[#FAF8F5] hover:text-[#c7962d] transition-colors"
-                            >
-                              <Mail size={15} />
-                            </a>
-
-                            {/* Convert Booking CheckCircle */}
-                            <button 
-                              onClick={() => handleUpdateField(item.id, "status", "converted")}
-                              title={item.status === "converted" ? "Booking Confirmed" : "Convert to Booking"}
-                              className={`p-1.5 rounded-lg transition-colors ${
-                                item.status === "converted"
-                                  ? "text-green-600 hover:bg-green-50"
-                                  : "hover:bg-[#FAF8F5] hover:text-[#c7962d]"
-                              }`}
-                            >
-                              <CheckCircle2 size={15} />
-                            </button>
-
-                            {/* Delete/Archive Trash Icon */}
-                            <button 
-                              onClick={() => handleDelete(item.id)}
-                              title="Delete traveler inquiry"
-                              className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-
-                          </div>
-                        </td>
+              <>
+                <div className="overflow-x-auto scrollbar-luxury">
+                  <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
+                    <thead>
+                      <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
+                        <th className="p-3 w-8"></th>
+                        <th className="p-3 pl-1 pb-3 text-[10px]">Contact</th>
+                        <th className="p-3 pb-3 text-[10px]">Package Interest</th>
+                        <th className="p-3 pb-3 text-[10px]">Destination</th>
+                        <th className="p-3 pb-3 text-[10px]">Travel Dates</th>
+                        <th className="p-3 pb-3 text-[10px]">Budget</th>
+                        <th className="p-3 pb-3 text-[10px]">Status</th>
+                        <th className="p-3 pb-3 text-[10px]">Received</th>
+                        <th className="p-3 pb-3 text-right text-[10px] pr-2">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-brand-border/30">
+                      {displayedInquiries.map((item) => (
+                        <tr 
+                          key={item.id}
+                          onClick={() => setSelectedInquiry(item)}
+                          className={`hover:bg-[#FAF8F5]/60 transition-colors cursor-pointer ${
+                            selectedInquiry?.id === item.id ? "bg-[#F5F0E6]/30 font-medium" : ""
+                          }`}
+                        >
+                          {/* Checkbox select */}
+                          <td className="p-3 pr-1" onClick={(e) => e.stopPropagation()}>
+                            <input 
+                              type="checkbox"
+                              checked={selectedIds.includes(item.id)}
+                              onChange={() => toggleSelectRow(item.id)}
+                              className="rounded border-brand-border text-[#c7962d] focus:ring-[#c7962d] cursor-pointer"
+                            />
+                          </td>
+                          
+                          {/* Contact details */}
+                          <td className="p-3 pl-1 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-[#F5F0E6] text-[#8C764D] border border-[#c7962d]/10 font-bold flex items-center justify-center shrink-0">
+                              {getAvatarInitials(item.name)}
+                            </div>
+                            <div>
+                              <div className="font-bold text-brand-ink text-[13px]">{item.name}</div>
+                              <div className="text-brand-muted text-[10.5px] font-medium">{item.email}</div>
+                            </div>
+                          </td>
+
+                          <td className="p-3 text-brand-ink">{item.package || "Custom Plan"}</td>
+                          <td className="p-3 text-brand-ink font-semibold">{item.destinations || "—"}</td>
+                          <td className="p-3 text-brand-ink">{item.dates || "—"}</td>
+                          <td className="p-3 text-brand-ink font-semibold">{item.budget || "—"}</td>
+                          <td className="p-3">{getStatusBadge(item.status)}</td>
+                          
+                          <td className="p-3 text-brand-muted text-[11px]">
+                            {getRelativeDateString(item.created_at)}
+                          </td>
+
+                          {/* Uniform Lucide Actions Bar */}
+                          <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1 text-brand-muted">
+                              
+                              {/* Open Eye Icon */}
+                              <button 
+                                onClick={() => setSelectedInquiry(item)}
+                                title="Open message details"
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  selectedInquiry?.id === item.id 
+                                    ? "bg-[#F5F0E6] text-[#8C764D]" 
+                                    : "hover:bg-[#FAF8F5] hover:text-[#c7962d]"
+                                }`}
+                              >
+                                <Eye size={15} />
+                              </button>
+                              
+                              {/* Send Email Icon */}
+                              <a 
+                                href={`mailto:${item.email}?subject=Re: Your travel inquiry to ${item.destinations || "Wanderlust"}&body=Hi ${item.name},%0D%0A%0D%0AThanks so much for reaching out!`}
+                                onClick={() => handleUpdateField(item.id, "status", "replied")}
+                                title="Reply via Email"
+                                className="p-1.5 rounded-lg hover:bg-[#FAF8F5] hover:text-[#c7962d] transition-colors"
+                              >
+                                <Mail size={15} />
+                              </a>
+
+                              {/* Convert Booking CheckCircle */}
+                              <button 
+                                onClick={() => handleUpdateField(item.id, "status", "converted")}
+                                title={item.status === "converted" ? "Booking Confirmed" : "Convert to Booking"}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  item.status === "converted"
+                                    ? "text-green-600 hover:bg-green-50"
+                                    : "hover:bg-[#FAF8F5] hover:text-[#c7962d]"
+                                }`}
+                              >
+                                <CheckCircle2 size={15} />
+                              </button>
+
+                              {/* Delete/Archive Trash Icon */}
+                              <button 
+                                onClick={() => handleDelete(item.id)}
+                                title="Delete traveler inquiry"
+                                className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between border-t border-brand-border/40 pt-4 mt-4 font-sans text-xs">
+                  <div className="text-brand-muted font-medium">
+                    Showing {filteredInquiries.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to{" "}
+                    {Math.min(filteredInquiries.length, currentPage * itemsPerPage)} of {filteredInquiries.length} entries
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                      >
+                        Previous
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                            currentPage === page
+                              ? "bg-brand-ink text-white border-brand-ink"
+                              : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
 
           </div>

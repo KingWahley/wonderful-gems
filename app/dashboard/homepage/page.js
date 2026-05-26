@@ -468,7 +468,17 @@ export default function HomepageManager() {
                       <div className="text-sm text-gray-400 text-center py-4">No stories selected.</div>
                     )}
                   </div>
-                  <div className="flex gap-2">
+
+                  {formData.home_latest_posts.items.length > 3 && (
+                    <div className="mb-4 flex items-start gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium font-sans animate-in fade-in duration-200">
+                      <AlertCircle size={15} className="mt-0.5 text-amber-600 shrink-0" />
+                      <div>
+                        <span className="font-bold">Recommended Display Exceeded:</span> You have selected {formData.home_latest_posts.items.length} stories (Recommended: 3). You can add as many as you like, but displaying too many may affect homepage layout and performance.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 font-sans">
                     <select value={selectedBlog} onChange={e => setSelectedBlog(e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#c7962d]">
                       <option value="">Select a blog post...</option>
                       {dbBlogs.filter(b => !formData.home_latest_posts.items.includes(b.id)).map(b => (
@@ -519,7 +529,17 @@ export default function HomepageManager() {
                       );
                     })}
                   </div>
-                  <div className="flex gap-2">
+
+                  {formData.home_destinations.items.length > 5 && (
+                    <div className="mb-4 flex items-start gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium font-sans animate-in fade-in duration-200">
+                      <AlertCircle size={15} className="mt-0.5 text-amber-600 shrink-0" />
+                      <div>
+                        <span className="font-bold">Recommended Display Exceeded:</span> You have selected {formData.home_destinations.items.length} destinations (Recommended: 5). You can add as many as you like, but displaying too many may affect homepage layout and performance.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 font-sans">
                     <select value={selectedDest} onChange={e => setSelectedDest(e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#c7962d]">
                       <option value="">Select destination...</option>
                       {dbDestinations.filter(d => !formData.home_destinations.items.includes(d.id)).map(d => (
@@ -570,7 +590,17 @@ export default function HomepageManager() {
                       );
                     })}
                   </div>
-                  <div className="flex gap-2">
+
+                  {formData.home_mini_guides.items.length > 5 && (
+                    <div className="mb-4 flex items-start gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium font-sans animate-in fade-in duration-200">
+                      <AlertCircle size={15} className="mt-0.5 text-amber-600 shrink-0" />
+                      <div>
+                        <span className="font-bold">Recommended Display Exceeded:</span> You have selected {formData.home_mini_guides.items.length} guides (Recommended: 5). You can add as many as you like, but displaying too many may affect homepage layout and performance.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 font-sans">
                     <select value={selectedGuide} onChange={e => setSelectedGuide(e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#c7962d]">
                       <option value="">Select guide...</option>
                       {dbGuides.filter(g => !formData.home_mini_guides.items.includes(g.id) && g.type === "itinerary").map(g => (
@@ -621,7 +651,17 @@ export default function HomepageManager() {
                       );
                     })}
                   </div>
-                  <div className="flex gap-2">
+
+                  {formData.home_pocket_guides.items.length > 3 && (
+                    <div className="mb-4 flex items-start gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium font-sans animate-in fade-in duration-200">
+                      <AlertCircle size={15} className="mt-0.5 text-amber-600 shrink-0" />
+                      <div>
+                        <span className="font-bold">Recommended Display Exceeded:</span> You have selected {formData.home_pocket_guides.items.length} pocket guides (Recommended: 3). You can add as many as you like, but displaying too many may affect homepage layout and performance.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 font-sans">
                     <select value={selectedGuide} onChange={e => setSelectedGuide(e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#c7962d]">
                       <option value="">Select pocket guide...</option>
                       {dbGuides.filter(g => !formData.home_pocket_guides.items.includes(g.id) && g.type === "pocket").map(g => (
@@ -735,7 +775,17 @@ export default function HomepageManager() {
                       );
                     })}
                   </div>
-                  <div className="flex gap-2">
+
+                  {formData.home_tours.items.length > 3 && (
+                    <div className="mb-4 flex items-start gap-2.5 p-3 rounded-lg bg-amber-50 border border-amber-100 text-amber-800 text-xs font-medium font-sans animate-in fade-in duration-200">
+                      <AlertCircle size={15} className="mt-0.5 text-amber-600 shrink-0" />
+                      <div>
+                        <span className="font-bold">Recommended Display Exceeded:</span> You have selected {formData.home_tours.items.length} services (Recommended: 3). You can add as many as you like, but displaying too many may affect homepage layout and performance.
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 font-sans">
                     <select value={selectedTour} onChange={e => setSelectedTour(e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-[#c7962d]">
                       <option value="">Select service/tour...</option>
                       {dbTours.filter(t => !formData.home_tours.items.includes(t.id)).map(t => (

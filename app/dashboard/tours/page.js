@@ -37,6 +37,12 @@ export default function ToursCMS() {
   const [selectedCategory, setSelectedCategory] = useState("All categories");
   const [selectedStatus, setSelectedStatus] = useState("All statuses");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedDestination, selectedCategory, selectedStatus]);
 
   // Helper to calculate warm premium HSL backgrounds for country code initials flag
   const getCountryColor = (code) => {
@@ -432,6 +438,10 @@ export default function ToursCMS() {
       return new Date(b.created_at || b.id || 0) - new Date(a.created_at || a.id || 0);
     });
 
+  const itemsPerPage = 15;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const displayedTours = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   const pocketGuides = miniGuides.filter(g => g.type === "pocket");
   const itineraryGuides = miniGuides.filter(g => g.type === "itinerary");
 
@@ -493,71 +503,52 @@ export default function ToursCMS() {
               <h2 className="font-serif font-bold text-lg text-brand-ink">Tours List</h2>
               
               <div className="flex items-center gap-3">
-                {selectedIds.length > 0 && (
+                {selectedIds.length > 1 && (
                   <div className="flex items-center gap-2 border-r border-brand-border/60 pr-3 mr-1 animate-in fade-in duration-200">
                     <span className="text-[11px] text-brand-muted font-sans font-medium">{selectedIds.length} selected</span>
-                    <button 
-                      onClick={() => handleBulkAction("publish")}
-                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
-                    >
-                      Publish
-                    </button>
-                    <button 
-                      onClick={() => handleBulkAction("draft")}
-                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
-                    >
-                      Draft
-                    </button>
-                    <button 
-                      onClick={() => handleBulkAction("feature")}
-                      className="px-2.5 py-1 rounded-md border border-brand-border text-xs font-semibold text-brand-ink hover:bg-brand-bg transition-all cursor-pointer"
-                    >
-                      Feature
-                    </button>
-                    <button 
-                      onClick={() => handleBulkAction("delete")}
-                      className="px-2.5 py-1 rounded-md border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition-all cursor-pointer"
-                    >
-                      Delete
-                    </button>
                   </div>
                 )}
                 
                 {/* Bulk Actions Button as requested by layout */}
-                <div className="relative group">
-                  <button 
-                    className="px-4 py-2 border border-brand-border rounded-lg text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
-                  >
-                    Bulk Actions <ChevronDown size={12} />
-                  </button>
-                  <div className="absolute right-0 mt-1 w-40 bg-white border border-brand-border rounded-lg shadow-lg py-1 hidden group-hover:block hover:block z-50">
+                {selectedIds.length > 1 && (
+                  <div className="relative animate-in fade-in duration-200">
                     <button 
-                      onClick={() => handleBulkAction("publish")}
-                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                      onClick={() => setBulkDropdownOpen(!bulkDropdownOpen)}
+                      className="px-4 py-2 border border-brand-border rounded-lg text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                     >
-                      Mark as Published
+                      Bulk Actions <ChevronDown size={12} />
                     </button>
-                    <button 
-                      onClick={() => handleBulkAction("draft")}
-                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
-                    >
-                      Mark as Draft
-                    </button>
-                    <button 
-                      onClick={() => handleBulkAction("feature")}
-                      className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
-                    >
-                      Feature on Homepage
-                    </button>
-                    <hr className="border-brand-border my-1" />
-                    <button 
-                      onClick={() => handleBulkAction("delete")}
-                      className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
-                    >
-                      Delete Selected
-                    </button>
+                    {bulkDropdownOpen && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border border-brand-border rounded-lg shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                        <button 
+                          onClick={() => { handleBulkAction("publish"); setBulkDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                        >
+                          Mark as Published
+                        </button>
+                        <button 
+                          onClick={() => { handleBulkAction("draft"); setBulkDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                        >
+                          Mark as Draft
+                        </button>
+                        <button 
+                          onClick={() => { handleBulkAction("feature"); setBulkDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                        >
+                          Feature on Homepage
+                        </button>
+                        <hr className="border-brand-border my-1" />
+                        <button 
+                          onClick={() => { handleBulkAction("delete"); setBulkDropdownOpen(false); }}
+                          className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                        >
+                          Delete Selected
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -635,7 +626,8 @@ export default function ToursCMS() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto font-sans">
+              <>
+                <div className="overflow-x-auto font-sans">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-brand-bg/40 text-[9px] uppercase tracking-[0.25em] text-brand-muted font-bold border-b border-brand-border">
@@ -659,7 +651,7 @@ export default function ToursCMS() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-border">
-                    {filtered.map((tour) => {
+                    {displayedTours.map((tour) => {
                       return (
                         <tr key={tour.id} className="hover:bg-[#fcfbf9]/40 transition-colors duration-200">
                           <td className="p-4 align-middle">
@@ -771,11 +763,47 @@ export default function ToursCMS() {
                   </tbody>
                 </table>
               </div>
-            )}
-            
-            <div className="p-5 border-t border-brand-border bg-[#fcfbf9]/40 flex justify-between items-center text-xs text-brand-muted">
-              <span>Displaying {filtered.length} of {tours.length} guides</span>
-            </div>
+
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between border-t border-brand-border/40 pt-4 mt-4 font-sans text-xs">
+                <div className="text-brand-muted font-medium">
+                  Showing {filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to{" "}
+                  {Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} entries
+                </div>
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1.5 font-sans">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                          currentPage === page
+                            ? "bg-brand-ink text-white border-brand-ink"
+                            : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
           </div>
         </>
       ) : (

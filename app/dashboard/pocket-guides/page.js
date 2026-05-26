@@ -99,6 +99,12 @@ export default function PocketGuidesCMS() {
   const [selectedStatus, setSelectedStatus] = useState("All statuses");
   const [selectedSort, setSelectedSort] = useState("Sort by newest");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedDestination, selectedStatus, selectedSort]);
 
   const toggleSelectRow = (id) => {
     setSelectedIds(prev => 
@@ -106,22 +112,49 @@ export default function PocketGuidesCMS() {
     );
   };
 
-  const handleBulkArchive = () => {
+  const handleBulkAction = async (action) => {
     if (selectedIds.length === 0) {
-      alert("Please select one or more pocket guides to set as Draft.");
+      alert("Please select one or more pocket guides first.");
       return;
     }
-    if (confirm(`Change status to Draft for ${selectedIds.length} selected pocket guides?`)) {
-      setGuides(prev => prev.map(g => {
-        if (selectedIds.includes(g.id)) {
-          const payload = { ...g, status: "draft" };
-          saveMiniGuide(payload).catch(err => console.warn("Sync drafts error:", err));
-          return payload;
+
+    if (action === "delete") {
+      if (confirm(`Are you sure you want to delete the ${selectedIds.length} selected pocket guides?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(selectedIds.map(id => deleteMiniGuide(id)));
+          setSelectedIds([]);
+          await loadData();
+          alert("Selected pocket guides successfully deleted.");
+        } catch (e) {
+          alert("Failed to delete selected pocket guides: " + e.message);
+        } finally {
+          setLoading(false);
         }
-        return g;
-      }));
-      setSelectedIds([]);
-      alert("Selected pocket guides successfully updated to Draft.");
+      }
+    } else if (action === "publish" || action === "draft") {
+      const nextStatus = action === "publish" ? "published" : "draft";
+      if (confirm(`Change status to ${nextStatus.toUpperCase()} for ${selectedIds.length} selected pocket guides?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(
+            selectedIds.map(async (id) => {
+              const g = guides.find(guide => guide.id === id);
+              if (g) {
+                const payload = { ...g, status: nextStatus };
+                await saveMiniGuide(payload);
+              }
+            })
+          );
+          setSelectedIds([]);
+          await loadData();
+          alert(`Selected pocket guides successfully set to ${nextStatus.toUpperCase()}.`);
+        } catch (e) {
+          alert("Failed to update selected pocket guides: " + e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
     }
   };
 
@@ -567,6 +600,10 @@ export default function PocketGuidesCMS() {
       return 0;
     });
 
+  const itemsPerPage = 15;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const displayedGuides = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="space-y-10 min-h-screen">
       {!isFormOpen ? (
@@ -621,12 +658,41 @@ export default function PocketGuidesCMS() {
             {/* Table Header Row */}
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-brand-border/40">
               <h2 className="font-serif font-bold text-lg text-brand-ink">Pocket Guides List</h2>
-              <button 
-                onClick={handleBulkArchive}
-                className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-semibold text-brand-ink hover:bg-brand-bg shadow-xs transition-all cursor-pointer"
-              >
-                Bulk Actions
-              </button>
+              
+              {/* Bulk Actions Button Dropdown */}
+              {selectedIds.length > 1 && (
+                <div className="relative animate-in fade-in duration-200">
+                  <button 
+                    onClick={() => setBulkDropdownOpen(!bulkDropdownOpen)}
+                    className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  >
+                    Bulk Actions <ChevronDown size={12} />
+                  </button>
+                  {bulkDropdownOpen && (
+                    <div className="absolute right-0 mt-1 w-40 bg-white border border-brand-border rounded-lg shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+                      <button 
+                        onClick={() => { handleBulkAction("publish"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                      >
+                        Mark as Published
+                      </button>
+                      <button 
+                        onClick={() => { handleBulkAction("draft"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                      >
+                        Mark as Draft
+                      </button>
+                      <hr className="border-brand-border my-1" />
+                      <button 
+                        onClick={() => { handleBulkAction("delete"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                        Delete Selected
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Filter Bar */}
@@ -704,145 +770,181 @@ export default function PocketGuidesCMS() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto scrollbar-luxury">
-                <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
-                  <thead>
-                    <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
-                      <th className="p-3 w-8">
-                        <input 
-                          type="checkbox" 
-                          checked={filtered.length > 0 && selectedIds.length === filtered.length}
-                          onChange={() => {
-                            if (selectedIds.length === filtered.length) {
-                              setSelectedIds([]);
-                            } else {
-                              setSelectedIds(filtered.map(g => g.id));
-                            }
-                          }}
-                          className="w-3.5 h-3.5 rounded border-brand-border text-brand-mustard focus:ring-brand-mustard accent-brand-mustard cursor-pointer"
-                        />
-                      </th>
-                      <th className="p-3 pl-1 pb-3 text-[10px]">GUIDE</th>
-                      <th className="p-3 pb-3 text-[10px]">DESTINATION</th>
-                      <th className="p-3 pb-3 text-[10px]">CITY</th>
-                      <th className="p-3 pb-3 text-[10px]">BEST TIME TO VISIT</th>
-                      <th className="p-3 pb-3 text-[10px]">IDEAL DURATION</th>
-                      <th className="p-3 pb-3 text-[10px]">BUDGET LEVEL</th>
-                      <th className="p-3 pb-3 text-[10px]">STATUS</th>
-                      <th className="p-3 pb-3 text-right text-[10px] pr-2">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-brand-border/40">
-                    {filtered.map((guide) => {
-                      const isSelected = selectedIds.includes(guide.id);
-                      
-                      // Country colors for premium initial avatars
-                      const getCountryColor = (code) => {
-                        const c = (code || "").toUpperCase();
-                        if (c === "JP") return "bg-[#8D5B4C]";
-                        if (c === "PT") return "bg-[#4E5B49]";
-                        if (c === "BE") return "bg-[#8A7968]";
-                        if (c === "IT") return "bg-[#65594F]";
-                        if (c === "FR") return "bg-[#5A6E72]";
-                        if (c === "MA") return "bg-[#9E7856]";
-                        return "bg-[#8C7A6B]";
-                      };
-                      
-                      const countryCode = guide.countryCode || guide.country_code || "JP";
-                      const countryColor = getCountryColor(countryCode);
-                      const countryInitials = countryCode.toUpperCase().slice(0, 2);
+              <>
+                <div className="overflow-x-auto scrollbar-luxury">
+                  <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
+                    <thead>
+                      <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
+                        <th className="p-3 w-8">
+                          <input 
+                            type="checkbox" 
+                            checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                            onChange={() => {
+                              if (selectedIds.length === filtered.length) {
+                                setSelectedIds([]);
+                              } else {
+                                setSelectedIds(filtered.map(g => g.id));
+                              }
+                            }}
+                            className="w-3.5 h-3.5 rounded border-brand-border text-brand-mustard focus:ring-brand-mustard accent-brand-mustard cursor-pointer"
+                          />
+                        </th>
+                        <th className="p-3 pl-1 pb-3 text-[10px]">GUIDE</th>
+                        <th className="p-3 pb-3 text-[10px]">DESTINATION</th>
+                        <th className="p-3 pb-3 text-[10px]">CITY</th>
+                        <th className="p-3 pb-3 text-[10px]">BEST TIME TO VISIT</th>
+                        <th className="p-3 pb-3 text-[10px]">IDEAL DURATION</th>
+                        <th className="p-3 pb-3 text-[10px]">BUDGET LEVEL</th>
+                        <th className="p-3 pb-3 text-[10px]">STATUS</th>
+                        <th className="p-3 pb-3 text-right text-[10px] pr-2">ACTIONS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-brand-border/40">
+                      {displayedGuides.map((guide) => {
+                        const isSelected = selectedIds.includes(guide.id);
+                        
+                        // Country colors for premium initial avatars
+                        const getCountryColor = (code) => {
+                          const c = (code || "").toUpperCase();
+                          if (c === "JP") return "bg-[#8D5B4C]";
+                          if (c === "PT") return "bg-[#4E5B49]";
+                          if (c === "BE") return "bg-[#8A7968]";
+                          if (c === "IT") return "bg-[#65594F]";
+                          if (c === "FR") return "bg-[#5A6E72]";
+                          if (c === "MA") return "bg-[#9E7856]";
+                          return "bg-[#8C7A6B]";
+                        };
+                        
+                        const countryCode = guide.countryCode || guide.country_code || "JP";
+                        const countryColor = getCountryColor(countryCode);
+                        const countryInitials = countryCode.toUpperCase().slice(0, 2);
 
-                      return (
-                        <tr key={guide.id} className={`hover:bg-[#FAF8F5]/30 transition-colors duration-200 ${isSelected ? "bg-brand-mustard/5" : ""}`}>
-                          <td className="p-3 pl-3">
-                            <input 
-                              type="checkbox" 
-                              checked={isSelected}
-                              onChange={() => toggleSelectRow(guide.id)}
-                              className="w-3.5 h-3.5 rounded border-brand-border text-brand-mustard focus:ring-brand-mustard accent-brand-mustard cursor-pointer"
-                            />
-                          </td>
-                          <td className="p-3 pl-1">
-                            <div className="flex items-center gap-3">
-                              {/* Avatar initials with curated palette */}
-                              <div className={`w-8 h-8 rounded-full ${countryColor} text-white font-sans font-bold text-xs flex items-center justify-center border border-white/10 shrink-0`}>
-                                {countryInitials}
-                              </div>
-                              <div>
-                                <h3 className="font-serif text-sm font-semibold text-brand-ink leading-snug">
-                                  {guide.title}
-                                </h3>
-                                <div className="text-[10px] text-brand-muted mt-0.5 max-w-[200px] truncate" title={guide.excerpt}>
-                                  {guide.excerpt}
+                        return (
+                          <tr key={guide.id} className={`hover:bg-[#FAF8F5]/30 transition-colors duration-200 ${isSelected ? "bg-brand-mustard/5" : ""}`}>
+                            <td className="p-3 pl-3">
+                              <input 
+                                type="checkbox" 
+                                checked={isSelected}
+                                onChange={() => toggleSelectRow(guide.id)}
+                                className="w-3.5 h-3.5 rounded border-brand-border text-brand-mustard focus:ring-brand-mustard accent-brand-mustard cursor-pointer"
+                              />
+                            </td>
+                            <td className="p-3 pl-1">
+                              <div className="flex items-center gap-3">
+                                {/* Avatar initials with curated palette */}
+                                <div className={`w-8 h-8 rounded-full ${countryColor} text-white font-sans font-bold text-xs flex items-center justify-center border border-white/10 shrink-0`}>
+                                  {countryInitials}
+                                </div>
+                                <div>
+                                  <h3 className="font-serif text-sm font-semibold text-brand-ink leading-snug">
+                                    {guide.title}
+                                  </h3>
+                                  <div className="text-[10px] text-brand-muted mt-0.5 max-w-[200px] truncate" title={guide.excerpt}>
+                                    {guide.excerpt}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="p-3 text-brand-ink font-medium">
-                            {guide.destination}
-                          </td>
-                          <td className="p-3 text-brand-ink">
-                            {guide.details?.city || guide.title.replace(" Travel Guide", "")}
-                          </td>
-                          <td className="p-3 text-brand-muted max-w-[200px] truncate" title={guide.details?.bestTimeToVisit}>
-                            {guide.details?.bestTimeToVisit || "—"}
-                          </td>
-                          <td className="p-3 text-brand-muted max-w-[150px] truncate" title={guide.details?.idealDuration}>
-                            {guide.details?.idealDuration || "—"}
-                          </td>
-                          <td className="p-3 text-brand-muted max-w-[150px] truncate" title={guide.details?.budgetLevel}>
-                            {guide.details?.budgetLevel || "—"}
-                          </td>
-                          <td className="p-3">
-                            {(guide.status || "published").toLowerCase() === "published" ? (
-                              <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-green-50 text-green-700 tracking-wide border border-green-200">
-                                Published
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-[#FCF8E3] text-[#C7962D] tracking-wide border border-[#FBEED5]">
-                                Draft
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-3 text-right pr-2">
-                            <div className="flex justify-end items-center gap-1.5">
-                              <button 
-                                onClick={() => handleOpenEdit(guide)}
-                                className="p-1.5 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg rounded-md transition-colors cursor-pointer"
-                                title="Edit Guide"
-                              >
-                                <Edit size={14} />
-                              </button>
-                              <a 
-                                href={`/mini-guides/${guide.slug}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-1.5 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg rounded-md transition-colors flex items-center justify-center"
-                                title="View Live"
-                              >
-                                <Eye size={14} />
-                              </a>
-                              <button 
-                                onClick={() => handleDelete(guide.id, guide.title)}
-                                className="p-1.5 text-brand-muted hover:text-[#B04A3C] hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                                title="Delete Guide"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                            </td>
+                            <td className="p-3 text-brand-ink font-medium">
+                              {guide.destination}
+                            </td>
+                            <td className="p-3 text-brand-ink">
+                              {guide.details?.city || guide.title.replace(" Travel Guide", "")}
+                            </td>
+                            <td className="p-3 text-brand-muted max-w-[200px] truncate" title={guide.details?.bestTimeToVisit}>
+                              {guide.details?.bestTimeToVisit || "—"}
+                            </td>
+                            <td className="p-3 text-brand-muted max-w-[150px] truncate" title={guide.details?.idealDuration}>
+                              {guide.details?.idealDuration || "—"}
+                            </td>
+                            <td className="p-3 text-brand-muted max-w-[150px] truncate" title={guide.details?.budgetLevel}>
+                              {guide.details?.budgetLevel || "—"}
+                            </td>
+                            <td className="p-3">
+                              {(guide.status || "published").toLowerCase() === "published" ? (
+                                <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-green-50 text-green-700 tracking-wide border border-green-200">
+                                  Published
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-1 text-[10px] font-bold rounded-full bg-[#FCF8E3] text-[#C7962D] tracking-wide border border-[#FBEED5]">
+                                  Draft
+                                </span>
+                              )}
+                            </td>
+                            <td className="p-3 text-right pr-2">
+                              <div className="flex justify-end items-center gap-1.5">
+                                <button 
+                                  onClick={() => handleOpenEdit(guide)}
+                                  className="p-1.5 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg rounded-md transition-colors cursor-pointer"
+                                  title="Edit Guide"
+                                >
+                                  <Edit size={14} />
+                                </button>
+                                <a 
+                                  href={`/mini-guides/${guide.slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1.5 text-brand-muted hover:text-brand-mustard hover:bg-brand-bg rounded-md transition-colors flex items-center justify-center"
+                                  title="View Live"
+                                >
+                                  <Eye size={14} />
+                                </a>
+                                <button 
+                                  onClick={() => handleDelete(guide.id, guide.title)}
+                                  className="p-1.5 text-brand-muted hover:text-[#B04A3C] hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                  title="Delete Guide"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-            {/* Table Footer */}
-            <div className="flex justify-between items-center mt-6 pt-4 border-t border-brand-border/40 text-xs text-brand-muted">
-              <span>Displaying {filtered.length} of {guides.length} guides</span>
-            </div>
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between border-t border-brand-border/40 pt-4 mt-4 font-sans text-xs">
+                  <div className="text-brand-muted font-medium">
+                    Showing {filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to{" "}
+                    {Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} entries
+                  </div>
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                      >
+                        Previous
+                      </button>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                            currentPage === page
+                              ? "bg-brand-ink text-white border-brand-ink"
+                              : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      <button
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
           </div>
         </>

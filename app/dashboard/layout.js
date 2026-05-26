@@ -53,7 +53,6 @@ export default function DashboardLayout({ children }) {
     { name: "Packages", path: "/dashboard/packages", icon: <Briefcase size={18} /> },
     { name: "Media Library", path: "/dashboard/media-library", icon: <ImageIcon size={18} /> },
     { name: "Inquiries", path: "/dashboard/inquiries", icon: <MessageSquare size={18} /> },
-    { name: "Subscribers", path: "/dashboard/subscribers", icon: <Mail size={18} /> },
     { name: "Bookings", path: "/dashboard/bookings", icon: <CalendarCheck size={18} /> },
     { name: "Homepage", path: "/dashboard/homepage", icon: <Home size={18} /> },
   ];

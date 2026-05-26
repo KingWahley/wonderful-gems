@@ -26,6 +26,12 @@ export default function BlogCMS() {
   const [selectedStatus, setSelectedStatus] = useState("All statuses");
   const [selectedSort, setSelectedSort] = useState("Sort by newest");
   const [selectedIds, setSelectedIds] = useState([]);
+  const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedDestination, selectedStatus, selectedSort]);
 
   // Data-parsing helpers for dynamic fields
   const parseCityRoute = (cityStr) => {
@@ -162,22 +168,49 @@ export default function BlogCMS() {
     );
   };
 
-  const handleBulkArchive = () => {
+  const handleBulkAction = async (action) => {
     if (selectedIds.length === 0) {
-      alert("Please select one or more blog posts to set as Draft.");
+      alert("Please select one or more blog posts first.");
       return;
     }
-    if (confirm(`Change status to Draft for ${selectedIds.length} selected blog posts?`)) {
-      setBlogs(prev => prev.map(b => {
-        if (selectedIds.includes(b.id)) {
-          const payload = { ...b, status: "Draft" };
-          saveBlog(payload).catch(err => console.warn("Sync drafts error:", err));
-          return payload;
+
+    if (action === "delete") {
+      if (confirm(`Are you sure you want to delete the ${selectedIds.length} selected blog posts?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(selectedIds.map(id => deleteBlog(id)));
+          setSelectedIds([]);
+          await loadData();
+          alert("Selected blog posts successfully deleted.");
+        } catch (e) {
+          alert("Failed to delete selected blog posts: " + e.message);
+        } finally {
+          setLoading(false);
         }
-        return b;
-      }));
-      setSelectedIds([]);
-      alert("Selected blog posts successfully updated to Draft.");
+      }
+    } else if (action === "publish" || action === "draft") {
+      const nextStatus = action === "publish" ? "Published" : "Draft";
+      if (confirm(`Change status to ${nextStatus} for ${selectedIds.length} selected blog posts?`)) {
+        try {
+          setLoading(true);
+          await Promise.all(
+            selectedIds.map(async (id) => {
+              const b = blogs.find(blog => blog.id === id);
+              if (b) {
+                const payload = { ...b, status: nextStatus };
+                await saveBlog(payload);
+              }
+            })
+          );
+          setSelectedIds([]);
+          await loadData();
+          alert(`Selected blog posts successfully set to ${nextStatus}.`);
+        } catch (e) {
+          alert("Failed to update selected blog posts: " + e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
     }
   };
 
@@ -544,6 +577,10 @@ export default function BlogCMS() {
       return 0;
     });
 
+  const itemsPerPage = 15;
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const displayedBlogs = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   const tagsArray = formData.tags
     ? formData.tags.split(",").map(t => t.trim()).filter(Boolean)
     : ["slow travel", "temples", "food"];
@@ -602,12 +639,41 @@ export default function BlogCMS() {
             {/* Table Header Row */}
             <div className="flex justify-between items-center mb-6 pb-2 border-b border-brand-border/40">
               <h2 className="font-serif font-bold text-lg text-brand-ink">Blog Posts List</h2>
-              <button 
-                onClick={handleBulkArchive}
-                className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-semibold text-brand-ink hover:bg-brand-bg shadow-xs transition-all cursor-pointer"
-              >
-                Bulk Actions
-              </button>
+              
+              {/* Bulk Actions Button Dropdown */}
+              {selectedIds.length > 1 && (
+                <div className="relative animate-in fade-in duration-200">
+                  <button 
+                    onClick={() => setBulkDropdownOpen(!bulkDropdownOpen)}
+                    className="px-3 py-1.5 border border-brand-border rounded-lg text-xs font-bold text-brand-ink hover:bg-brand-bg transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  >
+                    Bulk Actions <ChevronDown size={12} />
+                  </button>
+                  {bulkDropdownOpen && (
+                    <div className="absolute right-0 mt-1 w-40 bg-white border border-brand-border rounded-lg shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-100 font-sans">
+                      <button 
+                        onClick={() => { handleBulkAction("publish"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                      >
+                        Mark as Published
+                      </button>
+                      <button 
+                        onClick={() => { handleBulkAction("draft"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-brand-ink hover:bg-brand-bg transition-colors cursor-pointer"
+                      >
+                        Mark as Draft
+                      </button>
+                      <div className="border-t border-brand-border/40 my-1"></div>
+                      <button 
+                        onClick={() => { handleBulkAction("delete"); setBulkDropdownOpen(false); }}
+                        className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                      >
+                        Delete Selected
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Filter Bar */}
@@ -686,7 +752,8 @@ export default function BlogCMS() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto scrollbar-luxury">
+              <>
+                <div className="overflow-x-auto scrollbar-luxury">
                 <table className="w-full text-left text-xs whitespace-nowrap table-auto border-collapse">
                   <thead>
                     <tr className="border-b border-brand-border/40 text-brand-muted font-bold tracking-wider uppercase bg-[#FAF8F5]/30">
@@ -716,7 +783,7 @@ export default function BlogCMS() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-brand-border/40">
-                    {filtered.map((blog) => {
+                    {displayedBlogs.map((blog) => {
                       const isSelected = selectedIds.includes(blog.id);
                       
                       // Country colors for premium initial avatars
@@ -834,12 +901,47 @@ export default function BlogCMS() {
                   </tbody>
                 </table>
               </div>
-            )}
 
-            {/* Table Footer */}
-            <div className="flex justify-between items-center mt-6 pt-4 border-t border-brand-border/40 text-xs text-brand-muted">
-              <span>Displaying {filtered.length} of {blogs.length} articles</span>
-            </div>
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between border-t border-brand-border/40 pt-4 mt-4 font-sans text-xs">
+                <div className="text-brand-muted font-medium">
+                  Showing {filtered.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to{" "}
+                  {Math.min(filtered.length, currentPage * itemsPerPage)} of {filtered.length} entries
+                </div>
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1.5 font-sans">
+                    <button
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                    >
+                      Previous
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1.5 rounded-lg border font-semibold transition-all cursor-pointer ${
+                          currentPage === page
+                            ? "bg-brand-ink text-white border-brand-ink"
+                            : "bg-white text-brand-ink border-brand-border hover:bg-brand-bg"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                    <button
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      className="px-3 py-1.5 border border-brand-border rounded-lg text-brand-ink hover:bg-brand-bg transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-semibold cursor-pointer"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
 
           </div>
         </>
