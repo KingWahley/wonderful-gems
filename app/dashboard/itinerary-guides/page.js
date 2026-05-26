@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchMiniGuides, saveMiniGuide, deleteMiniGuide, fetchDestinations, uploadImage } from "@/lib/db";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
+import LocationAutocomplete from "@/components/dashboard/LocationAutocomplete";
 import { 
   Plus, Edit, Eye, Trash2, Search, X, Loader2, Image as ImageIcon,
   Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,
@@ -367,10 +368,9 @@ export default function ItineraryGuidesCMS() {
     }
   };
 
-  const handleDestinationChange = (e) => {
-    const destName = e.target.value;
+  const handleDestinationChange = (destName, optCode) => {
     const destObj = destinations.find(d => d.country === destName);
-    const countryCode = destObj ? (destObj.code || destObj.country_code || "") : "";
+    const countryCode = optCode || (destObj ? (destObj.code || destObj.country_code || "") : "");
     setFormData(prev => ({
       ...prev,
       destination: destName,
@@ -1182,32 +1182,24 @@ export default function ItineraryGuidesCMS() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Destination Selector */}
                       <div>
-                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Destination *</label>
-                        <input
-                          type="text"
-                          list="destinations-list"
-                          required
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Destination *</label>
+                        <LocationAutocomplete
                           value={formData.destination}
-                          onChange={handleDestinationChange}
+                          onChange={(val, code) => handleDestinationChange(val, code)}
+                          type="country"
                           placeholder="Type or select a country"
-                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
                         />
-                        <datalist id="destinations-list">
-                          {destinations.map((dest) => (
-                            <option key={dest.id} value={dest.country} />
-                          ))}
-                        </datalist>
                       </div>
 
-                      {/* Country Input */}
                       <div>
-                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Country</label>
-                        <input
-                          type="text"
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Country</label>
+                        <LocationAutocomplete
                           value={formData.details.country || ""}
-                          onChange={(e) => updateDetailField("country", e.target.value)}
-                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all"
+                          onChange={(val) => updateDetailField("country", val)}
+                          type="country"
                           placeholder="e.g. Spain, Portugal, Italy"
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
                         />
                       </div>
                     </div>
@@ -1500,13 +1492,14 @@ export default function ItineraryGuidesCMS() {
                         {/* Grid row 1: City & Title */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2">City</label>
-                            <input
-                              type="text"
+                            <label className="block text-[9px] font-bold text-brand-muted uppercase tracking-wider mb-2 font-sans">City</label>
+                            <LocationAutocomplete
                               value={day.city || ""}
-                              onChange={(e) => updateDayField(idx, "city", e.target.value)}
-                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white"
+                              onChange={(val) => updateDayField(idx, "city", val)}
+                              type="city"
+                              countryContext={formData.destination}
                               placeholder="e.g. Lisbon"
+                              className="w-full border border-brand-border rounded-xl p-2.5 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink font-sans"
                             />
                           </div>
                           <div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchBlogs, saveBlog, deleteBlog, fetchDestinations, uploadImage, fetchMiniGuides } from "@/lib/db";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
+import LocationAutocomplete from "@/components/dashboard/LocationAutocomplete";
 import { 
   Plus, Edit, Eye, Trash2, Search, X, Loader2, Image as ImageIcon, 
   Sparkles, BookOpen, Menu, Bell, ArrowLeft, Upload, Check, Globe, HelpCircle,
@@ -414,10 +415,9 @@ export default function BlogCMS() {
     }
   };
 
-  const handleDestinationChange = (e) => {
-    const destName = e.target.value;
+  const handleDestinationChange = (destName, optCode) => {
     const destObj = destinations.find(d => d.country === destName);
-    const code = destObj ? (destObj.code || destObj.country_code || "") : "";
+    const code = optCode || (destObj ? (destObj.code || destObj.country_code || "") : "");
     
     setFormData(prev => {
       const cities = getCitiesForDestination(destName);
@@ -425,7 +425,7 @@ export default function BlogCMS() {
         ...prev,
         destination: destName,
         countryCode: code,
-        city: cities[0] || "Kyoto"
+        city: cities[0] || ""
       };
       
       if (modalMode === "add") {
@@ -1050,37 +1050,25 @@ export default function BlogCMS() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Destination</label>
-                        <input
-                          type="text"
-                          list="destinations-list"
+                        <LocationAutocomplete
                           value={formData.destination}
-                          onChange={handleDestinationChange}
-                          required
+                          onChange={(val, code) => handleDestinationChange(val, code)}
+                          type="country"
                           placeholder="Type or select a country"
                           className="w-full border border-brand-border rounded-xl p-3.5 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white text-brand-ink transition-all font-sans"
                         />
-                        <datalist id="destinations-list">
-                          {destinations.map((d) => (
-                            <option key={d.id} value={d.country} />
-                          ))}
-                        </datalist>
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">City</label>
-                        <input
-                          type="text"
-                          list="cities-list"
+                        <LocationAutocomplete
                           value={formData.city}
-                          onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                          onChange={(val) => setFormData(prev => ({ ...prev, city: val }))}
+                          type="city"
+                          countryContext={formData.destination}
                           placeholder="Type or select a city"
                           className="w-full border border-brand-border rounded-xl p-3.5 text-xs focus:outline-none focus:border-brand-mustard focus:ring-1 focus:ring-brand-mustard bg-white text-brand-ink transition-all font-sans"
                         />
-                        <datalist id="cities-list">
-                          {getCitiesForDestination(formData.destination).map((city, idx) => (
-                            <option key={idx} value={city} />
-                          ))}
-                        </datalist>
                       </div>
                     </div>
 

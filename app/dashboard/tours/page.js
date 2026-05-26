@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { fetchTours, saveTour, deleteTour, fetchDestinations, fetchMiniGuides, uploadImage } from "@/lib/db";
 import { Plus, Edit, Eye, Trash2, Search, X, Loader2, ArrowLeft, ChevronDown, Bell, Upload, Calendar, Compass, Clock, Tag, Download } from "lucide-react";
+import LocationAutocomplete from "@/components/dashboard/LocationAutocomplete";
 
 const cityMapping = {
   "Japan": ["Kyoto", "Tokyo", "Osaka", "Nara"],
@@ -296,14 +297,13 @@ export default function ToursCMS() {
     }
   };
 
-  const handleDestinationChange = (e) => {
-    const destName = e.target.value;
+  const handleDestinationChange = (destName, optCode) => {
     const destObj = destinations.find(d => d.country === destName);
     const defaultCity = cityMapping[destName]?.[0] || "";
     setFormData(prev => ({
       ...prev,
       destination: destName,
-      countryCode: destObj ? destObj.code : "",
+      countryCode: optCode || (destObj ? destObj.code : ""),
       city: defaultCity
     }));
   };
@@ -922,42 +922,26 @@ export default function ToursCMS() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">Destination</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            list="tour-destinations-list"
-                            value={formData.destination}
-                            onChange={handleDestinationChange}
-                            required
-                            placeholder="Type or select a country"
-                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
-                          />
-                          <datalist id="tour-destinations-list">
-                            {destinations.map((d) => (
-                              <option key={d.id} value={d.country} />
-                            ))}
-                          </datalist>
-                        </div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Destination</label>
+                        <LocationAutocomplete
+                          value={formData.destination}
+                          onChange={(val, code) => handleDestinationChange(val, code)}
+                          type="country"
+                          placeholder="Type or select a country"
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                        />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2">City</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            list="tour-cities-list"
-                            value={formData.city}
-                            onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                            placeholder="Type or select a city"
-                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
-                          />
-                          <datalist id="tour-cities-list">
-                            {(cityMapping[formData.destination] || []).map((city) => (
-                              <option key={city} value={city} />
-                            ))}
-                          </datalist>
-                        </div>
+                        <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">City</label>
+                        <LocationAutocomplete
+                          value={formData.city}
+                          onChange={(val) => setFormData(prev => ({ ...prev, city: val }))}
+                          type="city"
+                          countryContext={formData.destination}
+                          placeholder="Type or select a city"
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                        />
                       </div>
                     </div>
 

@@ -8,6 +8,7 @@ import {
   ChevronDown, Calendar, Clock, Compass, MapPin, Sparkle, Download
 } from "lucide-react";
 import MediaSelectorModal from "@/components/dashboard/MediaSelectorModal";
+import LocationAutocomplete from "@/components/dashboard/LocationAutocomplete";
 
 const defaultDetails = {
   pocketTitle: "",
@@ -280,10 +281,9 @@ export default function PocketGuidesCMS() {
     }
   };
 
-  const handleDestinationChange = (e) => {
-    const destName = e.target.value;
+  const handleDestinationChange = (destName, optCode) => {
     const destObj = destinations.find(d => d.country === destName);
-    const countryCode = destObj ? (destObj.code || destObj.country_code || "") : "";
+    const countryCode = optCode || (destObj ? (destObj.code || destObj.country_code || "") : "");
     const defaultCity = cityMapping[destName]?.[0] || "";
     
     setFormData(prev => ({
@@ -1042,39 +1042,25 @@ export default function PocketGuidesCMS() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">Destination</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            list="pocket-destinations-list"
-                            value={formData.destination}
-                            onChange={handleDestinationChange}
-                            required
-                            placeholder="Type or select a country"
-                            className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
-                          />
-                          <datalist id="pocket-destinations-list">
-                            {destinations.map((d) => (
-                              <option key={d.id} value={d.country} />
-                            ))}
-                          </datalist>
-                        </div>
+                        <LocationAutocomplete
+                          value={formData.destination}
+                          onChange={(val, code) => handleDestinationChange(val, code)}
+                          type="country"
+                          placeholder="Type or select a country"
+                          className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
+                        />
                       </div>
 
                       <div>
                         <label className="block text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em] mb-2 font-sans">City</label>
-                        <input
-                          type="text"
-                          list="pocket-cities-list"
+                        <LocationAutocomplete
                           value={formData.details?.city || ""}
-                          onChange={(e) => updateDetailField("city", e.target.value)}
+                          onChange={(val) => updateDetailField("city", val)}
+                          type="city"
+                          countryContext={formData.destination}
                           placeholder="Type or select a city"
                           className="w-full border border-brand-border rounded-xl p-3 text-xs focus:outline-none focus:border-brand-mustard bg-white text-brand-ink transition-all font-sans"
                         />
-                        <datalist id="pocket-cities-list">
-                          {(cityMapping[formData.destination] || []).map((city) => (
-                            <option key={city} value={city} />
-                          ))}
-                        </datalist>
                       </div>
                     </div>
 

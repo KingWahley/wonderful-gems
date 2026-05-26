@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { saveDestination, uploadImage } from "@/lib/db";
 import { ChevronRight, Loader2, X, Plus, Search, Bell } from "lucide-react";
+import LocationAutocomplete, { getFlagEmoji } from "@/components/dashboard/LocationAutocomplete";
 
 export default function DestinationForm({ initialData }) {
   const router = useRouter();
@@ -162,10 +163,17 @@ export default function DestinationForm({ initialData }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[13px] font-extrabold mb-2">Country</label>
-                  <input 
-                    type="text" 
+                  <LocationAutocomplete 
                     value={formData.country}
-                    onChange={e => setFormData(p => ({ ...p, country: e.target.value }))}
+                    onChange={(val, code) => {
+                      setFormData(p => ({ 
+                        ...p, 
+                        country: val,
+                        code: code || p.code,
+                        flag: code ? getFlagEmoji(code) : p.flag
+                      }));
+                    }}
+                    type="country"
                     placeholder="e.g. Japan" 
                     className="w-full border border-brand-border rounded-lg bg-white px-3 py-3 text-sm focus:outline-none focus:border-brand-mustard"
                   />
